@@ -1,0 +1,51 @@
+<view class="profileWrapper">
+  <view class="avatarWrapper">
+    <t-avatar image="{{userData.avatarUrl}}" icon="user" size="192rpx" />
+  </view>
+
+  <view class="informationWrapper">
+    <view class="title nickname">{{userData.nickname}}</view>
+
+    <view>
+      <t-button bind:tap="showEdit" size="extra-small">编辑资料</t-button>
+    </view>
+  </view>
+</view>
+
+<t-divider />
+
+<t-dialog
+  visible="{{editVisible}}"
+  title="编辑资料"
+  confirm-btn="{{ {loading: editButtonLoading, content: editButtonLoading ? '上传中' : '确定', variant: 'base'} }}"
+  cancel-btn="{{ {content: '取消', theme: 'default', variant: 'outline'} }}"
+  bind:confirm="handleUpload"
+  bind:cancel="closeEdit"
+>
+  <button
+    slot="content"
+    bind:chooseavatar="onChooseAvatar"
+    open-type="chooseAvatar"
+    plain
+    style="border: none; margin-top: 32rpx;"
+  >
+    <t-avatar
+      slot="content"
+      image="{{choosedAvatarUrl}}"
+      icon="add"
+      size="large"
+    /> 
+  </button>
+
+  <t-input
+    slot="content"
+    bind:change="onInputChange"
+    value="{{nicknameInput}}"
+    type="nickname"
+    maxlength="{{10}}"
+    borderless
+    clearable
+    label="昵称"
+    placeholder="{{userData.nickname}}"
+  />
+</t-dialog>

@@ -8,9 +8,9 @@
     theme="light"
   >
     <t-button
+      slot="content"
       wx:if="{{undoVisible}}"
       bind:tap="undoAction"
-      slot="content"
       content="撤回"
       theme="danger"
       variant="text"
@@ -18,9 +18,9 @@
     />
 
     <t-button
+      slot="content"
       wx:if="{{toggleVisible}}"
       bind:tap="toggleActionGroup"
-      slot="content"
       content="{{actionGroupVisible ? '收起' : '展开'}}"
       variant="text"
       size="extra-small"

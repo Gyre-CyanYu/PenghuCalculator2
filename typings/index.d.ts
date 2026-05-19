@@ -6,9 +6,7 @@ interface IAppOption {
     userData: UserData,
     currentRoomid: string,
     joinedRoomList: string[]
-  },
-
-  getUserData: () => Promise<void>,
+  }
 }
 
 interface UserData {
@@ -109,4 +107,4 @@ interface Result<T> {
   message: string
 }
 
-type ImageType = 'avatar' | 'roomQRCode'
+type ImageType = 'avatar' | 'qrCode'

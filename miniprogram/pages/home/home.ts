@@ -27,7 +27,7 @@ Page({
     noticeVisible: false
   } as HomePageData,
 
-  async onLoad(options) {
+  async onLoad() {
     await Promise.all([this.getJoinedRoomList(), this.getNoticeList()]);
 
     this.setData({ joinedRoomList: app.globalData.joinedRoomList });
@@ -56,6 +56,7 @@ Page({
     await Promise.all([this.getJoinedRoomList(), this.getNoticeList()]);
 
     this.setData({ joinedRoomList: app.globalData.joinedRoomList });
+    this.getTabBar().updateRoomid();
 
     wx.stopPullDownRefresh();
   },
@@ -81,7 +82,9 @@ Page({
       const joinedRoomList: string[] = result.data;
       app.globalData.joinedRoomList = joinedRoomList;
 
-      if (!app.globalData.currentRoomid && joinedRoomList.length) {
+      if (!joinedRoomList.length) {
+        app.globalData.currentRoomid = '';
+      } else if (!app.globalData.currentRoomid) {
         app.globalData.currentRoomid = joinedRoomList[0];
       }
       
@@ -90,7 +93,7 @@ Page({
       const reservedRoomList: string[] = reservedRoomDataList.map(roomData => roomData.roomid);
 
       wx.setStorageSync('rooms', reservedRoomDataList);
-      await storage.removeImage('roomQRCode', reservedRoomList);
+      await storage.removeImage('qrCode', reservedRoomList);
     } catch (err) {
       console.warn('获取已加入房间列表失败', err);
     }

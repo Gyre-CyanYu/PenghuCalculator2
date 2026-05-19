@@ -13,6 +13,7 @@ page {
   border-radius: 24rpx;
   box-shadow: var(--shadow);
 }
+
 .title {
   font-size: large;
   font-weight: bold;

@@ -38,9 +38,9 @@
   bind:cancel="closeJoin"
 >
   <t-input
+    slot="content"
     bind:change="onInputChange"
     value="{{roomidInput}}"
-    slot="content"
     maxcharacter="{{5}}"
     borderless="{{true}}"
     label="房间号"
@@ -56,10 +56,10 @@
   cancel-btn="{{ {content: '关闭', theme: 'default', variant: 'outline'} }}"
   bind:cancel="closeNotice"
 >
-  <scroll-view scroll-y slot="content" class="noticeScroll">
+  <scroll-view slot="content" scroll-y class="noticeScroll">
     <block wx:if="{{noticeDataList.length}}">
       <view wx:for="{{noticeDataList}}" wx:key="index" class="noticeWrapper">
-        <view class="subtitle {{item.isImportant ? 'importantSubtitle' : ''}}">{{item.createdAt}}</view>
+        <view class="subtitle {{item.isImportant ? 'importantTime' : ''}}">{{item.createdAt}}</view>
         <view class="content">{{item.content}}</view>
       </view>
     </block>

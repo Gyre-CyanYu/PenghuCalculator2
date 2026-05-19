@@ -1,0 +1,17 @@
+.profileWrapper {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  padding: 32rpx;
+}
+
+.avatarWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.informationWrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16rpx;
+}

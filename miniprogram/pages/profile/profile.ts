@@ -5,6 +5,12 @@ export {};
 
 interface ProfilePageData {
   userData: UserData;
+
+  choosedAvatarUrl: string;
+  nicknameInput: string;
+
+  editVisible: boolean;
+  editButtonLoading: boolean;
 }
 
 Page({
@@ -15,9 +21,15 @@ Page({
       avatarUrl: ''
     },
 
+    choosedAvatarUrl: '',
+    nicknameInput: '',
+
+    editVisible: false,
+    editButtonLoading: false,
   } as ProfilePageData,
 
-  onLoad(options) {
+  async onLoad() {
+    await this.getUserData();
     this.setData({ userData: app.globalData.userData });
   },
 
@@ -29,20 +41,13 @@ Page({
     this.getTabBar().updateRoomid();
   },
 
-  onHide() {
+  async onPullDownRefresh() {
+    await this.getUserData();
 
-  },
+    this.setData({ userData: app.globalData.userData });
+    this.getTabBar().updateRoomid();
 
-  onUnload() {
-
-  },
-
-  onPullDownRefresh() {
-
-  },
-
-  onReachBottom() {
-
+    wx.stopPullDownRefresh();
   },
 
   onShareAppMessage() {
@@ -67,9 +72,8 @@ Page({
         userData.avatarUrl = '/images/PenghuScorekeeper.jpg';
       }
 
-      this.setData({ userData });
       app.globalData.userData = userData;
-      storage.cacheUserData(this.data.userData);
+      storage.cacheUserData(app.globalData.userData);
     } catch (err) {
       console.error('获取用户信息失败', err);
       wx.showToast({
@@ -78,4 +82,80 @@ Page({
       });
     }
   },
+
+  async handleUpload(): Promise<void> {
+    if (!this.data.choosedAvatarUrl && !this.data.nicknameInput) {
+      wx.showToast({
+        title: '未修改资料',
+        icon: 'none'
+      });
+      return
+    }
+
+    this.setData({ editButtonLoading: true });
+
+    try {
+      let avatarArrayBuffer = null;
+      if (this.data.choosedAvatarUrl) {
+        avatarArrayBuffer = wx.getFileSystemManager().readFileSync(this.data.choosedAvatarUrl);
+      }
+
+      const { result } = await wx.cloud.callFunction({
+        name: 'updateUserData',
+        data: {
+          nickname: this.data.nicknameInput,
+          avatarArrayBuffer
+        }
+      }) as unknown as { result: Result<UserData> };
+
+      if (result.code !== 200) {
+        throw result
+      }
+
+      const userData = this.data.userData;
+      if (result.data.nickname) {
+        userData.nickname = result.data.nickname;
+      }
+      if (result.data.avatarUrl) {
+        userData.avatarUrl = await storage.downloadImage(result.data.avatarUrl, 'avatar', this.data.userData.openid, this.data.userData.avatarUrl);
+      }
+
+      this.setData({ userData });
+      storage.cacheUserData(this.data.userData);
+
+      this.closeEdit();
+      wx.showToast({
+        title: '上传成功',
+        icon: 'none'
+      });
+    } catch (err) {
+      console.error('上传失败', err);
+      wx.showToast({
+        title: '上传失败',
+        icon: 'error'
+      });
+    }
+
+    this.setData({ editButtonLoading: false });
+  },
+
+  onChooseAvatar(e: WechatMiniprogram.CustomEvent): void {
+    this.setData({ choosedAvatarUrl: e.detail.avatarUrl });
+  },
+
+  onInputChange(e: WechatMiniprogram.CustomEvent): void {
+    this.setData({ nicknameInput: e.detail.value });
+  },
+
+  showEdit(): void {
+    this.setData({ editVisible: true });
+  },
+
+  closeEdit(): void {
+    this.setData({
+      choosedAvatarUrl: '',
+      nicknameInput: '',
+      editVisible: false
+    });
+  }
 })

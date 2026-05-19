@@ -42,6 +42,6 @@
 .noticeWrapper {
   margin: 32rpx 0;
 }
-.importantSubtitle {
+.importantTime {
   color: var(--td-error-color);
 }
