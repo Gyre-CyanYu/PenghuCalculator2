@@ -4,7 +4,8 @@ interface IAppOption {
   globalData: {
     env: string,
     userData: UserData,
-    currentRoomid: string
+    currentRoomid: string,
+    joinedRoomList: string[]
   },
 
   getUserData: () => Promise<void>,

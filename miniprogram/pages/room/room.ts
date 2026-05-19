@@ -1,4 +1,5 @@
 const app = getApp<IAppOption>();
+export {};
 
 interface RoomPageData {
   memberDataList: MemberData[],
@@ -273,6 +274,7 @@ Page({
 
   onShow() {
     wx.setNavigationBarTitle({ title: '房间' + app.globalData.currentRoomid });
+    this.getTabBar().updateRoomid();
   },
 
   onHide() {

@@ -1,4 +1,4 @@
-// const app = getApp<IAppOption>();
+const app = getApp<IAppOption>();
 
 interface TabBarComponentData {
   value: string,
@@ -11,7 +11,7 @@ Component({
     currentRoomid: '',
   } as TabBarComponentData,
 
-  lifetimes: {
+  lifetimes: {    
     ready() {
       const value: string = getCurrentPages()[0].route;
       this.setData({ value });
@@ -19,8 +19,12 @@ Component({
   },
 
   methods: {
-    onTabChange(e: WechatMiniprogram.CustomEvent): void {
+    _onTabChange(e: WechatMiniprogram.CustomEvent): void {
       wx.switchTab({ url: '/' + e.detail.value });
+    },
+
+    updateRoomid(): void {
+      this.setData({ currentRoomid: app.globalData.currentRoomid });
     }
   }
 })

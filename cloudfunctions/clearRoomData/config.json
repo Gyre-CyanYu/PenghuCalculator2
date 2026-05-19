@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "openapi": [
+    ]
+  },
+
+  "triggers": [{
+    "name": "clearRoomTrigger",
+    "type": "timer",
+    "config": "0 0 */1 * * * *"
+  }]
+}

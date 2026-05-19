@@ -1,4 +1,5 @@
 const app = getApp<IAppOption>();
+export {};
 
 Page({
   data: {
@@ -14,7 +15,7 @@ Page({
   },
 
   onShow() {
-
+    this.getTabBar().updateRoomid();
   },
 
   onHide() {

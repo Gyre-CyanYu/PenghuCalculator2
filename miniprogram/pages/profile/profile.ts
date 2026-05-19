@@ -1,5 +1,7 @@
 import storage from '../../utils/storage';
+
 const app = getApp<IAppOption>();
+export {};
 
 interface ProfilePageData {
   userData: UserData;
@@ -24,7 +26,7 @@ Page({
   },
 
   onShow() {
-
+    this.getTabBar().updateRoomid();
   },
 
   onHide() {

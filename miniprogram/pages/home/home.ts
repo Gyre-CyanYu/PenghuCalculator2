@@ -1,12 +1,15 @@
 import format from '../../utils/format';
 import storage from '../../utils/storage';
+
 const app = getApp<IAppOption>();
+export {};
 
 interface HomePageData {
   joinedRoomList: string[],
+
+  roomidInput: string,
   joinVisible: boolean,
   joinButtonLoading: boolean,
-  roomidInput: string,
 
   noticeDataList: NoticeData[],
   noticeVisible: boolean
@@ -15,30 +18,34 @@ interface HomePageData {
 Page({
   data: {
     joinedRoomList: [],
+
+    roomidInput: '',
     joinVisible: false,
     joinButtonLoading: false,
-    roomidInput: '',
 
     noticeDataList: [],
     noticeVisible: false
   } as HomePageData,
 
-  onLoad(options) {
-    
-  },
+  async onLoad(options) {
+    await Promise.all([this.getJoinedRoomList(), this.getNoticeList()]);
 
-  async onShow() {
-    await Promise.all([
-      this.getJoinedRoomList(),
-      this.getNoticeList()
-    ]);
-  },
+    this.setData({ joinedRoomList: app.globalData.joinedRoomList });
+    this.getTabBar().updateRoomid();
 
-  onReady() {
     const hasImportantNotice = this.data.noticeDataList.some(noticeData => noticeData.isImportant);
     if (hasImportantNotice) {
       this.showNotice();
     }
+  },
+
+  onShow() {
+    this.setData({ joinedRoomList: app.globalData.joinedRoomList });
+    this.getTabBar().updateRoomid();
+  },
+
+  onReady() {
+    
   },
 
   onHide() {
@@ -46,10 +53,9 @@ Page({
   },
 
   async onPullDownRefresh() {
-    await Promise.all([
-      this.getJoinedRoomList(),
-      this.getNoticeList()
-    ]);
+    await Promise.all([this.getJoinedRoomList(), this.getNoticeList()]);
+
+    this.setData({ joinedRoomList: app.globalData.joinedRoomList });
 
     wx.stopPullDownRefresh();
   },
@@ -73,14 +79,14 @@ Page({
       }
 
       const joinedRoomList: string[] = result.data;
-      this.setData({ joinedRoomList });
+      app.globalData.joinedRoomList = joinedRoomList;
 
       if (!app.globalData.currentRoomid && joinedRoomList.length) {
         app.globalData.currentRoomid = joinedRoomList[0];
       }
-
+      
       const cachedRoomDataList: RoomData[] = wx.getStorageSync('rooms') || [];
-      const reservedRoomDataList: RoomData[] = cachedRoomDataList.filter(roomData => this.data.joinedRoomList.includes(roomData.roomid));
+      const reservedRoomDataList: RoomData[] = cachedRoomDataList.filter(roomData => app.globalData.joinedRoomList.includes(roomData.roomid));
       const reservedRoomList: string[] = reservedRoomDataList.map(roomData => roomData.roomid);
 
       wx.setStorageSync('rooms', reservedRoomDataList);
@@ -205,6 +211,7 @@ Page({
   },
 
   showNotice(): void {
+    this.getNoticeList();
     this.setData({ noticeVisible: true });
   },
 

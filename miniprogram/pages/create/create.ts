@@ -1,4 +1,5 @@
 const app = getApp<IAppOption>();
+export {};
 
 interface CreatePageData {
   gameConfig: GameConfig,
@@ -102,6 +103,8 @@ Page({
 
       if (result.code === 201) {
         app.globalData.currentRoomid = result.data;
+        app.globalData.joinedRoomList.push(result.data);
+        
         wx.switchTab({ url: '/pages/room/room' });
       } else if (result.code === 503) {
         wx.showToast({

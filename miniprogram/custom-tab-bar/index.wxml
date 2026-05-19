@@ -1,4 +1,4 @@
-<t-tab-bar bind:change="onTabChange" value="{{value}}" t-class="tabBar" theme="tag" split="{{false}}">
+<t-tab-bar bind:change="_onTabChange" value="{{value}}" t-class="tabBar" theme="tag" split="{{false}}">
   <t-tab-bar-item value="pages/home/home" icon="forum" >首页</t-tab-bar-item>
 
   <t-tab-bar-item
