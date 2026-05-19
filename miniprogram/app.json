@@ -1,0 +1,56 @@
+{
+  "pages": [
+    "pages/home/home",
+    "pages/room/room",
+    "pages/history/history",
+    "pages/profile/profile",
+    "pages/create/create",
+    "pages/information/information"
+  ],
+  "window": {
+    "backgroundColor": "#faf9f5",
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#f5f0e8",
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "碰胡计分器",
+    "enablePullDownRefresh": true
+  },
+  "tabBar": {
+    "custom": true,
+    "color": "#141413",
+    "selectedColor": "#cc785c",
+    "backgroundColor": "#f5f0e8",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/home/home",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/room/room",
+        "text": "房间"
+      },
+      {
+        "pagePath": "pages/history/history",
+        "text": "历史"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的"
+      }
+    ]
+  },
+  "usingComponents": {
+    "t-button": "tdesign-miniprogram/button/button",
+
+    "t-input": "tdesign-miniprogram/input/input",
+
+    "t-avatar": "tdesign-miniprogram/avatar/avatar",
+    "t-avatar-group": "tdesign-miniprogram/avatar-group/avatar-group",
+    "t-image": "tdesign-miniprogram/image/image",
+    
+    "t-dialog": "tdesign-miniprogram/dialog/dialog"
+  },
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

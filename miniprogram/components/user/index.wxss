@@ -1,0 +1,19 @@
+.userWrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.scoresWrapper {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  justify-content: center;
+  align-content: center;
+  width: 100%;
+}
+
+.scoresText {
+  text-align: end;
+}

@@ -1,0 +1,53 @@
+page {
+  --td-border-color: #e6dfd8;
+  --td-bg-color-page: #faf9f5;
+
+  --td-bg-color-container: #f5f0e8;                 /* 500 */
+  --td-bg-color-container-active: #b2ada6;          /* 600 */
+
+  --td-bg-color-secondarycontainer: var(--td-bg-color-container);
+  --td-bg-color-secondarycontainer-active: var(--td-bg-color-container-active);
+
+  --td-bg-color-component: #efe9de;                 /* 500 */
+  --td-bg-color-component-active: #aea89e;          /* 600 */
+  --td-bg-color-component-disabled: var(--td-border-color);
+
+  --td-bg-color-secondarycomponent: var(--td-bg-color-component);
+  --td-bg-color-secondarycomponent-active: var(--td-bg-color-component-active);
+
+  --td-brand-color: #cc785c;              /* 500 */
+  --td-brand-color-active: #9e4f34;       /* 600 */
+  --td-brand-color-disabled: #f0997c;     /* 300 */
+  --td-brand-color-focus: #d88367;        /* 400 */
+  --td-brand-color-light: #ffdfc0;        /* 50 */
+  --td-brand-color-light-active: #ffc7a9; /* 100 */
+
+  --td-error-color: #a9583e;              /* 500 */
+  --td-error-color-active: #84371d;       /* 600 */
+  --td-error-color-disabled: #d98368;     /* 300 */
+  --td-error-color-focus: #b9664c;        /* 400 */
+  --td-error-color-light: #ffdec0;        /* 50 */
+
+  --td-warning-color: #e8a55a;            /* 500 */
+  --td-warning-color-active: #b27221;     /* 600 */
+  --td-warning-color-disabled: #ffbb70;   /* 300 */
+  --td-warning-color-focus: #f0ac61;      /* 400 */
+  --td-warning-color-light: #ffe99d;      /* 50 */
+
+  --td-success-color: #5db8a6;            /* 500 */
+  --td-success-color-active: #278878;     /* 600 */
+  --td-success-color-disabled: #79d4c1;   /* 300 */
+  --td-success-color-focus: #66c1af;      /* 400 */
+  --td-success-color-light: #b2fffa;      /* 50 */
+
+  --td-text-color-primary: #141413;
+  --td-text-color-secondary: #3d3d3a;
+  --td-text-color-placeholder: #6c6a64;
+  --td-text-color-disabled: #8e8b82;
+  --td-text-color-brand: var(--td-brand-color);
+  --td-text-color-link: var(--td-brand-color);
+
+  --td-divider-color: var(--td-border-color);
+
+  --shadow: 0 4rpx 16rpx rgba(14,14,13,0.1);
+}

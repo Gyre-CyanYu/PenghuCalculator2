@@ -1,0 +1,21 @@
+<scroll-view class="memberScroll" scroll-x>
+  <user
+    wx:for="{{memberDataList}}"
+    wx:key="openid"
+    avatarUrl="{{item.avatarUrl}}"
+    nickname="{{item.nickname}}"
+    badgeProps="{{null}}"
+    scores="{{item.scores}}"
+    roundScores="{{item.roundScores}}"
+    width="25vw"
+    class="memberScrollCard"
+  />
+</scroll-view>
+
+<scroll-view class="actionScroll" scroll-y scroll-with-animation>
+  <view wx:for="{{actionGroupList}}" wx:key="index" class="actionScrollCard">
+    <action-card bind:undo="undoAction" actionGroup="{{item}}" />
+  </view>
+
+  <view style="height: 1rpx;" />
+</scroll-view>

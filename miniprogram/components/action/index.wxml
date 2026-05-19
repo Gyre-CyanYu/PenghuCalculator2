@@ -1,0 +1,24 @@
+<view class="actionWrapper">
+  <user avatarUrl="{{payerAvatarUrl}}" nickname="{{payerNickname}}" userGroupLength="{{payerGroupLength}}" nicknameClass="content" />
+
+  <view class="detailWrapper">
+    <block wx:if="{{isTemp}}">
+      <view class="title">计分中</view>
+      <t-loading theme="dots" size="48rpx" />
+    </block>
+
+    <block wx:elif="{{isUndo}}">
+      <view class="title">已撤回</view>
+      <t-icon name="code-off" size="48rpx" color="var(--td-brand-color)" />
+    </block>
+
+    <block wx:else>
+      <view class="title">{{scores}}</view>
+      <t-icon name="swap-right" size="48rpx" color="var(--td-brand-color)" />
+    </block>
+    
+    <view class="subtitle">{{name}}</view>
+  </view>
+
+  <user avatarUrl="{{receiverAvatarUrl}}" nickname="{{receiverNickname}}" userGroupLength="{{receiverGroupLength}}" nicknameClass="content" />
+</view>

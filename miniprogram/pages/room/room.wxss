@@ -1,0 +1,18 @@
+.memberScroll {
+  height: 20vh;
+  z-index: 1;
+  background: var(--td-bg-color-container);
+  box-shadow: var(--shadow);
+  white-space: nowrap;
+}
+.memberScrollCard {
+  display: inline-flex;
+  height: 100%;
+}
+
+.actionScroll {
+  height: calc(80vh - 175rpx);
+}
+.actionScrollCard {
+  margin: 32rpx;
+}

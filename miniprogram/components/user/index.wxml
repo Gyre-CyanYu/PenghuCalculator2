@@ -1,0 +1,27 @@
+<view style="width: {{width}}" class="userWrapper">
+  <block wx:if="{{userGroup || userGroupLength > 1}}">
+    <t-avatar-group max="1" collapseAvatar="+{{userGroupLength - 1}}">
+      <t-avatar image="{{avatarUrl}}" badge-props="{{badgeProps}}" icon="user" />
+      <t-avatar image="" />
+    </t-avatar-group>
+    
+    <view class="{{nicknameClass}}">{{nickname}} 等</view>
+  </block>
+
+  <block wx:else>
+    <t-avatar image="{{avatarUrl}}" badge-props="{{badgeProps}}" icon="user" />
+    <view class="{{nicknameClass}}">{{nickname}}</view>
+
+    <block wx:if="{{scores !== '' || roundScores !== ''}}">
+      <view class="scoresWrapper">
+        <view class="{{scoresClass}} scoresText">总计</view>
+        <view class="{{scoresClass}}">: {{scores}}</view>
+      </view>
+
+      <view class="scoresWrapper">
+        <view class="{{scoresClass}} scoresText">本局</view>
+        <view class="{{scoresClass}}">: {{roundScores}}</view>
+      </view>
+    </block>
+  </block>
+</view>

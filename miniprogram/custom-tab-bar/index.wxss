@@ -1,0 +1,8 @@
+.tabBar {
+  --td-tab-bar-bg-color: #f5f0e8;             /* --td-bg-color-container */
+  --td-tab-bar-active-bg: #ffdfc0;            /* --td-brand-color-light */
+  --td-tab-bar-active-color: #cc785c;         /* --td-brand-color */
+  --td-tab-bar-color: #141413;                /* --td-text-color-primary */
+  --td-tab-bar-spread-border-color: #e6dfd8;  /* --td-border-color */
+  --td-badge-bg-color: #a9583e;               /* --td-error-color */
+}

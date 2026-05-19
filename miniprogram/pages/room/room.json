@@ -1,0 +1,7 @@
+{
+  "disableScroll": true,
+  "usingComponents": {
+    "user": "../../components/user/index",
+    "action-card": "../../components/action-card/index"
+  }
+}

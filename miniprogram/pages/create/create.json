@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "创建房间",
+  "enablePullDownRefresh": false,
+  "usingComponents": {
+    "t-segmented": "tdesign-miniprogram/segmented/segmented"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "component": true,
+  "styleIsolation": "apply-shared",
+  "usingComponents": {
+    "t-divider": "tdesign-miniprogram/divider/divider",
+    "t-tag": "tdesign-miniprogram/tag/tag",
+    "t-popover": "tdesign-miniprogram/popover/popover",
+    "action": "../action/index"
+  }
+}

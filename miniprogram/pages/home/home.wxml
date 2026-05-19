@@ -1,0 +1,69 @@
+<view class="wrapper informationWrapper">
+  <!-- <image src="/images/PenghuScorekeeperTitle.png" mode="aspectFit" /> -->
+</view>
+
+<view class="wrapper buttonWrapper">
+  <t-button bind:tap="showJoin" t-class="joinButton" theme="primary" block>进入房间</t-button>
+  <t-button bind:tap="navigateToCreate" t-class="createButton" theme="light" block>创建房间</t-button>
+  <t-button
+    bind:tap="showNotice"
+    style="grid-row: {{joinedRoomList.length % 4 === 1 || joinedRoomList.length % 4 === 2 ? 'span 2' : ''}};"
+    t-class="noticeButton"
+    block
+  >公告</t-button>
+
+  <block wx:if="{{joinedRoomList.length}}">
+    <t-button
+      wx:for="{{joinedRoomList}}"
+      wx:key="index"
+      bind:tap="handleBack"
+      data-roomid="{{item}}"
+      content="{{item}}"
+      style="grid-column: {{index === 0 && joinedRoomList.length % 2 === 1 ? 'span 2' : ''}};"
+      t-class="roomButton"
+      theme="primary"
+      variant="outline"
+      size="extra-small"
+      block
+    />
+  </block>
+</view>
+
+<t-dialog
+  visible="{{joinVisible}}"
+  title="进入房间"
+  confirm-btn="{{ {loading: joinButtonLoading, content: joinButtonLoading ? '加入中' : '确定', variant: 'base'} }}"
+  cancel-btn="{{ {content: '取消', theme: 'default', variant: 'outline'} }}"
+  bind:confirm="handleJoin"
+  bind:cancel="closeJoin"
+>
+  <t-input
+    bind:change="onInputChange"
+    value="{{roomidInput}}"
+    slot="content"
+    maxcharacter="{{5}}"
+    borderless="{{true}}"
+    label="房间号"
+    placeholder="5位数字字母"
+  >
+    <t-button bind:tap="handleScan" slot="extra" icon="scan" theme="light" size="extra-small" />
+  </t-input>
+</t-dialog>
+
+<t-dialog
+  visible="{{noticeVisible}}"
+  title="公告"
+  cancel-btn="{{ {content: '关闭', theme: 'default', variant: 'outline'} }}"
+  bind:cancel="closeNotice"
+>
+  <scroll-view scroll-y slot="content" class="noticeScroll">
+    <block wx:if="{{noticeDataList.length}}">
+      <view wx:for="{{noticeDataList}}" wx:key="index" class="noticeWrapper">
+        <view class="subtitle {{item.isImportant ? 'importantSubtitle' : ''}}">{{item.createdAt}}</view>
+        <view class="content">{{item.content}}</view>
+      </view>
+    </block>
+
+    <view wx:else class="content">无公告</view>
+  </scroll-view>
+</t-dialog>

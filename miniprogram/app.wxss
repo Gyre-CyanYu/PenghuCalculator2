@@ -1,0 +1,41 @@
+@import './styles/theme.wxss';
+
+page {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--td-bg-color-page);
+}
+
+.card {
+  box-sizing: border-box;
+  background-color: var(--td-bg-color-container);
+  border: 1rpx solid var(--td-border-color);
+  border-radius: 24rpx;
+  box-shadow: var(--shadow);
+}
+.title {
+  font-size: large;
+  font-weight: bold;
+  color: var(--td-text-color-primary);
+}
+.subtitle {
+  font-weight: bold;
+  color: var(--td-text-color-secondary);
+}
+.content {
+  color: var(--td-text-color-placeholder);
+}
+
+.tabButtonWrapper{
+  display: flex;
+  gap: 16rpx;
+  box-sizing: border-box;
+  z-index: 1000;
+  background-color: var(--td-bg-color-container);
+  padding: 16rpx 32rpx;
+  height: 176rpx;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}

@@ -1,0 +1,22 @@
+<view wx:for="{{configDataList}}" wx:key="name" class="card configCard">
+  <view class="title">{{item.title}}</view>
+  <view class="content">{{item.content}}</view>
+
+  <t-segmented
+    bind:change="onConfigChange"
+    data-name="{{item.name}}"
+    options="{{item.optionList}}"
+    default-value="{{item.defaultValue}}"
+    block
+  />
+</view>
+
+<view class="tabButtonWrapper">
+  <t-button
+    bind:tap="handleCreate"
+    loading="{{createButtonLoading}}"
+    content="{{createButtonLoading ? '创建中' : '创建房间'}}"
+    theme="primary"
+    block
+  />
+</view>

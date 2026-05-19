@@ -1,0 +1,73 @@
+<view style="width: {{width}}" class="actionCardWrapper">  
+  <t-tag wx:if="{{actionGroup.isNewRound}}" theme="primary" variant="outline" shape="round">第{{mainAction.round}}局</t-tag>
+
+  <t-popover
+    bind:visible-change="onVisibleChange"
+    visible="{{popoverVisible}}"
+    fixed="{{true}}"
+    theme="light"
+  >
+    <t-button
+      wx:if="{{undoVisible}}"
+      bind:tap="undoAction"
+      slot="content"
+      content="撤回"
+      theme="danger"
+      variant="text"
+      size="extra-small"
+    />
+
+    <t-button
+      wx:if="{{toggleVisible}}"
+      bind:tap="toggleActionGroup"
+      slot="content"
+      content="{{actionGroupVisible ? '收起' : '展开'}}"
+      variant="text"
+      size="extra-small"
+    />
+
+    <view
+      bind:tap="toggleActionGroup"
+      bind:longpress="showPopover"
+      style="width: {{width}}"
+      class="card actionCard t-popover-wrapper--fixed"
+    >
+      <action
+        payerAvatarUrl="{{mainAction.payerData.avatarUrl || ''}}"
+        payerNickname="{{mainAction.payerData.nickname || ''}}"
+        payerGroupLength="{{actionGroup.payerList.length || 0}}"
+
+        receiverAvatarUrl="{{mainAction.receiverData.avatarUrl || ''}}"
+        receiverNickname="{{mainAction.receiverData.nickname || ''}}"
+        receiverGroupLength="{{actionGroup.receiverList.length || 0}}"
+
+        name="{{mainAction.name || ''}}"
+        scores="{{actionGroup.totalScores || 0}}"
+
+        isUndo="{{mainAction.isUndo}}"
+        isTemp="{{mainAction.isTemp}}"
+      />
+
+      <block wx:if="{{actionGroup.actionDataList.length > 1 && actionGroupVisible}}">
+        <t-divider style="--td-divider-horizontal-margin: 0;" />
+
+        <action
+          wx:for="{{actionGroup.actionDataList}}"
+          wx:key="actionid"
+
+          payerAvatarUrl="{{item.payerData.avatarUrl}}"
+          payerNickname="{{item.payerData.nickname}}"
+
+          receiverAvatarUrl="{{item.receiverData.avatarUrl}}"
+          receiverNickname="{{item.receiverData.nickname}}"
+
+          name="{{item.name}}"
+          scores="{{item.scores}}"
+          
+          isUndo="{{false}}"
+          isTemp="{{mainAction.isTemp}}"
+        />
+      </block>
+    </view>
+  </t-popover>
+</view>

@@ -1,0 +1,12 @@
+<t-tab-bar bind:change="onTabChange" value="{{value}}" t-class="tabBar" theme="tag" split="{{false}}">
+  <t-tab-bar-item value="pages/home/home" icon="forum" >首页</t-tab-bar-item>
+
+  <t-tab-bar-item
+    badge-props="{{ {count: currentRoomid, offset: [20, 0], shape: 'bubble'} }}"
+    value="pages/room/room"
+    icon="home"
+  >房间</t-tab-bar-item>
+
+  <t-tab-bar-item value="pages/history/history" icon="history" >历史</t-tab-bar-item>
+  <t-tab-bar-item value="pages/profile/profile" icon="user" >我的</t-tab-bar-item>
+</t-tab-bar>
