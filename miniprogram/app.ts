@@ -1,3 +1,5 @@
+import storage from './utils/storage';
+
 App<IAppOption>({
   globalData: {
     // env 参数说明：
@@ -22,6 +24,35 @@ App<IAppOption>({
       wx.cloud.init({
         env: this.globalData.env,
         traceUser: true,
+      });
+    }
+  },
+
+  async getUserData(): Promise<void> {
+    try {
+      const { result } = await wx.cloud.callFunction({
+        name: 'P2_getUserData',
+      }) as unknown as { result: Result<UserData> };
+
+      if (![200, 201].includes(result.code)) {
+        throw result;
+      }
+
+      const userData: UserData = result.data;
+
+      if (userData.avatarUrl) {  
+        userData.avatarUrl = await storage.downloadImage(userData.avatarUrl, 'avatar', userData.openid);
+      } else {
+        userData.avatarUrl = '/images/PenghuScorekeeper.jpg';
+      }
+
+      this.globalData.userData = userData;
+      storage.cacheUserData(userData);
+    } catch (err) {
+      console.error('获取用户信息失败', err);
+      wx.showToast({
+        title: '获取用户信息失败',
+        icon: 'error'
       });
     }
   }

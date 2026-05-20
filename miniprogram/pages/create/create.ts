@@ -97,7 +97,7 @@ Page({
 
     try {
       const { result } = await wx.cloud.callFunction({
-        name: 'createRoomData',
+        name: 'P2_createRoomData',
         data: { gameConfig: this.data.gameConfig }
       }) as unknown as { result: Result<string> };
 

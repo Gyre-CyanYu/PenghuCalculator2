@@ -5,7 +5,7 @@
   },
 
   "triggers": [{
-    "name": "clearRoomTrigger",
+    "name": "clearRoomDataTrigger",
     "type": "timer",
     "config": "0 0 */1 * * * *"
   }]

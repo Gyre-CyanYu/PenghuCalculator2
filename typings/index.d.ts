@@ -6,7 +6,9 @@ interface IAppOption {
     userData: UserData,
     currentRoomid: string,
     joinedRoomList: string[]
-  }
+  },
+
+  getUserData: () => Promise<void>
 }
 
 interface UserData {

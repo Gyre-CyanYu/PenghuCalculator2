@@ -7,7 +7,7 @@
     <view class="title nickname">{{userData.nickname}}</view>
 
     <view>
-      <t-button bind:tap="showEdit" size="extra-small">编辑资料</t-button>
+      <t-button bind:tap="showEdit" size="extra-small" disabled>编辑资料</t-button>
     </view>
   </view>
 </view>
@@ -17,9 +17,10 @@
 <t-dialog
   visible="{{editVisible}}"
   title="编辑资料"
-  confirm-btn="{{ {loading: editButtonLoading, content: editButtonLoading ? '上传中' : '确定', variant: 'base'} }}"
+  content="点击上传头像"
+  confirm-btn="{{ {disabled: true, loading: editButtonLoading, content: editButtonLoading ? '上传中' : '确定', variant: 'base'} }}"
   cancel-btn="{{ {content: '取消', theme: 'default', variant: 'outline'} }}"
-  bind:confirm="handleUpload"
+  bind:confirm="handleUpdate"
   bind:cancel="closeEdit"
 >
   <button
@@ -27,7 +28,7 @@
     bind:chooseavatar="onChooseAvatar"
     open-type="chooseAvatar"
     plain
-    style="border: none; margin-top: 32rpx;"
+    style="border: none; margin-top: 16rpx;"
   >
     <t-avatar
       slot="content"

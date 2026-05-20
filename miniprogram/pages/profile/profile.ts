@@ -29,7 +29,10 @@ Page({
   } as ProfilePageData,
 
   async onLoad() {
-    await this.getUserData();
+    if (!app.globalData.userData.openid) {
+      await app.getUserData();
+    }
+
     this.setData({ userData: app.globalData.userData });
   },
 
@@ -42,7 +45,7 @@ Page({
   },
 
   async onPullDownRefresh() {
-    await this.getUserData();
+    await app.getUserData();
 
     this.setData({ userData: app.globalData.userData });
     this.getTabBar().updateRoomid();
@@ -51,39 +54,14 @@ Page({
   },
 
   onShareAppMessage() {
-
-  },
-
-  async getUserData(): Promise<void> {
-    try {
-      const { result } = await wx.cloud.callFunction({
-        name: 'getUserData',
-      }) as unknown as { result: Result<UserData> };
-
-      if (![200, 201].includes(result.code)) {
-        throw result;
-      }
-
-      const userData: UserData = result.data;
-
-      if (userData.avatarUrl) {  
-        userData.avatarUrl = await storage.downloadImage(userData.avatarUrl, 'avatar', userData.openid);
-      } else {
-        userData.avatarUrl = '/images/PenghuScorekeeper.jpg';
-      }
-
-      app.globalData.userData = userData;
-      storage.cacheUserData(app.globalData.userData);
-    } catch (err) {
-      console.error('获取用户信息失败', err);
-      wx.showToast({
-        title: '获取用户信息失败',
-        icon: 'error'
-      });
+    return {
+      title: '碰胡计分器',
+      path: '/pages/home/home',
+      imageUrl: '/images/PenghuScorekeeper5×4.jpg'
     }
   },
 
-  async handleUpload(): Promise<void> {
+  async handleUpdate(): Promise<void> {
     if (!this.data.choosedAvatarUrl && !this.data.nicknameInput) {
       wx.showToast({
         title: '未修改资料',
@@ -101,7 +79,7 @@ Page({
       }
 
       const { result } = await wx.cloud.callFunction({
-        name: 'updateUserData',
+        name: 'P2_updateUserData',
         data: {
           nickname: this.data.nicknameInput,
           avatarArrayBuffer
@@ -112,16 +90,15 @@ Page({
         throw result
       }
 
-      const userData = this.data.userData;
       if (result.data.nickname) {
-        userData.nickname = result.data.nickname;
+        app.globalData.userData.nickname = result.data.nickname;
       }
       if (result.data.avatarUrl) {
-        userData.avatarUrl = await storage.downloadImage(result.data.avatarUrl, 'avatar', this.data.userData.openid, this.data.userData.avatarUrl);
+        app.globalData.userData.avatarUrl = await storage.downloadImage(result.data.avatarUrl, 'avatar', app.globalData.userData.openid, app.globalData.userData.avatarUrl);
       }
 
-      this.setData({ userData });
-      storage.cacheUserData(this.data.userData);
+      this.setData({ userData: app.globalData.userData });
+      storage.cacheUserData(app.globalData.userData);
 
       this.closeEdit();
       wx.showToast({

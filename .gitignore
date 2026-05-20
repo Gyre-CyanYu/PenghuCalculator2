@@ -14,3 +14,6 @@ $RECYCLE.BIN/
 miniprogram/miniprogram_npm/
 miniprogram/node_modules/
 cloudfunctions/*/node_modules/
+
+project.config.json
+project.private.config.json

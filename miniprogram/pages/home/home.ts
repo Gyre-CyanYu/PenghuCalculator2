@@ -72,7 +72,7 @@ Page({
   async getJoinedRoomList(): Promise<void> {
     try {
       const { result } = await wx.cloud.callFunction({
-        name: 'getJoinedRoomList',
+        name: 'P2_getJoinedRoomList',
       }) as unknown as { result: Result<string[]> };
 
       if (result.code !== 200) {
@@ -102,7 +102,7 @@ Page({
   async getNoticeList(): Promise<void> {
     try {
       const { result } = await wx.cloud.callFunction({
-        name: 'getNoticeDataList',
+        name: 'P2_getNoticeDataList',
       }) as unknown as { result: Result<NoticeData[]> };
 
       if (result.code !== 200) {
