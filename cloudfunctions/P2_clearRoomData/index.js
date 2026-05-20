@@ -7,7 +7,6 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV }) // 使用当前云环境
 exports.main = async () => {
   const db = cloud.database();
   const _ = db.command;
-
   const ageLimit = db.serverDate({ offset: -12 * 60 * 60 * 1000 });
   
   try {
@@ -20,9 +19,8 @@ exports.main = async () => {
       ])
     ])).get();
 
-    let count = 0;
-    for (const { roomid, isGamePlaying } of data) {
-      try {
+    const results = await Promise.all(data.map(({ roomid, isGamePlaying }) =>
+      (async () => {
         if (isGamePlaying !== -1) {
           const { result } = await cloud.callFunction({
             name: 'recordAction',
@@ -37,13 +35,16 @@ exports.main = async () => {
             throw result
           }
         }
-        
+
         await db.collection('rooms').where({ roomid }).remove();
-        count ++;
-      } catch (err) {
-        console.warn(`结算房间“${roomid}”时发生错误`, err);
-      }
-    }
+        return true;
+      })().catch(err => {
+        console.warn(`结算房间${roomid}时发生错误`, err);
+        return false;
+      })
+    ));
+
+    const count = results.filter(Boolean).length;
     
     return {
       code: 200,

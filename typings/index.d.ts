@@ -103,10 +103,12 @@ interface NoticeData {
   createdAt: string,
 }
 
-interface Result<T> {
-  code: number,
-  data: T,
-  message: string
+interface CallFunctionResult<T> extends ICloud.CallFunctionResult {
+  result: {
+    code: number,
+    data: T,
+    message: string
+  }
 }
 
 type ImageType = 'avatar' | 'qrCode'

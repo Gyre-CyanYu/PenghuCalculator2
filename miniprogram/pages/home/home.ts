@@ -73,7 +73,7 @@ Page({
     try {
       const { result } = await wx.cloud.callFunction({
         name: 'P2_getJoinedRoomList',
-      }) as unknown as { result: Result<string[]> };
+      }) as CallFunctionResult<string[]>;
 
       if (result.code !== 200) {
         throw result;
@@ -103,8 +103,8 @@ Page({
     try {
       const { result } = await wx.cloud.callFunction({
         name: 'P2_getNoticeDataList',
-      }) as unknown as { result: Result<NoticeData[]> };
-
+      }) as CallFunctionResult<NoticeData[]>;
+      
       if (result.code !== 200) {
         throw result;
       }
@@ -138,7 +138,7 @@ Page({
       const { result } = await wx.cloud.callFunction({
         name: 'joinRoom',
         data: { roomid }
-      }) as unknown as { result: Result<undefined> };
+      }) as CallFunctionResult<null>;
 
       if ([200, 201].includes(result.code)) {
         app.globalData.currentRoomid = roomid;

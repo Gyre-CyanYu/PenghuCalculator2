@@ -32,8 +32,8 @@ App<IAppOption>({
     try {
       const { result } = await wx.cloud.callFunction({
         name: 'P2_getUserData',
-      }) as unknown as { result: Result<UserData> };
-
+      }) as CallFunctionResult<UserData>;
+      
       if (![200, 201].includes(result.code)) {
         throw result;
       }

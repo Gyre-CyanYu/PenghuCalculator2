@@ -17,11 +17,9 @@ exports.main = async () => {
       createdAt: true
     }).get();
 
-    data.sort((a, b) => b.createdAt - a.createdAt);
-
     return {
       code: 200,
-      data,
+      data: data.sort((a, b) => b.createdAt - a.createdAt),
       message: '已获取有效公告信息列表'
     };
   } catch (err) {

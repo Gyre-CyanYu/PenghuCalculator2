@@ -99,7 +99,7 @@ Page({
       const { result } = await wx.cloud.callFunction({
         name: 'P2_createRoomData',
         data: { gameConfig: this.data.gameConfig }
-      }) as unknown as { result: Result<string> };
+      }) as CallFunctionResult<string>;
 
       if (result.code === 201) {
         app.globalData.currentRoomid = result.data;

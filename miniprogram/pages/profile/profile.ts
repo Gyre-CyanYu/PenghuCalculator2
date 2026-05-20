@@ -84,7 +84,7 @@ Page({
           nickname: this.data.nicknameInput,
           avatarArrayBuffer
         }
-      }) as unknown as { result: Result<UserData> };
+      }) as CallFunctionResult<UserData>;
 
       if (result.code !== 200) {
         throw result
