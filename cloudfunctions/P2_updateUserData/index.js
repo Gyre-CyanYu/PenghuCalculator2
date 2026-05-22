@@ -7,34 +7,20 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV }) // 使用当前云环境
 exports.main = async (event) => {
   const openid = cloud.getWXContext().OPENID;
   const db = cloud.database();
-  const { nickname, avatarArrayBuffer } = event;
+  const { avatarFileID, nickname } = event;
 
   try {
-    const userData = {};
-    if (nickname) {
-      userData.nickname = nickname;
+    const userData = { openid };
+
+    if (avatarFileID) {
+      const { fileList } = await cloud.getTempFileURL({ fileList: [avatarFileID] });
+
+      userData.avatarUrl = fileList[0].tempFileURL + '?t=' + Date.now();
+      userData.avatarFileID = avatarFileID;
     }
 
-    if (avatarArrayBuffer) {
-      const { fileID } = await cloud.uploadFile({
-        cloudPath: `avatar/${openid}_${Date.now()}.jpg`,
-        fileContent: Buffer.from(avatarArrayBuffer)
-      });
-
-      const { fileList } = await cloud.getTempFileURL({ fileList: [fileID] });
-      userData.avatarUrl = fileList[0].tempFileURL;
-
-      try {
-        const { data } = await db.collection('users').where({ _openid: openid }).field({
-          avatarUrl: true
-        }).get();
-        
-        if (data[0]?.avatarUrl) {
-          await cloud.deleteFile({ fileList: [fileID.replace(/\/[^\/]*$/, '/' + data[0].avatarUrl.split('/').pop())] });
-        }
-      } catch (err) {
-        console.warn('删除旧用户头像失败', err);
-      }
+    if (nickname) {
+      userData.nickname = nickname;
     }
 
     await db.collection('users').where({ _openid: openid }).update({ data: userData });
@@ -47,8 +33,9 @@ exports.main = async (event) => {
   } catch (err) {
     console.error(err);
     return {
-      code: err.code || 500,
-      message: err.message || '服务器错误'
+      code: 500,
+      data: null,
+      message: '服务器错误'
     }
   }
 }

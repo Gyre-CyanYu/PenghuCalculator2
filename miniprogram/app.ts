@@ -9,8 +9,9 @@ App<IAppOption>({
 
     userData: {
       openid: '',
-      nickname: '',
-      avatarUrl: ''
+      avatarUrl: '',
+      avatarFileID: '',
+      nickname: ''
     },
 
     currentRoomid: '',
@@ -40,8 +41,8 @@ App<IAppOption>({
 
       const userData: UserData = result.data;
 
-      if (userData.avatarUrl) {  
-        userData.avatarUrl = await storage.downloadImage(userData.avatarUrl, 'avatar', userData.openid);
+      if (userData.avatarUrl && userData.avatarFileID) {  
+        userData.avatarUrl = await storage.downloadImage(userData.avatarUrl, userData.avatarFileID);
       } else {
         userData.avatarUrl = '/images/PenghuScorekeeper.jpg';
       }

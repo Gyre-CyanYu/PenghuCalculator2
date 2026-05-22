@@ -28,15 +28,28 @@ Page({
   } as HomePageData,
 
   async onLoad() {
-    await Promise.all([this.getJoinedRoomList(), this.getNoticeList()]);
+    wx.showLoading({
+      title: '加载中',
+      mask: true
+    });
 
-    this.setData({ joinedRoomList: app.globalData.joinedRoomList });
-    this.getTabBar().updateRoomid();
+    const loadJoinedRoomList = async () => {
+      await this.getJoinedRoomList();
 
-    const hasImportantNotice = this.data.noticeDataList.some(noticeData => noticeData.isImportant);
-    if (hasImportantNotice) {
-      this.showNotice();
+      this.setData({ joinedRoomList: app.globalData.joinedRoomList });
+      this.getTabBar().updateRoomid();
     }
+
+    const loadNoticeList = async () => {
+      await this.getNoticeList();
+
+      if (this.data.noticeDataList.some(noticeData => noticeData.isImportant)) {
+        this.showNotice();
+      }
+    }
+
+    await Promise.all([app.getUserData(), loadJoinedRoomList(), loadNoticeList()]);
+    wx.hideLoading();
   },
 
   onShow() {
@@ -89,11 +102,19 @@ Page({
       }
       
       const cachedRoomDataList: RoomData[] = wx.getStorageSync('rooms') || [];
-      const reservedRoomDataList: RoomData[] = cachedRoomDataList.filter(roomData => app.globalData.joinedRoomList.includes(roomData.roomid));
-      const reservedRoomList: string[] = reservedRoomDataList.map(roomData => roomData.roomid);
+      const reservedRoomDataList: RoomData[] = [];
+      const removedRoomList: string[] = [];
+
+      cachedRoomDataList.forEach(roomData => {
+        if (joinedRoomList.includes(roomData.roomid)) {
+          reservedRoomDataList.push(roomData);
+        } else {
+          removedRoomList.push(roomData.roomid);
+        }
+      });
 
       wx.setStorageSync('rooms', reservedRoomDataList);
-      await storage.removeImage('qrCode', reservedRoomList);
+      await storage.removeImage('qrCode', removedRoomList);
     } catch (err) {
       console.warn('获取已加入房间列表失败', err);
     }

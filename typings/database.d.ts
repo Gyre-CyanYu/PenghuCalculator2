@@ -1,3 +1,8 @@
+interface DatabaseUserData extends UserData {
+  avatarFileID: string,
+  createdAt: string
+}
+
 interface DatabaseRoomData {
   /* 房间信息 */
   roomid: string,

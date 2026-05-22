@@ -11,8 +11,9 @@ exports.main = async () => {
   try {
     const { data } = await db.collection('users').where({ _openid: openid }).field({
       _openid: true,
-      nickname: true,
-      avatarUrl: true
+      avatarUrl: true,
+      avatarFileID: true,
+      nickname: true
     }).get();
 
     if (data.length === 1) {
@@ -20,8 +21,9 @@ exports.main = async () => {
         code: 200,
         data: {
           openid: data[0]._openid,
-          nickname: data[0].nickname,
-          avatarUrl: data[0].avatarUrl
+          avatarUrl: data[0].avatarUrl,
+          avatarFileID: data[0].avatarFileID,
+          nickname: data[0].nickname
         },
         message: '已获取用户信息'
       }
@@ -29,8 +31,9 @@ exports.main = async () => {
 
     const userData = {
       _openid: openid,
-      nickname: `用户${Date.now().toString().slice(-4)}`,
       avatarUrl: '',
+      avatarFileID: '',
+      nickname: `用户${Date.now().toString().slice(-4)}`,
       createdAt: db.serverDate()
     };
 
@@ -40,8 +43,9 @@ exports.main = async () => {
       code: 201,
       data: {
         openid: userData._openid,
-        nickname: userData.nickname,
-        avatarUrl: userData.avatarUrl
+        avatarUrl: userData.avatarUrl,
+        avatarFileID: userData.avatarFileID,
+        nickname: userData.nickname
       },
       message: '新增用户信息成功'
     }

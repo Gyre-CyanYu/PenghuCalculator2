@@ -8,6 +8,7 @@ interface ProfilePageData {
 
   choosedAvatarUrl: string;
   nicknameInput: string;
+  progress: number;
 
   editVisible: boolean;
   editButtonLoading: boolean;
@@ -17,22 +18,20 @@ Page({
   data: {
     userData: {
       openid: '',
-      nickname: '',
-      avatarUrl: ''
+      avatarUrl: '',
+      avatarFileID: '',
+      nickname: ''
     },
 
     choosedAvatarUrl: '',
     nicknameInput: '',
+    progress: 0,
 
     editVisible: false,
     editButtonLoading: false,
   } as ProfilePageData,
 
-  async onLoad() {
-    if (!app.globalData.userData.openid) {
-      await app.getUserData();
-    }
-
+  onLoad() {
     this.setData({ userData: app.globalData.userData });
   },
 
@@ -67,24 +66,37 @@ Page({
         title: '未修改资料',
         icon: 'none'
       });
+
       return
     }
 
     this.setData({ editButtonLoading: true });
 
     try {
-      let avatarArrayBuffer = null;
+      let avatarFileID: string = '';
+
       if (this.data.choosedAvatarUrl) {
-        avatarArrayBuffer = wx.getFileSystemManager().readFileSync(this.data.choosedAvatarUrl);
+        const { fileID } = await new Promise<ICloud.UploadFileResult>((resolve, reject) => {
+          wx.cloud.uploadFile({
+            cloudPath: `avatars/${app.globalData.userData.openid}.jpg`,
+            filePath: this.data.choosedAvatarUrl,
+            success: resolve,
+            fail: reject
+          }).onProgressUpdate(({ progress }) => {
+            this.setData({ progress });
+          });
+        });
+
+        avatarFileID = fileID;
       }
 
       const { result } = await wx.cloud.callFunction({
         name: 'P2_updateUserData',
         data: {
-          nickname: this.data.nicknameInput,
-          avatarArrayBuffer
+          avatarFileID,
+          nickname: this.data.nicknameInput
         }
-      }) as CallFunctionResult<UserData>;
+      }) as CallFunctionResult<{ openid: string, avatarUrl?: string, avatarFileID?: string, nickname?: string }>;
 
       if (result.code !== 200) {
         throw result
@@ -93,8 +105,9 @@ Page({
       if (result.data.nickname) {
         app.globalData.userData.nickname = result.data.nickname;
       }
-      if (result.data.avatarUrl) {
-        app.globalData.userData.avatarUrl = await storage.downloadImage(result.data.avatarUrl, 'avatar', app.globalData.userData.openid, app.globalData.userData.avatarUrl);
+
+      if (result.data.avatarUrl && result.data.avatarFileID) {
+        app.globalData.userData.avatarUrl = await storage.downloadImage(result.data.avatarUrl, result.data.avatarFileID, app.globalData.userData.avatarUrl);
       }
 
       this.setData({ userData: app.globalData.userData });
@@ -102,18 +115,21 @@ Page({
 
       this.closeEdit();
       wx.showToast({
-        title: '上传成功',
+        title: '更新成功',
         icon: 'none'
       });
     } catch (err) {
-      console.error('上传失败', err);
+      console.error('更新失败', err);
       wx.showToast({
-        title: '上传失败',
+        title: '更新失败',
         icon: 'error'
       });
     }
 
-    this.setData({ editButtonLoading: false });
+    this.setData({
+      progress: 0,
+      editButtonLoading: false
+    });
   },
 
   onChooseAvatar(e: WechatMiniprogram.CustomEvent): void {

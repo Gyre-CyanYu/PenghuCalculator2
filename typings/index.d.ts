@@ -14,6 +14,7 @@ interface IAppOption {
 interface UserData {
   openid: string,
   avatarUrl: string,
+  avatarFileID?: string,
   nickname: string
 }
 

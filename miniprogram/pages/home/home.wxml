@@ -3,7 +3,7 @@
 </view>
 
 <view class="wrapper buttonWrapper">
-  <t-button bind:tap="showJoin" t-class="joinButton" theme="primary" block>进入房间</t-button>
+  <t-button bind:tap="showJoin" t-class="joinButton" theme="primary" block>加入房间</t-button>
   <t-button bind:tap="navigateToCreate" t-class="createButton" theme="light" block>创建房间</t-button>
   <t-button
     bind:tap="showNotice"
@@ -31,9 +31,9 @@
 
 <t-dialog
   visible="{{joinVisible}}"
-  title="进入房间"
-  confirm-btn="{{ {loading: joinButtonLoading, content: joinButtonLoading ? '加入中' : '确定', variant: 'base'} }}"
-  cancel-btn="{{ {content: '取消', theme: 'default', variant: 'outline'} }}"
+  title="加入房间"
+  confirm-btn="{{ {loading: joinButtonLoading, content: joinButtonLoading ? '加入中' : '加入', variant: 'base'} }}"
+  cancel-btn="{{ {disabled: joinButtonLoading, content: '取消', theme: 'default', variant: 'outline'} }}"
   bind:confirm="handleJoin"
   bind:cancel="closeJoin"
 >
