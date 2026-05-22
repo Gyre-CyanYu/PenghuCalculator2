@@ -1,5 +1,5 @@
 {
-  "navigationBarTitleText": "我的档案",
+  "navigationBarTitleText": "个人中心",
   "usingComponents": {
     "user": "../../components/user/index"
   }

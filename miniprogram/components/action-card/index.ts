@@ -3,8 +3,9 @@ interface ActionCardComponentData {
 
   popoverVisible: boolean,
   actionGroupVisible: boolean,
+
   undoVisible: boolean,
-  toggleVisible: boolean,
+  toggleVisible: boolean
 }
 
 Component({
@@ -18,13 +19,14 @@ Component({
 
     popoverVisible: false,
     actionGroupVisible: false,
+
     undoVisible: true,
-    toggleVisible: true,
+    toggleVisible: true
   } as ActionCardComponentData,
 
   observers: {
     'actionGroup.actionDataList[0]': function(): void {
-      const actionDataList = this.properties.actionGroup.actionDataList;
+      const actionDataList: (ActionData | TempActionData)[] = this.properties.actionGroup.actionDataList;
 
       this.setData({
         mainAction: actionDataList[0],

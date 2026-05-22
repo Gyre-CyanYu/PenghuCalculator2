@@ -29,7 +29,7 @@
     <view
       bind:tap="toggleActionGroup"
       bind:longpress="showPopover"
-      style="width: {{width}}"
+      style="width: {{width}};"
       class="card actionCard t-popover-wrapper--fixed"
     >
       <action

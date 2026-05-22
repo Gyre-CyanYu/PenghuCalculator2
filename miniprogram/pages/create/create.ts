@@ -2,33 +2,34 @@ const app = getApp<IAppOption>();
 export {};
 
 interface CreatePageData {
-  gameConfig: GameConfig,
+  createButtonLoading: boolean,
 
-  configDataList: {
-    name: keyof GameConfig,
-    defaultValue: GameConfig[keyof GameConfig],
-
-    optionList: {
-      value: GameConfig[keyof GameConfig],
-      label: string
-    }[],
-
-    title: string,
-    content: string
-  }[],
-  
-  createButtonLoading: boolean
+  configDataList: ConfigData[]
 }
+
+interface CreatePageCustomData {
+  gameConfig: GameConfig
+}
+
+interface ConfigDataItem<T extends keyof GameConfig> {
+  name: T,
+  defaultValue: GameConfig[T],
+
+  optionList: {
+    value: GameConfig[T],
+    label: string
+  }[],
+
+  title: string,
+  content: string
+}
+
+type ConfigData = {
+  [T in keyof GameConfig]: ConfigDataItem<T>
+}[keyof GameConfig]
 
 Page({
   data: {
-    gameConfig: {
-      mode: 'addition',
-      limit: 4,
-      fiveTriWinConsiderHoldDealer: true,
-      heavenWinConsiderHoldDealer: true
-    },
-
     createButtonLoading: false,
 
     configDataList: [
@@ -84,6 +85,15 @@ Page({
     ]
   } as CreatePageData,
 
+  customData: { 
+    gameConfig: {
+      mode: 'addition',
+      limit: 4,
+      fiveTriWinConsiderHoldDealer: true,
+      heavenWinConsiderHoldDealer: true
+    }
+  } as CreatePageCustomData,
+
   onShareAppMessage() {
     return {
       title: '碰胡计分器',
@@ -98,7 +108,7 @@ Page({
     try {
       const { result } = await wx.cloud.callFunction({
         name: 'P2_createRoomData',
-        data: { gameConfig: this.data.gameConfig }
+        data: { gameConfig: this.customData.gameConfig }
       }) as CallFunctionResult<string>;
 
       if (result.code === 201) {
@@ -126,9 +136,10 @@ Page({
   },
 
   onConfigChange(e: WechatMiniprogram.CustomEvent) {
-    const name: keyof GameConfig = e.currentTarget.dataset.name;
-    const value: GameConfig[keyof GameConfig] = e.detail.value;
+    const setGameConfig = <T extends keyof GameConfig>(name: T, value: GameConfig[T]): void => {
+      this.customData.gameConfig[name] = value;
+    };
 
-    this.setData({ [`gameConfig.${name}`]: value });
+    setGameConfig(e.currentTarget.dataset.name, e.detail.value);
   }
 })
