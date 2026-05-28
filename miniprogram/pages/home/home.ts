@@ -33,22 +33,19 @@ Page({
       mask: true
     });
 
-    const loadJoinedRoomList = async () => {
+    await Promise.all([ app.getUserData(), (async () => {
       await this.getJoinedRoomList();
 
       this.setData({ joinedRoomList: app.globalData.joinedRoomList });
       this.getTabBar().updateRoomid();
-    }
-
-    const loadNoticeList = async () => {
+    })(), (async () => {
       await this.getNoticeList();
 
       if (this.data.noticeDataList.some(noticeData => noticeData.isImportant)) {
         this.showNotice();
       }
-    }
+    })()]);
 
-    await Promise.all([app.getUserData(), loadJoinedRoomList(), loadNoticeList()]);
     wx.hideLoading();
   },
 
@@ -66,10 +63,12 @@ Page({
   },
 
   async onPullDownRefresh() {
-    await Promise.all([this.getJoinedRoomList(), this.getNoticeList()]);
-
-    this.setData({ joinedRoomList: app.globalData.joinedRoomList });
-    this.getTabBar().updateRoomid();
+    await Promise.all([(async () => {
+      await this.getJoinedRoomList();
+      
+      this.setData({ joinedRoomList: app.globalData.joinedRoomList });
+      this.getTabBar().updateRoomid();
+    })(), this.getNoticeList()]);
 
     wx.stopPullDownRefresh();
   },
@@ -100,7 +99,7 @@ Page({
       } else if (!app.globalData.currentRoomid) {
         app.globalData.currentRoomid = joinedRoomList[0];
       }
-      
+
       const cachedRoomDataList: RoomData[] = wx.getStorageSync('rooms') || [];
       const reservedRoomDataList: RoomData[] = [];
       const removedRoomList: string[] = [];
@@ -157,16 +156,29 @@ Page({
 
     try {
       const { result } = await wx.cloud.callFunction({
-        name: 'joinRoom',
+        name: 'P2_joinRoom',
         data: { roomid }
       }) as CallFunctionResult<null>;
 
       if ([200, 201].includes(result.code)) {
         app.globalData.currentRoomid = roomid;
+
+        if (!app.globalData.joinedRoomList.includes(roomid)) {
+          app.globalData.joinedRoomList.push(roomid);
+        }
+
         wx.switchTab({ url: '/pages/room/room' });
+        this.setData({ joinedRoomList: app.globalData.joinedRoomList });
+        this.getTabBar().updateRoomid();
         this.closeJoin();
       } else if ([403, 404].includes(result.code)) {
-        this.getJoinedRoomList();
+        (async () => {
+          await this.getJoinedRoomList();
+          
+          this.setData({ joinedRoomList: app.globalData.joinedRoomList });
+          this.getTabBar().updateRoomid();
+        })();
+
         wx.showToast({
           title: '房间不存在',
           icon: 'none'
@@ -198,7 +210,7 @@ Page({
 
       if (roomid) {
         this.setData({ roomidInput: roomid });
-        this.handleJoin();
+        await this.handleJoin();
       } else {
         wx.showToast({
           title: '小程序码无效',

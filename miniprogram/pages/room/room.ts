@@ -1,303 +1,310 @@
+import storage from '../../utils/storage';
+
 const app = getApp<IAppOption>();
 export {};
 
 interface RoomPageData {
+  openid: string,
+  roomid: string,
+
   memberDataList: MemberData[],
   actionGroupList: ActionGroup[],
+
+  isGamePlaying: number,
+  round: number,
+
+  watcher: DB.RealtimeListener | null,
+
+  keyboardVisible: boolean,
+  keyboardSelectorVisible: boolean,
+  isOperationPanel: boolean,
 }
 
-Page({
+Component({
   data: {
-    memberDataList: [
-      {
-        openid: '0',
-        avatarUrl: '',
-        nickname: '0',
-        scores: 0,
-        roundScores: 0
-      },
-      {
-        openid: '1',
-        avatarUrl: '',
-        nickname: '1',
-        scores: 0,
-        roundScores: 0
-      },
-      {
-        openid: '2',
-        avatarUrl: '',
-        nickname: '2',
-        scores: 0,
-        roundScores: 0
-      },
-      {
-        openid: '3',
-        avatarUrl: '',
-        nickname: '3',
-        scores: 0,
-        roundScores: 0
-      },
-      {
-        openid: '4',
-        avatarUrl: '',
-        nickname: '4',
-        scores: 0,
-        roundScores: 0
-      }
-    ],
+    openid: '',
+    roomid: '',
 
-    actionGroupList: [
-      {
-        payerList: ['0'],
-        receiverList: ['1'],
+    memberDataList: [],
+    actionGroupList: [],
 
-        isNewRound: true,
-        totalScores: 3,
+    isGamePlaying: 0,
+    round: 0,
 
-        actionDataList: [
-          {
-            actionid: 0,
-            group: 0,
-            
-            isUndo: false,
-            isTemp: false,
+    watcher: null,
 
-            payerData: {
-              openid: '0',
-              avatarUrl: '',
-              nickname: '0'
-            },
-            receiverData: {
-              openid: '1',
-              avatarUrl: '',
-              nickname: '1'
-            },
-
-            name: '碰',
-            scores: 3,
-            round: 1
-          }
-        ],
-      },
-      {
-        payerList: ['0'],
-        receiverList: ['1', '2'],
-
-        isNewRound: false,
-        totalScores: 2,
-        
-        actionDataList: [
-          {
-            actionid: 1,
-            group: 1,
-
-            isUndo: false,
-            isTemp: true,
-
-            payerData: {
-              openid: '0',
-              avatarUrl: '',
-              nickname: '0'
-            },
-            receiverData: {
-              openid: '1',
-              avatarUrl: '',
-              nickname: '1'
-            },
-
-            name: '支出分值',
-            scores: 1,
-            round: 1
-          },
-          {
-            actionid: 2,
-            group: 1,
-
-            isUndo: false,
-            isTemp: true,
-
-            payerData: {
-              openid: '0',
-              avatarUrl: '',
-              nickname: '0'
-            },
-            receiverData: {
-              openid: '2',
-              avatarUrl: '',
-              nickname: '2'
-            },
-
-            name: '支出分值',
-            scores: 1,
-            round: 1
-          }
-        ]
-      },
-      {
-        payerList: ['0'],
-        receiverList: ['1'],
-
-        isNewRound: false,
-        totalScores: 3,
-
-        actionDataList: [
-          {
-            actionid: 3,
-            group: 3,
-            
-            isUndo: false,
-            isTemp: false,
-
-            payerData: {
-              openid: '0',
-              avatarUrl: '',
-              nickname: '0'
-            },
-            receiverData: {
-              openid: '1',
-              avatarUrl: '',
-              nickname: '1'
-            },
-
-            name: '碰',
-            scores: 3,
-            round: 1
-          }
-        ],
-      },
-      {
-        payerList: ['0'],
-        receiverList: ['1'],
-
-        isNewRound: false,
-        totalScores: 3,
-
-        actionDataList: [
-          {
-            actionid: 4,
-            group: 4,
-            
-            isUndo: false,
-            isTemp: false,
-
-            payerData: {
-              openid: '0',
-              avatarUrl: '',
-              nickname: '0'
-            },
-            receiverData: {
-              openid: '1',
-              avatarUrl: '',
-              nickname: '1'
-            },
-
-            name: '碰',
-            scores: 3,
-            round: 1
-          }
-        ],
-      },
-      {
-        payerList: ['0'],
-        receiverList: ['1'],
-
-        isNewRound: false,
-        totalScores: 3,
-
-        actionDataList: [
-          {
-            actionid: 5,
-            group: 5,
-            
-            isUndo: false,
-            isTemp: false,
-
-            payerData: {
-              openid: '0',
-              avatarUrl: '',
-              nickname: '0'
-            },
-            receiverData: {
-              openid: '1',
-              avatarUrl: '',
-              nickname: '1'
-            },
-
-            name: '碰',
-            scores: 3,
-            round: 1
-          }
-        ],
-      },
-      {
-        payerList: ['0'],
-        receiverList: ['1'],
-
-        isNewRound: false,
-        totalScores: 3,
-
-        actionDataList: [
-          {
-            actionid: 6,
-            group: 6,
-            
-            isUndo: false,
-            isTemp: false,
-
-            payerData: {
-              openid: '0',
-              avatarUrl: '',
-              nickname: '0'
-            },
-            receiverData: {
-              openid: '1',
-              avatarUrl: '',
-              nickname: '1'
-            },
-
-            name: '碰',
-            scores: 3,
-            round: 1
-          }
-        ],
-      },
-    ],
+    keyboardVisible: false,
+    keyboardSelectorVisible: false,
+    isOperationPanel: true,
   } as RoomPageData,
 
-  onLoad(options) {
-    
-  },
+  methods: {
+    onLoad(options) {
+      this.setData({ openid: app.globalData.userData.openid });
+    },
 
-  onReady() {
+    onShow() {
+      wx.setNavigationBarTitle({ title: '房间' + app.globalData.currentRoomid });
+      this.setData({ roomid: app.globalData.currentRoomid });
+      this.getTabBar().updateRoomid();
 
-  },
+      if (this.data.roomid) {
+        this.watchRoomData();
+      }
+    },
 
-  onShow() {
-    wx.setNavigationBarTitle({ title: '房间' + app.globalData.currentRoomid });
-    this.getTabBar().updateRoomid();
-  },
+    onReady() {
 
-  onHide() {
+    },
 
-  },
+    onHide() {
+      this.closeWatcher();
+    },
 
-  onUnload() {
+    onUnload() {
 
-  },
+    },
 
-  onPullDownRefresh() {
+    onPullDownRefresh() {
+      if (this.data.roomid) {
+        this.watchRoomData();
+      }
+    },
 
-  },
+    onReachBottom() {
 
-  onReachBottom() {
+    },
 
-  },
+    onShareAppMessage() {
 
-  onShareAppMessage() {
+    },
 
-  },
+    async watchRoomData(): Promise<void> {
+      try {
+        await this.closeWatcher();
+        const db = wx.cloud.database();
 
-  undoAction(e: WechatMiniprogram.CustomEvent) {
-    console.log(e.detail.value);
+        const watcher = db.collection('rooms').where({
+          roomid: this.data.roomid
+        }).watch({
+          onChange: async (snapshot) => {
+            const docChange = snapshot.docChanges[0];
+            const dataType = docChange.dataType;
+            const databaseRoomData = docChange.doc as DatabaseRoomData;
+
+            if (dataType === 'init') {
+              await this.initializeMemberData(databaseRoomData);
+              this.initializeActionGroupList(databaseRoomData);
+            } else if (dataType === 'update') {
+              const updatedFields = docChange.updatedFields!;
+              const updatedMemberList = Object.keys(updatedFields).find(updatedField => updatedField.startsWith('memberList'));
+
+              if (updatedMemberList) {
+                await this.updateMemberData(databaseRoomData, updatedFields[updatedMemberList]);
+              }
+            }
+          },
+
+          onError: (err) => {
+            console.warn('监听错误', err);
+            wx.showToast({
+              title: '加载异常，请刷新重试',
+              icon: 'none'
+            });
+          }
+        });
+
+        this.setData({ watcher });
+      } catch (err) {
+        console.error('开启监听器错误', err);
+        wx.showToast({
+          title: '加载失败，请刷新重试',
+          icon: 'none'
+        });
+      }
+    },
+
+    async closeWatcher(): Promise<void> {
+      const watcher = this.data.watcher;
+
+      if (watcher) {
+        try {
+          await watcher.close();
+          await new Promise(resolve => setTimeout(resolve, 500));
+        } catch(err) {
+          console.warn('关闭监听器错误', err);
+        } finally {
+          this.setData({ watcher: null });
+        }
+      }
+    },
+
+    async initializeMemberData(databaseRoomData: DatabaseRoomData): Promise<void> {
+      const memberList = databaseRoomData.memberList.filter(member => member !== this.data.openid);
+
+      try {
+        const { result } = await wx.cloud.callFunction({
+          name: 'P2_getUserDataList',
+          data: { userList: memberList }
+        }) as CallFunctionResult<UserData[]>;
+        
+        if (result.code !== 200) {
+          throw result;
+        }
+
+        const userDataList = [...result.data];
+        userDataList.unshift(app.globalData.userData);
+  
+        const memberDataList: MemberData[] = await Promise.all(userDataList.map(async userData => {
+          if (userData.avatarUrl && userData.avatarFileID) {  
+            userData.avatarUrl = await storage.downloadImage(userData.avatarUrl, userData.avatarFileID);
+          } else {
+            userData.avatarUrl = '/images/PenghuScorekeeper.jpg';
+          }
+
+          const memberData: MemberData = {
+            ...userData,
+            scores: databaseRoomData.scoresMap[userData.openid],
+            roundScores: databaseRoomData.roundScoresMap[userData.openid]
+          }
+
+          return memberData
+        }));
+  
+        this.setData({ memberDataList });
+      } catch (err) {
+        console.error('初始化成员信息列表失败', err);
+        wx.showToast({
+          title: '加载失败',
+          icon: 'error'
+        });
+      }
+    },
+
+    initializeActionGroupList(databaseRoomData: DatabaseRoomData): void {
+      const actionDataList = databaseRoomData.actionDataList;
+      const actionGroupList: ActionGroup[]  = [];
+      let lastActionRound: number = 0;
+      
+      actionDataList.forEach(databaseActionData => {
+        const {
+          actionid, group,
+          isUndo,
+          payer, receiver,
+          name, scores, round
+        } = databaseActionData;
+
+        const payerData = this.data.memberDataList.find(memberData => memberData.openid === payer)!;
+        const receiverData = this.data.memberDataList.find(memberData => memberData.openid === receiver)!;
+        
+        const actionData: ActionData = {
+          actionid,
+          group,
+
+          isUndo,
+          isTemp: false,
+
+          payerData,
+          receiverData,
+
+          name,
+          scores,
+          round
+        }
+
+        if (actionid === group) {
+          let isNewRound: boolean;
+
+          if (actionid) {
+            isNewRound = round !== lastActionRound;
+          } else {
+            isNewRound = round > 0;
+          }
+
+          const actionGroup: ActionGroup = {
+            mainActionid: actionid,
+            payerList: [payer],
+            receiverList: [receiver],
+
+            isNewRound,
+            totalScores: scores,
+
+            actionDataList: [actionData]
+          }
+
+          actionGroupList.push(actionGroup);
+          lastActionRound = round;
+        } else {
+          const actionGroupIndex = actionGroupList.findIndex(actionGroup => actionGroup.mainActionid === group);
+          actionGroupList[actionGroupIndex].actionDataList.push(actionData);
+        }
+      });
+
+      this.setData({ actionGroupList });
+    },
+
+    async updateMemberData(databaseRoomData: DatabaseRoomData, openid: string): Promise<void> {
+      try {
+        const { result } = await wx.cloud.callFunction({
+          name: 'P2_getUserDataList',
+          data: { userList: [openid] }
+        }) as CallFunctionResult<UserData[]>;
+        
+        if (result.code !== 200) {
+          throw result;
+        }
+
+        const userData = result.data[0];
+
+        if (userData.avatarUrl && userData.avatarFileID) {  
+          userData.avatarUrl = await storage.downloadImage(userData.avatarUrl, userData.avatarFileID);
+        } else {
+          userData.avatarUrl = '/images/PenghuScorekeeper.jpg';
+        }
+
+        const memberData: MemberData = {
+          ...userData,
+          scores: databaseRoomData.scoresMap[openid],
+          roundScores: databaseRoomData.roundScoresMap[openid]
+        }
+
+        const memberDataList = this.data.memberDataList;
+        memberDataList.push(memberData);
+  
+        this.setData({ memberDataList });
+      } catch (err) {
+        console.error('更新成员信息列表失败', err);
+        wx.showToast({
+          title: '加载失败',
+          icon: 'error'
+        });
+      }
+    },
+
+    undoAction(e: WechatMiniprogram.CustomEvent): void {
+      console.log(e.detail.value);
+    },
+
+    switchKeyboard(): void {
+      this.setData({ isOperationPanel: !this.data.isOperationPanel });
+    },
+
+    onKeyboardVisibleChange(e: WechatMiniprogram.CustomEvent): void {
+      this.setData({ keyboardVisible: e.detail.visible });
+    },
+
+    showKeyboard(): void {
+      if (this.data.roomid) {
+        this.setData({ keyboardVisible: true });
+      }
+    },
+
+    closeKeyboard(): void {
+      this.setData({ keyboardVisible: false });
+    },
+
+    navigateToInformation(): void {
+      wx.navigateTo({ url: '/pages/information/information' });
+    }
   }
 })

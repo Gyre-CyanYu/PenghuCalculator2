@@ -14,7 +14,7 @@ interface IAppOption {
 interface UserData {
   openid: string,
   avatarUrl: string,
-  avatarFileID?: string,
+  avatarFileID: string,
   nickname: string
 }
 
@@ -63,6 +63,7 @@ interface TempActionData {
 }
 
 interface ActionGroup {
+  mainActionid: number,
   payerList: string[],
   receiverList: string[],
 

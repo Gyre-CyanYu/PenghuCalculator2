@@ -32,7 +32,7 @@ App<IAppOption>({
   async getUserData(): Promise<void> {
     try {
       const { result } = await wx.cloud.callFunction({
-        name: 'P2_getUserData',
+        name: 'P2_getUserData'
       }) as CallFunctionResult<UserData>;
       
       if (![200, 201].includes(result.code)) {
@@ -48,7 +48,7 @@ App<IAppOption>({
       }
 
       this.globalData.userData = userData;
-      storage.cacheUserData(userData);
+      // storage.cacheUserData(userData);
     } catch (err) {
       console.error('获取用户信息失败', err);
       wx.showToast({

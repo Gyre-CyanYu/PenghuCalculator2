@@ -102,7 +102,7 @@ Page({
     }
   },
 
-  async handleCreate() {
+  async handleCreate(): Promise<void> {
     this.setData({ createButtonLoading: true });
 
     try {
@@ -135,7 +135,7 @@ Page({
     this.setData({ createButtonLoading: false });
   },
 
-  onConfigChange(e: WechatMiniprogram.CustomEvent) {
+  onConfigChange(e: WechatMiniprogram.CustomEvent): void {
     const setGameConfig = <T extends keyof GameConfig>(name: T, value: GameConfig[T]): void => {
       this.customData.gameConfig[name] = value;
     };

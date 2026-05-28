@@ -10,7 +10,7 @@ exports.main = async (event) => {
   const { avatarFileID, nickname } = event;
 
   try {
-    const userData = { openid };
+    const userData = {};
 
     if (avatarFileID) {
       const { fileList } = await cloud.getTempFileURL({ fileList: [avatarFileID] });

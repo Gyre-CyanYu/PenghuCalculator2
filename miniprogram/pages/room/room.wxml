@@ -1,21 +1,107 @@
 <scroll-view class="memberScroll" scroll-x>
-  <user
-    wx:for="{{memberDataList}}"
-    wx:key="openid"
-    avatarUrl="{{item.avatarUrl}}"
-    nickname="{{item.nickname}}"
-    badgeProps="{{null}}"
-    scores="{{item.scores}}"
-    roundScores="{{item.roundScores}}"
-    width="25vw"
-    class="memberScrollCard"
-  />
+  <block wx:if="{{roomid}}">
+    <user
+      wx:for="{{memberDataList}}"
+      wx:key="openid"
+      avatarUrl="{{item.avatarUrl}}"
+      nickname="{{item.nickname}}"
+      badgeProps="{{null}}"
+      scores="{{item.scores}}"
+      roundScores="{{item.roundScores}}"
+      width="25vw"
+      class="memberScrollCard"
+    />
+  </block>
+
+  <image wx:else hidden src="/images/PenghuScorekeeperTitle.png" mode="aspectFit" class="image" />
 </scroll-view>
 
 <scroll-view class="actionScroll" scroll-y scroll-with-animation>
-  <view wx:for="{{actionGroupList}}" wx:key="index" class="actionScrollCard">
-    <action-card bind:undo="undoAction" actionGroup="{{item}}" />
-  </view>
+  <block wx:if="{{roomid}}">
+    <view wx:for="{{actionGroupList}}" wx:key="index" class="actionScrollCard">
+      <action-card bind:undo="undoAction" actionGroup="{{item}}" />
+    </view>
 
-  <view style="height: 1rpx;" />
+    <view style="height: 1rpx;" />
+  </block>
+
+  <t-footer wx:else links="{{[
+    {name: '创建房间', url: '/pages/create/create', openType: 'navigate'},
+    {name: '加入房间', url: '/pages/home/home', openType: 'switchTab'}
+  ]}}" text="还没有加入房间" class="footer" />
 </scroll-view>
+
+<t-fab wx:if="{{roomid}}" style="bottom: 20vh;">
+  <view class="fabWrapper">
+    <t-button bind:tap="navigateToInformation" icon="app" theme="primary" shape="circle" size="large" />
+    <t-button bind:tap="showKeyboard" icon="add" theme="primary" shape="circle" size="large" />
+  </view>
+</t-fab>
+
+<t-popup bind:visible-change="onKeyboardVisibleChange" visible="{{keyboardVisible}}" placement="bottom">
+  <!-- <scroll-view class="keyboardSelector" scroll-x>
+    <user
+      wx:if="{{item.openid !== openid}}"
+      wx:for="{{memberDataList}}"
+      wx:key="openid"
+      avatarUrl="{{item.avatarUrl}}"
+      nickname="{{item.nickname}}"
+      badgeProps="{{null}}"
+      width="25vw"
+      class="memberScrollCard"
+    />
+  </scroll-view> -->
+
+  <view class="keyboard">
+    <view class="keyboardHeader">
+      <view class="title">计分</view>
+
+      <view hidden="{{false}}">
+        <text>{{}}</text>
+        <text hidden="{{false}}"> | </text>
+        <text>{{}}</text>
+      </view>
+
+      <view hidden="{{true}}">{{}}</view>
+    </view>
+
+    <t-divider />
+
+    <view class="keyboardBody">
+      <t-button  bind:tap="switchKeyboard" t-class="switchKey" content="切换" block />
+      <t-button  bind:tap="" disabled="{{}}" t-class="confirmKey" content="确定" icon="send" theme="primary" block />
+      <t-button  bind:tap="closeKeyboard" t-class="closeKey" content="收起" icon="chevron-down" theme="primary" variant="outline" block />
+      <t-button  bind:tap="" data-value="backspace" t-class="backspaceKey" content="退格" icon="correct" theme="light" block />
+
+      <block wx:if="{{isOperationPanel}}">
+        <t-button  bind:tap="" data-value="碰" t-class="key" content="碰" theme="light" block />
+        <t-button  bind:tap="" data-value="扫" t-class="key" content="扫" theme="light" block />
+        <t-button  bind:tap="" data-value="坎" t-class="key" content="坎" theme="light" block />
+
+        <t-button  bind:tap="" data-value="提" t-class="key" content="提" theme="light" block />
+        <t-button  bind:tap="" data-value="蛇" t-class="key" content="蛇" theme="light" block />
+        <t-button  bind:tap="" data-value="跑" t-class="key" content="跑" theme="light" block />
+
+        <t-button  bind:tap="" data-value="胡" t-class="wideKey" content="胡牌" theme="light" block />
+
+        <t-button  bind:tap="" data-value="臭庄" t-class="key" content="臭庄" theme="light" block />
+      </block>
+
+      <block wx:else>
+        <t-button  bind:tap="" data-value="7" t-class="key" content="7" theme="light" block />
+        <t-button  bind:tap="" data-value="8" t-class="key" content="8" theme="light" block />
+        <t-button  bind:tap="" data-value="9" t-class="key" content="9" theme="light" block />
+
+        <t-button  bind:tap="" data-value="4" t-class="key" content="4" theme="light" block />
+        <t-button  bind:tap="" data-value="5" t-class="key" content="5" theme="light" block />
+        <t-button  bind:tap="" data-value="6" t-class="key" content="6" theme="light" block />
+
+        <t-button  bind:tap="" data-value="1" t-class="key" content="1" theme="light" block />
+        <t-button  bind:tap="" data-value="2" t-class="key" content="2" theme="light" block />
+        <t-button  bind:tap="" data-value="3" t-class="key" content="3" theme="light" block />
+
+        <t-button  bind:tap="" data-value="0" t-class="key" content="0" theme="light" block />
+      </block>
+    </view>
+  </view>
+</t-popup>

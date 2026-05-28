@@ -96,7 +96,7 @@ Page({
           avatarFileID,
           nickname: this.data.nicknameInput
         }
-      }) as CallFunctionResult<{ openid: string, avatarUrl?: string, avatarFileID?: string, nickname?: string }>;
+      }) as CallFunctionResult<{ avatarUrl?: string, avatarFileID?: string, nickname?: string }>;
 
       if (result.code !== 200) {
         throw result
@@ -111,7 +111,7 @@ Page({
       }
 
       this.setData({ userData: app.globalData.userData });
-      storage.cacheUserData(app.globalData.userData);
+      // storage.cacheUserData(app.globalData.userData);
 
       this.closeEdit();
       wx.showToast({

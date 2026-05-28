@@ -13,11 +13,11 @@ exports.main = async (event, context) => {
     const { data } = await db.collection('rooms').where({
       memberList: _.elemMatch(_.eq(openid)),
       isGamePlaying: _.neq(-1)
-    }).field({ roomid: true }).get();
+    }).field({ roomid: true }).orderBy('createdAt', 'desc').get();
 
     return {
       code: 200,
-      data: data.map(roomData => roomData.roomid).reverse(),
+      data: data.map(roomData => roomData.roomid),
       message: '已获取已加入房间列表'
     };
   } catch (err) {

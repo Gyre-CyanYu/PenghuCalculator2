@@ -15,11 +15,11 @@ exports.main = async () => {
       content: true,
       isImportant: true,
       createdAt: true
-    }).get();
+    }).orderBy('createdAt', 'desc').get();
 
     return {
       code: 200,
-      data: data.sort((a, b) => b.createdAt - a.createdAt),
+      data,
       message: '已获取有效公告信息列表'
     };
   } catch (err) {

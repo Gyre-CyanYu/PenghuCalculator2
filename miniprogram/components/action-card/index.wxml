@@ -48,7 +48,7 @@
         isTemp="{{mainAction.isTemp}}"
       />
 
-      <block wx:if="{{actionGroup.actionDataList.length > 1 && actionGroupVisible}}">
+      <block wx:if="{{actionGroup.actionDataList.length > 1}}" hidden="{{!actionGroupVisible}}">
         <t-divider style="--td-divider-horizontal-margin: 0;" />
 
         <action

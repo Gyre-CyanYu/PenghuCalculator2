@@ -1,5 +1,4 @@
 interface DatabaseUserData extends UserData {
-  avatarFileID: string,
   createdAt: string
 }
 
