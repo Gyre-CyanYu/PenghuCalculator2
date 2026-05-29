@@ -113,12 +113,12 @@ Page({
 
       if (result.code === 201) {
         app.globalData.currentRoomid = result.data;
-        app.globalData.joinedRoomList.push(result.data);
+        app.globalData.joinedRoomList.unshift(result.data);
         
         wx.switchTab({ url: '/pages/room/room' });
-      } else if (result.code === 503) {
+      } else if ([403, 503].includes(result.code)) {
         wx.showToast({
-          title: '服务器繁忙',
+          title: result.message,
           icon: 'none'
         });
       } else {

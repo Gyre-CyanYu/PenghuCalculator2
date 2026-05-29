@@ -7,6 +7,7 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV }) // 使用当前云环境
 exports.main = async (event) => {
   const openid = cloud.getWXContext().OPENID;
   const db = cloud.database();
+  const _ = db.command;
   
   const gameConfig = {
     mode: 'addition',
@@ -17,6 +18,19 @@ exports.main = async (event) => {
   };
 
   try {
+    const { total } = await db.collection('rooms').where({
+      memberList: _.elemMatch(_.eq(openid)),
+      isGamePlaying: _.neq(-1)
+    }).count();
+
+    if (total >= 8) {
+      return {
+        code: 403,
+        data: null,
+        message: '最多加入8个房间'
+      };
+    }
+
     let count = 0
     let roomid;
 

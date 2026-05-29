@@ -39,7 +39,7 @@ Component({
   } as RoomPageData,
 
   methods: {
-    onLoad(options) {
+    onLoad() {
       this.setData({ openid: app.globalData.userData.openid });
     },
 
@@ -76,7 +76,18 @@ Component({
     },
 
     onShareAppMessage() {
+      const shareData = {
+        title: '碰胡计分器',
+        path: '/pages/home/home',
+        imageUrl: '/images/PenghuScorekeeper5×4.jpg'
+      }
 
+      if (this.data.roomid) {
+        shareData.title += `房间：${ this.data.roomid }`;
+        shareData.path += `?roomid=${ this.data.roomid }`;
+      }
+
+      return shareData
     },
 
     async watchRoomData(): Promise<void> {

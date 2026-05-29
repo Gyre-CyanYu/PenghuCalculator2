@@ -39,6 +39,19 @@ exports.main = async (event) => {
       };
     }
 
+    const { total } = await db.collection('rooms').where({
+      memberList: _.elemMatch(_.eq(openid)),
+      isGamePlaying: _.neq(-1)
+    }).count();
+
+    if (total >= 8) {
+      return {
+        code: 403,
+        data: null,
+        message: '最多加入8个房间'
+      };
+    }
+
     if (memberList.length >= 16) {
       return {
         code: 403,

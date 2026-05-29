@@ -1,5 +1,5 @@
 import format from '../../utils/format';
-import storage from '../../utils/storage';
+// import storage from '../../utils/storage';
 
 const app = getApp<IAppOption>();
 export {};
@@ -27,13 +27,13 @@ Page({
     noticeVisible: false
   } as HomePageData,
 
-  async onLoad() {
+  async onLoad(options: { roomid?: string }) {
     wx.showLoading({
       title: '加载中',
       mask: true
     });
 
-    await Promise.all([ app.getUserData(), (async () => {
+    await Promise.all([app.getUserData(), (async () => {
       await this.getJoinedRoomList();
 
       this.setData({ joinedRoomList: app.globalData.joinedRoomList });
@@ -47,6 +47,13 @@ Page({
     })()]);
 
     wx.hideLoading();
+
+    if (options.roomid) {
+      this.setData({ roomidInput: options.roomid }, () => {
+        this.showJoin();
+        this.handleJoin();
+      });
+    }
   },
 
   onShow() {
@@ -100,7 +107,7 @@ Page({
         app.globalData.currentRoomid = joinedRoomList[0];
       }
 
-      const cachedRoomDataList: RoomData[] = wx.getStorageSync('rooms') || [];
+      /* const cachedRoomDataList: RoomData[] = wx.getStorageSync('rooms') || [];
       const reservedRoomDataList: RoomData[] = [];
       const removedRoomList: string[] = [];
 
@@ -113,7 +120,7 @@ Page({
       });
 
       wx.setStorageSync('rooms', reservedRoomDataList);
-      await storage.removeImage('qrCode', removedRoomList);
+      await storage.removeImage('qrCode', removedRoomList); */
     } catch (err) {
       console.warn('获取已加入房间列表失败', err);
     }
@@ -164,7 +171,7 @@ Page({
         app.globalData.currentRoomid = roomid;
 
         if (!app.globalData.joinedRoomList.includes(roomid)) {
-          app.globalData.joinedRoomList.push(roomid);
+          app.globalData.joinedRoomList.unshift(roomid);
         }
 
         wx.switchTab({ url: '/pages/room/room' });
@@ -180,7 +187,7 @@ Page({
         })();
 
         wx.showToast({
-          title: '房间不存在',
+          title: result.message,
           icon: 'none'
         });
       } else {
