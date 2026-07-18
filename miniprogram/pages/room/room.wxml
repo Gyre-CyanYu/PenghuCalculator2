@@ -13,7 +13,7 @@
     />
   </block>
 
-  <image wx:else hidden src="/images/PenghuScorekeeperTitle.png" mode="aspectFit" class="image" />
+  <image wx:else src="/images/PenghuScorekeeperTitle.png" mode="aspectFit" class="image" />
 </scroll-view>
 
 <scroll-view class="actionScroll" scroll-y scroll-with-animation>
@@ -38,19 +38,25 @@
   </view>
 </t-fab>
 
-<t-popup bind:visible-change="onKeyboardVisibleChange" visible="{{keyboardVisible}}" placement="bottom">
-  <!-- <scroll-view class="keyboardSelector" scroll-x>
+<t-popup
+  bind:visible-change="onKeyboardVisibleChange"
+  visible="{{keyboardVisible}}"
+  style="--td-popup-bg-color: transparent"
+  placement="bottom"
+>
+  <scroll-view hidden="{{!keyboardSelectorVisible && 0}}" class="keyboardSelector" scroll-x>
     <user
       wx:if="{{item.openid !== openid}}"
-      wx:for="{{memberDataList}}"
+      wx:for="{{isOperationPanel ? [] : memberDataList}}"
       wx:key="openid"
       avatarUrl="{{item.avatarUrl}}"
       nickname="{{item.nickname}}"
       badgeProps="{{null}}"
       width="25vw"
+      nicknameClass="nickname"
       class="memberScrollCard"
     />
-  </scroll-view> -->
+  </scroll-view>
 
   <view class="keyboard">
     <view class="keyboardHeader">
@@ -59,7 +65,7 @@
       <view hidden="{{false}}">
         <text>{{}}</text>
         <text hidden="{{false}}"> | </text>
-        <text>{{}}</text>
+        <text>{{isOperationPanel ? '' : '支出分值'}}</text>
       </view>
 
       <view hidden="{{true}}">{{}}</view>

@@ -19,12 +19,26 @@ exports.main = async (event) => {
       nickname: true
     }).get();
 
-    const userDataList = data.map(userData => ({
-      openid: userData._openid,
-      avatarUrl: userData.avatarUrl,
-      avatarFileID: userData.avatarFileID,
-      nickname: userData.nickname
-    })).reverse();
+    const dataMap = {};
+    
+    data.forEach(userData => {
+      dataMap[userData._openid] = userData;
+    });
+
+    const userDataList = userList.map(openid => {
+      const userData = dataMap[openid];
+
+      if (!userData) {
+        return null
+      }
+
+      return {
+        openid,
+        avatarUrl: userData.avatarUrl,
+        avatarFileID: userData.avatarFileID,
+        nickname: userData.nickname
+      }
+    }).filter(Boolean);
 
     return {
       code: 200,

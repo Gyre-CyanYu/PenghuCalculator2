@@ -1,5 +1,5 @@
 <view class="wrapper imageWrapper">
-  <image hidden src="/images/PenghuScorekeeperTitle.png" mode="aspectFit" />
+  <image src="/images/PenghuScorekeeperTitle.png" mode="aspectFit" />
 </view>
 
 <view class="wrapper buttonWrapper">

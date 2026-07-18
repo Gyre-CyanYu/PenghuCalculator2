@@ -39,6 +39,12 @@
   padding: 32rpx;
   border-radius: 24rpx 24rpx 0 0;
 }
+.keyboardSelector {
+  white-space: nowrap;
+}
+.nickname {
+  color: var(--td-bg-color-container);
+}
 .keyboardHeader {
   display: flex;
   justify-content: space-between;

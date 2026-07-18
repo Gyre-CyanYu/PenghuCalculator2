@@ -151,19 +151,17 @@ Component({
     },
 
     async initializeMemberData(databaseRoomData: DatabaseRoomData): Promise<void> {
-      const memberList = databaseRoomData.memberList.filter(member => member !== this.data.openid);
-
       try {
         const { result } = await wx.cloud.callFunction({
           name: 'P2_getUserDataList',
-          data: { userList: memberList }
+          data: { userList: databaseRoomData.memberList.filter(member => member !== this.data.openid) }
         }) as CallFunctionResult<UserData[]>;
         
         if (result.code !== 200) {
           throw result;
         }
 
-        const userDataList = [...result.data];
+        const userDataList = result.data;
         userDataList.unshift(app.globalData.userData);
   
         const memberDataList: MemberData[] = await Promise.all(userDataList.map(async userData => {
