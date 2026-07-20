@@ -49,6 +49,9 @@
   display: flex;
   justify-content: space-between;
 }
+.display {
+  color: var(--td-brand-color);
+}
 .keyboardBody {
   display: grid;
   grid-template-columns: repeat(4, 1fr);

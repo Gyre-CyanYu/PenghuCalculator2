@@ -3,6 +3,18 @@ import storage from '../../utils/storage';
 const app = getApp<IAppOption>();
 export {};
 
+const OPERATION_MAP: Record<OperationInput, OperationDisplay> = {
+  '碰': '碰', '扫': '扫', '坎': '坎',
+  '跑': '跑', '提': '提', '蛇': '蛇',
+  '胡': '胡', '臭': '臭庄',
+  '碰胡': '碰胡', '胡碰': '碰胡',
+  '扫胡': '扫胡', '胡扫': '扫胡',
+  '跑胡': '跑胡', '胡跑': '跑胡',
+  '提胡': '提龙连胡', '胡提': '提龙连胡',
+  '胡胡': '天胡',
+  '坎坎': '七对', '蛇蛇': '双龙',
+}
+
 interface RoomPageData {
   openid: string,
   roomid: string,
@@ -13,11 +25,27 @@ interface RoomPageData {
   isGamePlaying: number,
   round: number,
 
+  isPlayer: boolean,
+  playerDataList: UserData[],
+  dealer: string,
+  holdDealer: number,
+
+  isNextPlayer: boolean,
+  nextPlayerDataList: UserData[],
+  nextDealer: string,
+
   watcher: DB.RealtimeListener | null,
 
   keyboardVisible: boolean,
   keyboardSelectorVisible: boolean,
   isOperationPanel: boolean,
+  confirmButtonDisabled: boolean,
+
+  selectedPlayer: string,
+  selectedMemberMap: Record<string, boolean>,
+
+  keyboardInput: KeyboardInput,
+  keyboardDisplay: KeyboardDisplay
 }
 
 Component({
@@ -30,13 +58,58 @@ Component({
 
     isGamePlaying: 0,
     round: 0,
+    
+    isPlayer: false,
+    playerDataList: [],
+    dealer: '',
+    holdDealer: 1,
 
+    isNextPlayer: false,
+    nextPlayerDataList: [],
+    nextDealer: '',
+    
     watcher: null,
 
     keyboardVisible: false,
     keyboardSelectorVisible: false,
     isOperationPanel: true,
+    confirmButtonDisabled: true,
+
+    selectedPlayer: '',
+    selectedMemberMap: {},
+
+    keyboardInput: '',
+    keyboardDisplay: ''
   } as RoomPageData,
+
+  observers: {
+    'isGamePlaying': function (): void {
+      this.toggleConfirmButtonDisabled();
+    },
+    
+    'playerDataList': function (): void {
+      this.setData({ isPlayer: this.data.playerDataList.some(playerData => playerData.openid === this.data.openid) });
+    },
+
+    'nextPlayerDataList': function (): void {
+      this.setData({ isNextPlayer: this.data.nextPlayerDataList.some(nextPlayerData => nextPlayerData.openid === this.data.openid) });
+    },
+
+    'isOperationPanel': function (): void {
+      this.toggleConfirmButtonDisabled();
+      this.toggleKeyboardSelectorVisible();
+    },
+
+    'selectedMemberMap': function (): void {
+      this.toggleConfirmButtonDisabled();
+    },
+    
+    'keyboardInput': function (): void {
+      this.toggleConfirmButtonDisabled();
+      this.handleKeyboardDisplay();
+      this.toggleKeyboardSelectorVisible();
+    }
+  },
 
   methods: {
     onLoad() {
@@ -203,8 +276,17 @@ Component({
           name, scores, round
         } = databaseActionData;
 
-        const payerData = this.data.memberDataList.find(memberData => memberData.openid === payer)!;
-        const receiverData = this.data.memberDataList.find(memberData => memberData.openid === receiver)!;
+        const {
+          scores: payerScores,
+          roundScores: payerRoundScores,
+          ...payerData
+        } = this.data.memberDataList.find(memberData => memberData.openid === payer)!;
+
+        const {
+          scores: receiverScores,
+          roundScores: receiverRoundScores,
+          ...receiverData
+        } = this.data.memberDataList.find(memberData => memberData.openid === receiver)!;
         
         const actionData: ActionData = {
           actionid,
@@ -294,8 +376,110 @@ Component({
       console.log(e.detail.value);
     },
 
+    toggleConfirmButtonDisabled(): void {
+      let confirmButtonDisabled: boolean = true;
+
+      if (this.data.isGamePlaying !== -1 && this.data.keyboardInput) {
+        confirmButtonDisabled = this.data.isOperationPanel
+          ? !this.data.isPlayer && !this.data.isNextPlayer
+          : Object.values(this.data.selectedMemberMap).every(selectedMember => selectedMember === false);
+      }
+
+      this.setData({ confirmButtonDisabled });
+    },
+
+    toggleKeyboardSelectorVisible(): void {
+      if (!this.data.isOperationPanel || ['碰', '跑', '胡', '碰胡', '跑胡'].includes(this.data.keyboardDisplay)) {
+        this.setData({ keyboardSelectorVisible: true });
+      } else {
+        this.setData({
+          keyboardSelectorVisible: false,
+          selectedPlayer: ''
+        });
+      }
+    },
+
+    onSelectedPlayerChange(e: WechatMiniprogram.BaseEvent): void {
+      const selectedPlayer: string = e.currentTarget.dataset.openid;
+
+      if (this.data.selectedPlayer === selectedPlayer) {
+        this.setData({ selectedPlayer: '' });
+      } else {
+        this.setData({ selectedPlayer });
+      }
+    },
+
+    onSelectedMemberChange(e: WechatMiniprogram.BaseEvent): void {
+      const selectedMember: string = e.currentTarget.dataset.openid;
+      const selectedMemberMap = this.data.selectedMemberMap;
+
+      if (selectedMemberMap[selectedMember]) {
+        selectedMemberMap[selectedMember] = false;
+      } else {
+        selectedMemberMap[selectedMember] = true;
+      }
+
+      this.setData({ selectedMemberMap });
+    },
+
+    onBackspace(): void {
+      const keyboardInput = this.data.keyboardInput;
+      
+      if (keyboardInput.length > 0) {
+        this.setData({ keyboardInput: keyboardInput.slice(0, -1) as KeyboardInput });
+      }
+    },
+
+    onOperationInputChange(e: WechatMiniprogram.BaseEvent): void {
+      const operationInput: OperationInput = e.currentTarget.dataset.value;
+      const keyboardInput = this.data.keyboardInput + operationInput as OperationInput;
+
+      if (OPERATION_MAP[keyboardInput]) {
+        this.setData({ keyboardInput });
+      }
+    },
+
+    onNumberInputChange(e: WechatMiniprogram.BaseEvent): void {
+      const numberInput: NumberInput = e.currentTarget.dataset.value;
+
+      if (this.data.keyboardInput ? this.data.keyboardInput.length < 3 : numberInput !== '0') {
+        this.setData({ keyboardInput: (this.data.keyboardInput + numberInput) as NumberInput });
+      }
+    },
+
+    handleKeyboardDisplay(): void {
+      const keyboardInput = this.data.keyboardInput;
+
+      if (this.data.isOperationPanel) {
+        if (keyboardInput === '胡胡') {
+          if ([this.data.dealer, this.data.newDealer].includes(this.data.openid)) {
+            this.setData({ keyboardDisplay: '天胡' });
+          } else {
+            this.setData({ keyboardDisplay: '地胡' });
+          }
+        } else if (keyboardInput) {
+          this.setData({ keyboardDisplay: OPERATION_MAP[keyboardInput as OperationInput] });
+        } else {
+          this.setData({ keyboardDisplay: '' });
+        }
+      } else {
+        if (keyboardInput) {
+          this.setData({ keyboardDisplay: keyboardInput as NumberInput });
+        } else {
+          this.setData({ keyboardDisplay: '0' });
+        }
+      }
+    },
+
     switchKeyboard(): void {
-      this.setData({ isOperationPanel: !this.data.isOperationPanel });
+      this.setData({
+        isOperationPanel: !this.data.isOperationPanel,
+
+        selectedPlayer: '',
+        selectedMemberMap: {},
+
+        keyboardInput: ''
+      });
     },
 
     onKeyboardVisibleChange(e: WechatMiniprogram.CustomEvent): void {
@@ -304,12 +488,26 @@ Component({
 
     showKeyboard(): void {
       if (this.data.roomid) {
-        this.setData({ keyboardVisible: true });
+        const isOperationPanel = this.data.isGamePlaying !== -1 && (this.data.isPlayer || this.data.isNextPlayer);
+
+        this.setData({
+          keyboardVisible: true,
+          isOperationPanel,
+
+          keyboardInput: ''
+        });
       }
     },
 
     closeKeyboard(): void {
-      this.setData({ keyboardVisible: false });
+      this.setData({
+        keyboardVisible: false,
+
+        selectedPlayer: '',
+        selectedMemberMap: {},
+
+        keyboardInput: ''
+      });
     },
 
     navigateToInformation(): void {

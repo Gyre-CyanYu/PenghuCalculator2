@@ -10,6 +10,7 @@ Component({
     scores: { type: String, optionalTypes: [Number], value: '' },
     roundScores: { type: String, optionalTypes: [Number], value: '' },
 
+    hidden: { type: Boolean, value: false },
     width: { type: String },
     nicknameClass: { type: String, value: 'subtitle' },
     scoresClass: { type: String, value: 'content' }

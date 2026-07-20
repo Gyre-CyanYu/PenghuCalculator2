@@ -1,4 +1,4 @@
-<view style="width: {{width}}" class="userWrapper">
+<view hidden="{{hidden}}" style="width: {{width}}" class="userWrapper">
   <block wx:if="{{userGroup || userGroupLength > 1}}">
     <t-avatar-group max="1" collapseAvatar="+{{userGroupLength - 1}}">
       <t-avatar image="{{avatarUrl}}" badge-props="{{badgeProps}}" icon="user" />
