@@ -32,7 +32,7 @@ App<IAppOption>({
   async getUserData(): Promise<void> {
     try {
       const { result } = await wx.cloud.callFunction({
-        name: 'P2_getUserData'
+        name: 'P2_getCurrentUserData'
       }) as CallFunctionResult<UserData>;
       
       if (![200, 201].includes(result.code)) {

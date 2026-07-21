@@ -179,8 +179,10 @@ Component({
             if (dataType === 'init') {
               await this.initializeMemberData(databaseRoomData);
               this.initializeActionGroupList(databaseRoomData);
+              this.initializeGameData(databaseRoomData);
             } else if (dataType === 'update') {
               const updatedFields = docChange.updatedFields!;
+
               const updatedMemberList = Object.keys(updatedFields).find(updatedField => updatedField.startsWith('memberList'));
 
               if (updatedMemberList) {
@@ -224,10 +226,12 @@ Component({
     },
 
     async initializeMemberData(databaseRoomData: DatabaseRoomData): Promise<void> {
+      const { memberList, scoresMap, roundScoresMap } = databaseRoomData;
+
       try {
         const { result } = await wx.cloud.callFunction({
           name: 'P2_getUserDataList',
-          data: { userList: databaseRoomData.memberList.filter(member => member !== this.data.openid) }
+          data: { userList: memberList.filter(member => member !== this.data.openid) }
         }) as CallFunctionResult<UserData[]>;
         
         if (result.code !== 200) {
@@ -246,8 +250,8 @@ Component({
 
           const memberData: MemberData = {
             ...userData,
-            scores: databaseRoomData.scoresMap[userData.openid],
-            roundScores: databaseRoomData.roundScoresMap[userData.openid]
+            scores: scoresMap[userData.openid],
+            roundScores: roundScoresMap[userData.openid]
           }
 
           return memberData
@@ -264,7 +268,7 @@ Component({
     },
 
     initializeActionGroupList(databaseRoomData: DatabaseRoomData): void {
-      const actionDataList = databaseRoomData.actionDataList;
+      const { actionDataList } = databaseRoomData;
       const actionGroupList: ActionGroup[]  = [];
       let lastActionRound: number = 0;
       
@@ -277,14 +281,12 @@ Component({
         } = databaseActionData;
 
         const {
-          scores: payerScores,
-          roundScores: payerRoundScores,
+          scores: payerScores, roundScores: payerRoundScores,
           ...payerData
         } = this.data.memberDataList.find(memberData => memberData.openid === payer)!;
 
         const {
-          scores: receiverScores,
-          roundScores: receiverRoundScores,
+          scores: receiverScores, roundScores: receiverRoundScores,
           ...receiverData
         } = this.data.memberDataList.find(memberData => memberData.openid === receiver)!;
         
@@ -334,6 +336,44 @@ Component({
       this.setData({ actionGroupList });
     },
 
+    initializeGameData(databaseRoomData: DatabaseRoomData): void {
+      const {
+        isGamePlaying, round,
+        playerList, dealer, holdDealer,
+        nextPlayerMap, nextDealer
+      } = databaseRoomData;
+
+      const playerDataList = playerList.map(player => {
+        const {
+          scores: playerScores, roundScores: playerRoundScores,
+          ...playerData
+        } = this.data.memberDataList.find(memberData => memberData.openid === player)!;
+
+        return playerData;
+      });
+
+      const nextPlayerDataList = Object.values(nextPlayerMap).map(nextPlayer => {
+        const {
+          scores: nextPlayerScores, roundScores: nextPlayerRoundScores,
+          ...nextPlayerData
+        } = this.data.memberDataList.find(memberData => memberData.openid === nextPlayer)!;
+
+        return nextPlayerData;
+      });
+
+      this.setData({
+        isGamePlaying,
+        round,
+
+        playerDataList,
+        dealer,
+        holdDealer,
+
+        nextPlayerDataList,
+        nextDealer
+      });
+    },
+
     async updateMemberData(databaseRoomData: DatabaseRoomData, openid: string): Promise<void> {
       try {
         const { result } = await wx.cloud.callFunction({
@@ -370,6 +410,12 @@ Component({
           icon: 'error'
         });
       }
+    },
+
+    updateActionGroupList(databaseRoomData: DatabaseRoomData): void {
+      const { actionDataList } = databaseRoomData;
+      const actionGroupList = this.data.actionGroupList;
+      const lastActionid = actionGroupList.at(-1)?.mainActionid;
     },
 
     undoAction(e: WechatMiniprogram.CustomEvent): void {
