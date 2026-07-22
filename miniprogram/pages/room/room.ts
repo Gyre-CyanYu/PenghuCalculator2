@@ -178,7 +178,7 @@ Component({
 
             if (dataType === 'init') {
               await this.initializeMemberData(databaseRoomData);
-              this.initializeActionGroupList(databaseRoomData);
+              this.updateActionGroupList(databaseRoomData);
               this.initializeGameData(databaseRoomData);
             } else if (dataType === 'update') {
               const updatedFields = docChange.updatedFields!;
@@ -267,113 +267,6 @@ Component({
       }
     },
 
-    initializeActionGroupList(databaseRoomData: DatabaseRoomData): void {
-      const { actionDataList } = databaseRoomData;
-      const actionGroupList: ActionGroup[]  = [];
-      let lastActionRound: number = 0;
-      
-      actionDataList.forEach(databaseActionData => {
-        const {
-          actionid, group,
-          isUndo,
-          payer, receiver,
-          name, scores, round
-        } = databaseActionData;
-
-        const {
-          scores: payerScores, roundScores: payerRoundScores,
-          ...payerData
-        } = this.data.memberDataList.find(memberData => memberData.openid === payer)!;
-
-        const {
-          scores: receiverScores, roundScores: receiverRoundScores,
-          ...receiverData
-        } = this.data.memberDataList.find(memberData => memberData.openid === receiver)!;
-        
-        const actionData: ActionData = {
-          actionid,
-          group,
-
-          isUndo,
-          isTemp: false,
-
-          payerData,
-          receiverData,
-
-          name,
-          scores,
-          round
-        }
-
-        if (actionid === group) {
-          let isNewRound: boolean;
-
-          if (actionid) {
-            isNewRound = round !== lastActionRound;
-          } else {
-            isNewRound = round > 0;
-          }
-
-          const actionGroup: ActionGroup = {
-            mainActionid: actionid,
-            payerList: [payer],
-            receiverList: [receiver],
-
-            isNewRound,
-            totalScores: scores,
-
-            actionDataList: [actionData]
-          }
-
-          actionGroupList.push(actionGroup);
-          lastActionRound = round;
-        } else {
-          const actionGroupIndex = actionGroupList.findIndex(actionGroup => actionGroup.mainActionid === group);
-          actionGroupList[actionGroupIndex].actionDataList.push(actionData);
-        }
-      });
-
-      this.setData({ actionGroupList });
-    },
-
-    initializeGameData(databaseRoomData: DatabaseRoomData): void {
-      const {
-        isGamePlaying, round,
-        playerList, dealer, holdDealer,
-        nextPlayerMap, nextDealer
-      } = databaseRoomData;
-
-      const playerDataList = playerList.map(player => {
-        const {
-          scores: playerScores, roundScores: playerRoundScores,
-          ...playerData
-        } = this.data.memberDataList.find(memberData => memberData.openid === player)!;
-
-        return playerData;
-      });
-
-      const nextPlayerDataList = Object.values(nextPlayerMap).map(nextPlayer => {
-        const {
-          scores: nextPlayerScores, roundScores: nextPlayerRoundScores,
-          ...nextPlayerData
-        } = this.data.memberDataList.find(memberData => memberData.openid === nextPlayer)!;
-
-        return nextPlayerData;
-      });
-
-      this.setData({
-        isGamePlaying,
-        round,
-
-        playerDataList,
-        dealer,
-        holdDealer,
-
-        nextPlayerDataList,
-        nextDealer
-      });
-    },
-
     async updateMemberData(databaseRoomData: DatabaseRoomData, openid: string): Promise<void> {
       try {
         const { result } = await wx.cloud.callFunction({
@@ -414,8 +307,79 @@ Component({
 
     updateActionGroupList(databaseRoomData: DatabaseRoomData): void {
       const { actionDataList } = databaseRoomData;
+
+      const memberDataList = this.data.memberDataList;
       const actionGroupList = this.data.actionGroupList;
-      const lastActionid = actionGroupList.at(-1)?.mainActionid;
+
+      const lastActionid: number = actionGroupList.at(-1)?.actionDataList.at(-1)!.actionid ?? -1;
+      let lastActionRound: number = actionGroupList.at(-1)?.actionDataList.at(-1)!.round ?? 0;
+
+      actionDataList.slice(lastActionid + 1).forEach(databaseActionData => {
+        const {
+          actionid, group,
+          isUndo,
+          payer, receiver,
+          name, scores, round
+        } = databaseActionData;
+
+        const {
+          scores: payerScores, roundScores: payerRoundScores,
+          ...payerData
+        } = memberDataList.find(memberData => memberData.openid === payer)!;
+
+        const {
+          scores: receiverScores, roundScores: receiverRoundScores,
+          ...receiverData
+        } = memberDataList.find(memberData => memberData.openid === receiver)!;
+        
+        const actionData: ActionData = {
+          actionid,
+          group,
+
+          isUndo,
+          isTemp: false,
+
+          payerData,
+          receiverData,
+
+          name,
+          scores,
+          round
+        }
+
+        if (actionid === group) {
+          const isNewRound: boolean = round > lastActionRound;
+
+          const actionGroup: ActionGroup = {
+            mainActionid: actionid,
+            payerList: [payer],
+            receiverList: [receiver],
+
+            isNewRound,
+            totalScores: scores,
+
+            actionDataList: [actionData]
+          }
+
+          actionGroupList.push(actionGroup);
+          lastActionRound = round;
+        } else {
+          const actionGroup = actionGroupList.find(actionGroup => actionGroup.mainActionid === group)!;
+
+          if (!actionGroup.payerList.includes(payer)) {
+            actionGroup.payerList.push(payer);
+          }
+
+          if (!actionGroup.receiverList.includes(receiver)) {
+            actionGroup.receiverList.push(receiver);
+          }
+
+          actionGroup.totalScores += scores;
+          actionGroup.actionDataList.push(actionData);
+        }
+      });
+
+      this.setData({ actionGroupList });
     },
 
     undoAction(e: WechatMiniprogram.CustomEvent): void {
@@ -443,6 +407,44 @@ Component({
           selectedPlayer: ''
         });
       }
+    },
+
+    initializeGameData(databaseRoomData: DatabaseRoomData): void {
+      const {
+        isGamePlaying, round,
+        playerList, dealer, holdDealer,
+        nextPlayerMap, nextDealer
+      } = databaseRoomData;
+
+      const playerDataList = playerList.map(player => {
+        const {
+          scores: playerScores, roundScores: playerRoundScores,
+          ...playerData
+        } = this.data.memberDataList.find(memberData => memberData.openid === player)!;
+
+        return playerData;
+      });
+
+      const nextPlayerDataList = Object.values(nextPlayerMap).map(nextPlayer => {
+        const {
+          scores: nextPlayerScores, roundScores: nextPlayerRoundScores,
+          ...nextPlayerData
+        } = this.data.memberDataList.find(memberData => memberData.openid === nextPlayer)!;
+
+        return nextPlayerData;
+      });
+
+      this.setData({
+        isGamePlaying,
+        round,
+
+        playerDataList,
+        dealer,
+        holdDealer,
+
+        nextPlayerDataList,
+        nextDealer
+      });
     },
 
     onSelectedPlayerChange(e: WechatMiniprogram.BaseEvent): void {
