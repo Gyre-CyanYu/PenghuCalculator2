@@ -44,8 +44,10 @@
     "t-button": "tdesign-miniprogram/button/button",
     "t-divider": "tdesign-miniprogram/divider/divider",
     "t-fab": "tdesign-miniprogram/fab/fab",
+    "t-icon": "tdesign-miniprogram/icon/icon",
 
     "t-input": "tdesign-miniprogram/input/input",
+    "t-switch": "tdesign-miniprogram/switch/switch",
 
     "t-avatar": "tdesign-miniprogram/avatar/avatar",
     "t-avatar-group": "tdesign-miniprogram/avatar-group/avatar-group",

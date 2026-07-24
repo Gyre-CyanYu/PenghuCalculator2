@@ -8,7 +8,7 @@ interface IAppOption {
     joinedRoomList: string[]
   },
 
-  getUserData: () => Promise<void>
+  getCurrentUserData: () => Promise<void>
 }
 
 interface UserData {

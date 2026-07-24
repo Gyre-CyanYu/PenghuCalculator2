@@ -425,7 +425,7 @@ Component({
         return playerData;
       });
 
-      const nextPlayerDataList = Object.values(nextPlayerMap).map(nextPlayer => {
+      const nextPlayerDataList = Object.values(nextPlayerMap).filter(Boolean).map(nextPlayer => {
         const {
           scores: nextPlayerScores, roundScores: nextPlayerRoundScores,
           ...nextPlayerData

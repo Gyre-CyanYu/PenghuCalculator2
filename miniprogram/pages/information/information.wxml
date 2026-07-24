@@ -1,2 +1,163 @@
-<!--pages/information/information.wxml-->
-<text>pages/information/information.wxml</text>
+<view class="seatWrapper">
+  <view class="content">{{isPlayerSelecting ? '请选择一位玩家' : isRandomBack ? '随机砸鸟下局开始后可见' : '已加入的玩家'}}</view>
+
+  <view class="playerGridWrapper">
+    <view
+      wx:for="{{seatDataList}}"
+      wx:key="label"
+      class="{{item.label < 0 ? 'playerGridWrapper' : item.label < 4 ? 'playerWrapper' : 'backerWrapper backerWrapper' + [item.label]}}"
+    >
+      <block wx:if="{{item.label < 0}}">
+        <t-icon name="system-2" size="48rpx" color="var(--td-brand-color)" t-class="seat seatC" />
+        
+        <view
+          wx:if="{{seatItem.label > -1 && seatItem.label < 4}}"
+          wx:for="{{seatDataList}}"
+          wx:for-item="seatItem"
+          wx:key="label"
+          class="seat seat{{seatItem.label}}"
+        >{{seatItem.seat}}</view>
+      </block>
+
+      <block wx:elif="{{item.label < 4}}">
+        <user
+          wx:if="{{nextPlayerDataMap[item.label].openid}}"
+          avatarUrl="{{nextPlayerDataMap[item.label].avatarUrl}}"
+          nickname="{{nextPlayerDataMap[item.label].nickname}}"
+          badgeProps="{{}}"
+        />
+
+        <block wx:else>
+          <t-button
+            bind:tap=""
+            disabled="{{}}"
+            data-seat="{{}}"
+            theme="light"
+            size="large"
+            icon="user-add"
+            shape="circle"
+          />
+
+          <view class="subtitle">待加入</view>
+        </block>
+      </block>
+
+      <user
+        wx:elif="{{nextBackerDataListMap[nextPlayerDataMap[item.label].openid].length}}"
+        avatarUrl="{{nextBackerDataListMap[nextPlayerDataMap[item.label].openid][0].avatarUrl}}"
+        nickname="{{nextBackerDataListMap[nextPlayerDataMap[item.label].openid][0].nickname}}"
+        badgeProps="{{}}"
+        userGroupLength="{{nextBackerDataListMap[nextPlayerDataMap[item.label].openid].length}}"
+      />
+    </view>
+  </view>
+
+  <view class="buttonWrapper">
+    <view class="randomBackButtonWrapper">
+      <t-button
+        wx:if="{{isPlayerSelecting}}"
+        bind:tap=""
+        disabled="{{}}"
+        content="取消"
+        theme="light"
+        size="small"
+        block
+      />
+
+      <block wx:elif="{{!isNewPlayer}}">
+        <view class="content">随机砸鸟</view>
+
+        <t-switch
+          bind:change=""
+          disabled="{{}}"
+          value="{{isRandomBack}}"
+          size="small"
+        />
+      </block>
+    </view>
+
+    <view>
+      <t-button
+        wx:if="{{isPlayerSelecting}}"
+        bind:tap="onTapSelect"
+        disabled="{{statusBtnDisabled || (isNewPlayer && !selectedPlayerOpenid)}}"
+        content="确定"
+        theme="primary"
+        size="small"
+        block
+      />
+            
+      <block wx:elif="{{isNewPlayer}}">
+        <t-button
+          wx:if="{{openid === newDealer}}"
+          bind:tap="showPlayerSelect"
+          disabled="{{statusBtnDisabled}}"
+          content="转让"
+          size="small"
+          block
+        />
+
+        <t-button
+          wx:else
+          bind:tap="handleBeSpectator"
+          disabled="{{statusBtnDisabled}}"
+          content="旁观"
+          size="small"
+          block
+        />
+      </block>
+
+      <t-button
+        wx:else
+        bind:tap="showPlayerSelect"
+        disabled="{{statusBtnDisabled || isRandomBack}}"
+        content="砸鸟"
+        size="small"
+        block
+      />
+    </view>
+
+    <view class="rotateButtonWrapper">
+      <view>
+        <t-button
+          bind:tap=""
+          data-offset="{{3}}"
+          variant="text"
+          shape="square"
+          size="extra-small"
+          icon="rollback"
+        />
+
+        <t-button
+          bind:tap=""
+          data-offset="{{1}}"
+          variant="text"
+          shape="square"
+          size="extra-small"
+          icon="rollfront"
+        />
+
+        <t-button
+          bind:tap="toggleDirectionLock"
+          theme="{{directionLock ? 'danger' : ''}}"
+          variant="text"
+          shape="square"
+          size="extra-small"
+          icon="{{directionLock ? 'rotate-locked' : 'lock-off'}}"
+        />
+      </view>
+    </view>
+  </view>
+</view>
+
+<view class="card dataCard">
+  <view class="title">分享房间</view>
+</view>
+
+<view class="card dataCard">
+  <view class="title">房间信息</view>
+
+  <view class="content">进行时间</view>
+
+  <view class="content">规则设置</view>
+</view>

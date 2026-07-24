@@ -29,7 +29,7 @@ App<IAppOption>({
     }
   },
 
-  async getUserData(): Promise<void> {
+  async getCurrentUserData(): Promise<void> {
     try {
       const { result } = await wx.cloud.callFunction({
         name: 'P2_getCurrentUserData'

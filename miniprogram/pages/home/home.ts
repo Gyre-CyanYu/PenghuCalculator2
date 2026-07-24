@@ -33,7 +33,7 @@ Page({
       mask: true
     });
 
-    await Promise.all([app.getUserData(), (async () => {
+    await Promise.all([app.getCurrentUserData(), (async () => {
       await this.getJoinedRoomList();
 
       this.setData({ joinedRoomList: app.globalData.joinedRoomList });
@@ -205,9 +205,15 @@ Page({
   },
 
   handleBack(e: WechatMiniprogram.BaseEvent): void {
-    this.showJoin();
-    this.setData({ roomidInput: e.currentTarget.dataset.roomid });
-    this.handleJoin();
+    const roomid = e.currentTarget.dataset.roomid;
+
+    if (app.globalData.currentRoomid === roomid) {
+      wx.switchTab({ url: '/pages/room/room' });
+    } else {
+      this.showJoin();
+      this.setData({ roomidInput: roomid });
+      this.handleJoin();
+    }
   },
 
   async handleScan(): Promise<void> {

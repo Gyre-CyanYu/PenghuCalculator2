@@ -44,7 +44,7 @@ Page({
   },
 
   async onPullDownRefresh() {
-    await app.getUserData();
+    await app.getCurrentUserData();
 
     this.setData({ userData: app.globalData.userData });
     this.getTabBar().updateRoomid();
