@@ -10,10 +10,19 @@ $RECYCLE.BIN/
 .TemporaryItems
 .Trashes
 
+# IDE
+.vscode/
+.idea/
+
 # Node.js
 miniprogram/miniprogram_npm/
 miniprogram/node_modules/
 cloudfunctions/*/node_modules/
 
+# WeChat MiniProgram
 project.config.json
 project.private.config.json
+miniprogram/envList.js
+
+# TypeScript
+*.tsbuildinfo
