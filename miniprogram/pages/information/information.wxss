@@ -102,3 +102,40 @@
   padding: 32rpx;
   margin: 16rpx 32rpx;
 }
+.dataGridWrapper {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 100%;
+}
+.dataWrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 16rpx;
+  overflow: hidden
+}
+
+.roomid {
+  color: var(--td-brand-color);
+}
+.time {
+  color: var(--td-brand-color);
+  font-size: large;
+}
+.unit {
+  font-size: small;
+  margin: 0 10rpx;
+}
+.gameConfigScroll {
+  white-space: nowrap;
+}
+.gameConfigTag {
+  margin: 0 8rpx;
+}
+
+.backerDataWrapper {
+  display: grid;
+  width: 100%;
+  margin-top: 32rpx;
+}

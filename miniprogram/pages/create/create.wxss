@@ -1,12 +1,7 @@
-page {
-  gap: 32rpx;
-  padding: 32rpx 0;
-}
-
 .configCard {
   display: flex;
   flex-direction: column;
   gap: 16rpx;
   padding: 32rpx;
-  margin: 0 32rpx;
+  margin: 16rpx 32rpx;
 }

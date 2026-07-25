@@ -51,7 +51,10 @@
 
     "t-avatar": "tdesign-miniprogram/avatar/avatar",
     "t-avatar-group": "tdesign-miniprogram/avatar-group/avatar-group",
+    "t-count-down": "tdesign-miniprogram/count-down/count-down",
     "t-footer": "tdesign-miniprogram/footer/footer",
+    "t-image": "tdesign-miniprogram/image/image",
+    "t-tag": "tdesign-miniprogram/tag/tag",
     
     "t-dialog": "tdesign-miniprogram/dialog/dialog",
     "t-popup": "tdesign-miniprogram/popup/popup"

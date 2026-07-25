@@ -8,7 +8,7 @@
       class="{{item.label < 0 ? 'playerGridWrapper' : item.label < 4 ? 'playerWrapper' : 'backerWrapper backerWrapper' + [item.label]}}"
     >
       <block wx:if="{{item.label < 0}}">
-        <t-icon name="system-2" size="48rpx" color="var(--td-brand-color)" t-class="seat seatC" />
+        <t-icon name="system-2" size="48rpx" color="var(--td-error-color)" t-class="seat seatC" />
         
         <view
           wx:if="{{seatItem.label > -1 && seatItem.label < 4}}"
@@ -57,19 +57,19 @@
       <t-button
         wx:if="{{isPlayerSelecting}}"
         bind:tap=""
-        disabled="{{}}"
+        disabled="{{seatButtonDisabled}}"
         content="取消"
         theme="light"
         size="small"
         block
       />
 
-      <block wx:elif="{{!isNewPlayer}}">
+      <block wx:elif="{{!isNextPlayer}}">
         <view class="content">随机砸鸟</view>
 
         <t-switch
           bind:change=""
-          disabled="{{}}"
+          disabled="{{seatButtonDisabled}}"
           value="{{isRandomBack}}"
           size="small"
         />
@@ -80,18 +80,18 @@
       <t-button
         wx:if="{{isPlayerSelecting}}"
         bind:tap="onTapSelect"
-        disabled="{{statusBtnDisabled || (isNewPlayer && !selectedPlayerOpenid)}}"
+        disabled="{{seatButtonDisabled || (isNextPlayer && !selectedPlayer)}}"
         content="确定"
         theme="primary"
         size="small"
         block
       />
             
-      <block wx:elif="{{isNewPlayer}}">
+      <block wx:elif="{{isNextPlayer}}">
         <t-button
-          wx:if="{{openid === newDealer}}"
+          wx:if="{{openid === nextDealer}}"
           bind:tap="showPlayerSelect"
-          disabled="{{statusBtnDisabled}}"
+          disabled="{{seatButtonDisabled}}"
           content="转让"
           size="small"
           block
@@ -100,7 +100,7 @@
         <t-button
           wx:else
           bind:tap="handleBeSpectator"
-          disabled="{{statusBtnDisabled}}"
+          disabled="{{seatButtonDisabled}}"
           content="旁观"
           size="small"
           block
@@ -110,7 +110,7 @@
       <t-button
         wx:else
         bind:tap="showPlayerSelect"
-        disabled="{{statusBtnDisabled || isRandomBack}}"
+        disabled="{{seatButtonDisabled || isRandomBack}}"
         content="砸鸟"
         size="small"
         block
@@ -152,12 +152,85 @@
 
 <view class="card dataCard">
   <view class="title">分享房间</view>
+
+  <view class="dataGridWrapper">
+    <view class="dataWrapper">
+      <t-image
+        src="{{qrCodeUrl}}"
+        error="slot"
+        style="height: 100%; aspect-ratio: 1"
+        mode="heightFix"
+        shape="round"
+        show-menu-by-longpress
+      >
+        <view slot="error" class="content">无小程序码</view>
+      </t-image>
+    </view>
+
+    <view class="dataWrapper">
+      <view class="content">房间号</view>
+      <view class="roomid">{{roomid}}</view>
+      <t-button openType="share" content="分享" size="small" />
+    </view>
+  </view>
 </view>
 
 <view class="card dataCard">
   <view class="title">房间信息</view>
 
-  <view class="content">进行时间</view>
+  <view class="dataGridWrapper">
+    <view class="dataWrapper">
+      <view class="content">剩余时间</view>
+      <view wx:if="{{isGamePlaying === -1}}" class="time">房间已结算</view>
+      <t-count-down wx:else time="{{remainTime}}" t-class-count="time" t-class-split="unit" splitWithUnit />
+    </view>
 
-  <view class="content">规则设置</view>
+    <view class="dataWrapper">
+      <view class="content">规则设置</view>
+
+      <scroll-view class="gameConfigScroll" scroll-x>
+        <t-tag t-class="gameConfigTag" variant="light" size="large" theme="{{gameConfig.mode === 'addition' ? 'success' : 'primary'}}">{{gameConfig.mode === 'addition' ? '加法' : '乘法'}}</t-tag>
+        <t-tag t-class="gameConfigTag" variant="light" size="large" theme="{{gameConfig.limit ? 'success' : 'primary'}}">{{gameConfig.limit ? gameConfig.limit + '倍' : '连中'}}</t-tag>
+        <t-tag t-class="gameConfigTag" variant="light" size="large" theme="{{gameConfig.fiveTriWinConsiderHoldDealer ? 'success' : 'primary'}}">五福{{gameConfig.fiveTriWinConsiderHoldDealer ? '' : '不'}}考虑连庄</t-tag>
+        <t-tag t-class="gameConfigTag" variant="light" size="large" theme="{{gameConfig.heavenWinConsiderHoldDealer ? 'success' : 'primary'}}">天胡{{gameConfig.heavenWinConsiderHoldDealer ? '' : '不'}}考虑连庄</t-tag>
+      </scroll-view>
+    </view>
+  </view>
 </view>
+
+<view style="height: 176rpx;" />
+
+<view class="tabButtonWrapper">
+  <t-button wx:if="{{isGamePlaying !== -1}}" bind:tap="showSettle" content="结算" theme="danger" block />
+  <t-button wx:else bind:tap="" content="历史记录" theme="primary" block />
+</view>
+
+<t-dialog
+  visible="{{settleVisible}}"
+  title="结算房间"
+  content="房间结算后将无法继续计分"
+  confirm-btn="{{ { loading: settleButtonLoading, content: settleButtonLoading ? '结算中' : '结算', variant: 'base', theme: 'danger' } }}"
+  cancel-btn="取消"
+  bind:confirm=""
+  bind:cancel=""
+/>
+
+<t-dialog
+  visible="{{backerDataVisible}}"
+  title="砸鸟玩家"
+  cancel-btn="{{ {content: '关闭', variant: 'base'} }}"
+  bind:cancel=""
+>
+  <view
+    style="grid-template-columns: repeat({{backerDataList.length < 4 ? backerDataList.length : 4}}, 1fr);"
+    class="backerDataWrapper"
+    slot="content"
+  >
+    <user
+      wx:for="{{backerDataList}}"
+      wx:key="openid"
+      avatarUrl="{{item.avatarUrl}}"
+      nickname="{{item.nickname}}"
+    />
+  </view>
+</t-dialog>

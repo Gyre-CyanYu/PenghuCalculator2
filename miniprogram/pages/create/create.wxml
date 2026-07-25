@@ -11,6 +11,8 @@
   />
 </view>
 
+<view style="height: 176rpx;" />
+
 <view class="tabButtonWrapper">
   <t-button
     bind:tap="handleCreate"

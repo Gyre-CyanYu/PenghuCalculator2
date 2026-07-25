@@ -152,7 +152,7 @@ Component({
       const shareData = {
         title: '碰胡计分器',
         path: '/pages/home/home',
-        imageUrl: '/images/PenghuScorekeeper5×4.jpg'
+        imageUrl: '/images/PenghuScorekeeper5_4.jpg'
       }
 
       if (this.data.roomid) {
