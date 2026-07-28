@@ -1,5 +1,5 @@
 <view class="seatWrapper">
-  <view class="content">{{isPlayerSelecting ? '请选择一位玩家' : isRandomBack ? '随机砸鸟下局开始后可见' : '已加入的玩家'}}</view>
+  <view class="content">{{isRandomBack ? '随机砸鸟下局开始后可见' : '已加入的玩家'}}</view>
 
   <view class="playerGridWrapper">
     <view
@@ -21,9 +21,9 @@
 
       <block wx:elif="{{item.label < 4}}">
         <user
-          wx:if="{{nextPlayerDataMap[item.label].openid}}"
-          avatarUrl="{{nextPlayerDataMap[item.label].avatarUrl}}"
-          nickname="{{nextPlayerDataMap[item.label].nickname}}"
+          wx:if="{{nextPlayerDataTuple[item.label].openid}}"
+          avatarUrl="{{nextPlayerDataTuple[item.label].avatarUrl}}"
+          nickname="{{nextPlayerDataTuple[item.label].nickname}}"
           badgeProps="{{}}"
         />
 
@@ -43,112 +43,55 @@
       </block>
 
       <user
-        wx:elif="{{nextBackerDataListMap[nextPlayerDataMap[item.label].openid].length}}"
-        avatarUrl="{{nextBackerDataListMap[nextPlayerDataMap[item.label].openid][0].avatarUrl}}"
-        nickname="{{nextBackerDataListMap[nextPlayerDataMap[item.label].openid][0].nickname}}"
+        wx:elif="{{nextBackerDataMap[nextPlayerDataTuple[item.label - 4].openid].length}}"
+        avatarUrl="{{nextBackerDataMap[nextPlayerDataTuple[item.label - 4].openid][0].avatarUrl}}"
+        nickname="{{nextBackerDataMap[nextPlayerDataTuple[item.label - 4].openid][0].nickname}}"
         badgeProps="{{}}"
-        userGroupLength="{{nextBackerDataListMap[nextPlayerDataMap[item.label].openid].length}}"
+        userGroupLength="{{nextBackerDataMap[nextPlayerDataTuple[item.label - 4].openid].length}}"
       />
+
     </view>
   </view>
 
-  <view class="buttonWrapper">
-    <view class="randomBackButtonWrapper">
-      <t-button
-        wx:if="{{isPlayerSelecting}}"
-        bind:tap=""
-        disabled="{{seatButtonDisabled}}"
-        content="取消"
-        theme="light"
-        size="small"
-        block
-      />
+  <view class="buttonGridWrapper">
+    <view />
 
-      <block wx:elif="{{!isNextPlayer}}">
-        <view class="content">随机砸鸟</view>
-
-        <t-switch
-          bind:change=""
-          disabled="{{seatButtonDisabled}}"
-          value="{{isRandomBack}}"
-          size="small"
-        />
-      </block>
-    </view>
-
-    <view>
-      <t-button
-        wx:if="{{isPlayerSelecting}}"
-        bind:tap="onTapSelect"
-        disabled="{{seatButtonDisabled || (isNextPlayer && !selectedPlayer)}}"
-        content="确定"
-        theme="primary"
-        size="small"
-        block
-      />
-            
-      <block wx:elif="{{isNextPlayer}}">
-        <t-button
-          wx:if="{{openid === nextDealer}}"
-          bind:tap="showPlayerSelect"
-          disabled="{{seatButtonDisabled}}"
-          content="转让"
-          size="small"
-          block
-        />
-
-        <t-button
-          wx:else
-          bind:tap="handleBeSpectator"
-          disabled="{{seatButtonDisabled}}"
-          content="旁观"
-          size="small"
-          block
-        />
-      </block>
-
-      <t-button
-        wx:else
-        bind:tap="showPlayerSelect"
-        disabled="{{seatButtonDisabled || isRandomBack}}"
-        content="砸鸟"
-        size="small"
-        block
-      />
-    </view>
+    <t-button wx:if="{{openid === nextDealer}}" bind:tap="showSelector" disabled="{{statusButtonDisabled}}" size="extra-small" content="转让" />
+    <t-button wx:elif="{{isNextPlayer}}" bind:tap="" disabled="{{statusButtonDisabled}}" size="extra-small" content="旁观" />
+    <t-button wx:else bind:tap="showSelector" disabled="{{statusButtonDisabled}}" size="extra-small" content="砸鸟" />
 
     <view class="rotateButtonWrapper">
-      <view>
-        <t-button
-          bind:tap=""
-          data-offset="{{3}}"
-          variant="text"
-          shape="square"
-          size="extra-small"
-          icon="rollback"
-        />
+      <view><t-button
+        bind:tap=""
+        data-offset="{{3}}"
+        variant="text"
+        shape="square"
+        size="extra-small"
+        icon="rollback"
+      />
 
-        <t-button
-          bind:tap=""
-          data-offset="{{1}}"
-          variant="text"
-          shape="square"
-          size="extra-small"
-          icon="rollfront"
-        />
+      <t-button
+        bind:tap=""
+        data-offset="{{1}}"
+        variant="text"
+        shape="square"
+        size="extra-small"
+        icon="rollfront"
+      />
 
-        <t-button
-          bind:tap="toggleDirectionLock"
-          theme="{{directionLock ? 'danger' : ''}}"
-          variant="text"
-          shape="square"
-          size="extra-small"
-          icon="{{directionLock ? 'rotate-locked' : 'lock-off'}}"
-        />
-      </view>
+      <t-button
+        bind:tap="toggleDirectionLock"
+        theme="{{directionLock ? 'danger' : ''}}"
+        variant="text"
+        shape="square"
+        size="extra-small"
+        icon="{{directionLock ? 'rotate-locked' : 'lock-off'}}"
+      /></view>
     </view>
   </view>
 </view>
+
+<t-divider />
 
 <view class="card dataCard">
   <view class="title">分享房间</view>
@@ -219,11 +162,11 @@
   visible="{{backerDataVisible}}"
   title="砸鸟玩家"
   cancel-btn="{{ {content: '关闭', variant: 'base'} }}"
-  bind:cancel=""
+  bind:cancel="closeBackerData"
 >
   <view
-    style="grid-template-columns: repeat({{backerDataList.length < 4 ? backerDataList.length : 4}}, 1fr);"
-    class="backerDataWrapper"
+    style="{{backerDataList.length < 4 ? '' : 'grid-template-columns: repeat(4, 1fr);'}}"
+    class="dialogWrapper"
     slot="content"
   >
     <user
@@ -231,6 +174,27 @@
       wx:key="openid"
       avatarUrl="{{item.avatarUrl}}"
       nickname="{{item.nickname}}"
+    />
+  </view>
+</t-dialog>
+
+<t-dialog
+  visible="{{selectorVisible}}"
+  title="请选择一位玩家"
+  confirm-btn="{{ {disabled: statusButtonDisabled, content: '选择', variant: 'base'} }}"
+  cancel-btn="{{ {disabled: statusButtonDisabled, content: '关闭'} }}"
+  bind:cancel="closeSelector"
+>
+  <view class="dialogWrapper" slot="content">
+    <user
+      bind:tap=""
+      data-seat="{{index}}"
+      wx:if="{{item.openid && (!isNextPlayer || openid !== nextDealer)}}"
+      wx:for="{{nextPlayerDataTuple}}"
+      wx:key="openid"
+      avatarUrl="{{item.avatarUrl}}"
+      nickname="{{item.nickname}}"
+      badgeProps="{{}}"
     />
   </view>
 </t-dialog>

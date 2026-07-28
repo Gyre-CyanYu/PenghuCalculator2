@@ -382,6 +382,44 @@ Component({
       this.setData({ actionGroupList });
     },
 
+    initializeGameData(databaseRoomData: DatabaseRoomData): void {
+      const {
+        isGamePlaying, round,
+        playerList, dealer, holdDealer,
+        nextPlayerTuple, nextDealer
+      } = databaseRoomData;
+
+      const playerDataList = playerList.map(player => {
+        const {
+          scores: playerScores, roundScores: playerRoundScores,
+          ...playerData
+        } = this.data.memberDataList.find(memberData => memberData.openid === player)!;
+
+        return playerData;
+      });
+
+      const nextPlayerDataList = nextPlayerTuple.filter(Boolean).map(nextPlayer => {
+        const {
+          scores: nextPlayerScores, roundScores: nextPlayerRoundScores,
+          ...nextPlayerData
+        } = this.data.memberDataList.find(memberData => memberData.openid === nextPlayer)!;
+
+        return nextPlayerData;
+      });
+
+      this.setData({
+        isGamePlaying,
+        round,
+
+        playerDataList,
+        dealer,
+        holdDealer,
+
+        nextPlayerDataList,
+        nextDealer
+      });
+    },
+
     undoAction(e: WechatMiniprogram.CustomEvent): void {
       console.log(e.detail.value);
     },
@@ -407,44 +445,6 @@ Component({
           selectedPlayer: ''
         });
       }
-    },
-
-    initializeGameData(databaseRoomData: DatabaseRoomData): void {
-      const {
-        isGamePlaying, round,
-        playerList, dealer, holdDealer,
-        nextPlayerMap, nextDealer
-      } = databaseRoomData;
-
-      const playerDataList = playerList.map(player => {
-        const {
-          scores: playerScores, roundScores: playerRoundScores,
-          ...playerData
-        } = this.data.memberDataList.find(memberData => memberData.openid === player)!;
-
-        return playerData;
-      });
-
-      const nextPlayerDataList = Object.values(nextPlayerMap).filter(Boolean).map(nextPlayer => {
-        const {
-          scores: nextPlayerScores, roundScores: nextPlayerRoundScores,
-          ...nextPlayerData
-        } = this.data.memberDataList.find(memberData => memberData.openid === nextPlayer)!;
-
-        return nextPlayerData;
-      });
-
-      this.setData({
-        isGamePlaying,
-        round,
-
-        playerDataList,
-        dealer,
-        holdDealer,
-
-        nextPlayerDataList,
-        nextDealer
-      });
     },
 
     onSelectedPlayerChange(e: WechatMiniprogram.BaseEvent): void {

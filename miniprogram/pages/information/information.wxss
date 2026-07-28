@@ -3,7 +3,7 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 24rpx;
+  padding: 32rpx;
 }
 
 .playerGridWrapper {
@@ -76,16 +76,10 @@
   grid-row: 2 / 3;
 }
 
-.buttonWrapper {
+.buttonGridWrapper {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 16rpx;
   width: 100%;
-}
-.randomBackButtonWrapper {
-  display: flex;
-  justify-content: center;
-  align-items: center;
 }
 .rotateButtonWrapper {
   display: flex;
@@ -134,8 +128,9 @@
   margin: 0 8rpx;
 }
 
-.backerDataWrapper {
+.dialogWrapper {
   display: grid;
+  grid-template-columns: repeat(auto-fit, 1fr);
   width: 100%;
   margin-top: 32rpx;
 }

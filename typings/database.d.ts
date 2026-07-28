@@ -32,7 +32,7 @@ interface DatabaseRoomData {
   winner: string,
 
   /* 下局信息 */
-  nextPlayerMap: Record<0 | 1 | 2 | 3, string>,
+  nextPlayerTuple: [string, string, string, string],
   nextBackerMap: Record<string, string[]>,
   nextDealer: string,
 

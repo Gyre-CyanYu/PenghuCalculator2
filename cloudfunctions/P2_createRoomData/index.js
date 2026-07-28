@@ -70,7 +70,7 @@ exports.main = async (event) => {
           tripletMap: {},
           winner: '',
 
-          nextPlayerMap: {0: '', 1: '', 2: '', 3: ''},
+          nextPlayerTuple: ['', '', '', ''],
           nextBackerMap: {},
           nextDealer: '',
 
