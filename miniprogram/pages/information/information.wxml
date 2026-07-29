@@ -1,3 +1,5 @@
+<wxs module="utils" src="./information.wxs" />
+
 <view class="seatWrapper">
   <view class="content">{{isRandomBack ? '随机砸鸟下局开始后可见' : '已加入的玩家'}}</view>
 
@@ -29,9 +31,9 @@
 
         <block wx:else>
           <t-button
-            bind:tap=""
-            disabled="{{}}"
-            data-seat="{{}}"
+            bind:tap="handleBePlayer"
+            disabled="{{statusButtonDisabled || selectorVisible}}"
+            data-seat="{{item.label}}"
             theme="light"
             size="large"
             icon="user-add"
@@ -43,6 +45,7 @@
       </block>
 
       <user
+        bind:tap="showBackerData"
         wx:elif="{{nextBackerDataMap[nextPlayerDataTuple[item.label - 4].openid].length}}"
         avatarUrl="{{nextBackerDataMap[nextPlayerDataTuple[item.label - 4].openid][0].avatarUrl}}"
         nickname="{{nextBackerDataMap[nextPlayerDataTuple[item.label - 4].openid][0].nickname}}"
@@ -57,13 +60,13 @@
     <view />
 
     <t-button wx:if="{{openid === nextDealer}}" bind:tap="showSelector" disabled="{{statusButtonDisabled}}" size="extra-small" content="转让" />
-    <t-button wx:elif="{{isNextPlayer}}" bind:tap="" disabled="{{statusButtonDisabled}}" size="extra-small" content="旁观" />
+    <t-button wx:elif="{{isNextPlayer}}" bind:tap="handleBeSpectator" disabled="{{statusButtonDisabled}}" size="extra-small" content="旁观" />
     <t-button wx:else bind:tap="showSelector" disabled="{{statusButtonDisabled}}" size="extra-small" content="砸鸟" />
 
     <view class="rotateButtonWrapper">
       <view><t-button
-        bind:tap=""
-        data-offset="{{3}}"
+        bind:tap="handleRotate"
+        data-offset="{{1}}"
         variant="text"
         shape="square"
         size="extra-small"
@@ -71,8 +74,8 @@
       />
 
       <t-button
-        bind:tap=""
-        data-offset="{{1}}"
+        bind:tap="handleRotate"
+        data-offset="{{3}}"
         variant="text"
         shape="square"
         size="extra-small"
@@ -125,7 +128,7 @@
     <view class="dataWrapper">
       <view class="content">剩余时间</view>
       <view wx:if="{{isGamePlaying === -1}}" class="time">房间已结算</view>
-      <t-count-down wx:else time="{{remainTime}}" t-class-count="time" t-class-split="unit" splitWithUnit />
+      <t-count-down wx:else time="{{remainTime < 0 ? 0 : remainTime}}" t-class-count="time" t-class-split="unit" splitWithUnit />
     </view>
 
     <view class="dataWrapper">
@@ -145,7 +148,7 @@
 
 <view class="tabButtonWrapper">
   <t-button wx:if="{{isGamePlaying !== -1}}" bind:tap="showSettle" content="结算" theme="danger" block />
-  <t-button wx:else bind:tap="" content="历史记录" theme="primary" block />
+  <t-button wx:else bind:tap="navigateToHistory" content="历史记录" theme="primary" block />
 </view>
 
 <t-dialog
@@ -165,7 +168,7 @@
   bind:cancel="closeBackerData"
 >
   <view
-    style="{{backerDataList.length < 4 ? '' : 'grid-template-columns: repeat(4, 1fr);'}}"
+    style="grid-template-columns: repeat({{utils.getBackerDataColumn(backerDataList)}}, 1fr);"
     class="dialogWrapper"
     slot="content"
   >
@@ -185,7 +188,11 @@
   cancel-btn="{{ {disabled: statusButtonDisabled, content: '关闭'} }}"
   bind:cancel="closeSelector"
 >
-  <view class="dialogWrapper" slot="content">
+  <view
+    style="grid-template-columns: repeat({{utils.getSelectorColumn(openid, isNextPlayer, nextPlayerDataTuple, nextDealer)}}, 1fr);"
+    class="dialogWrapper"
+    slot="content"
+  >
     <user
       bind:tap=""
       data-seat="{{index}}"

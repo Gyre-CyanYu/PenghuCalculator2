@@ -21,6 +21,7 @@ interface InformationPageData {
   backedPlayer: string,
   nextBackerDataMap: Record<string, UserData[]>,
   nextDealer: string,
+  isRandomBack: boolean,
 
   watcher: DB.RealtimeListener | null,
 
@@ -35,7 +36,6 @@ interface InformationPageData {
     seat: '北鸟' | '西鸟' | '南鸟' | '东鸟'
   })[],
 
-  isRandomBack: boolean,
   seatLock: boolean,
   statusButtonDisabled: boolean,
 
@@ -60,8 +60,8 @@ Component({
     gameConfig: {
       mode: 'addition',
       limit: 4,
-      fiveTriWinConsiderHoldDealer: false,
-      heavenWinConsiderHoldDealer: false
+      fiveTriWinConsiderHoldDealer: true,
+      heavenWinConsiderHoldDealer: true
     },
 
     memberDataList: [],
@@ -73,6 +73,7 @@ Component({
     backedPlayer: '',
     nextBackerDataMap: {},
     nextDealer: '',
+    isRandomBack: false,
 
     watcher: null,
 
@@ -88,7 +89,6 @@ Component({
       { label: 7, seat: '东鸟' }
     ],
 
-    isRandomBack: false,
     seatLock: false,
     statusButtonDisabled: true,
 
@@ -103,7 +103,31 @@ Component({
   } as InformationPageData,
 
   observers: {
+    'createdAt': function (): void {
+      const remainTime: number = 12 * 60 * 60 * 1000 - (Date.now() - new Date(this.data.createdAt).getTime());
+      this.setData({ remainTime });
+    },
 
+    'isGamePlaying': function (): void {
+      const statusButtonDisabled: boolean = this.data.isGamePlaying !== 0;
+      this.setData({ statusButtonDisabled });
+    },
+
+    'nextPlayerDataTuple': function (): void {
+      const isNextPlayer: boolean = this.data.nextPlayerDataTuple.some(nextPlayerData =>
+        'openid' in nextPlayerData && nextPlayerData.openid === this.data.openid
+      );
+
+      this.setData({ isNextPlayer });
+    },
+
+    'nextBackerDataMap': function (): void {
+      const backedPlayer: string = Object.keys(this.data.nextBackerDataMap).find(target =>
+        this.data.nextBackerDataMap[target].some(nextBackerData => nextBackerData.openid === this.data.openid)
+      ) ?? '';
+
+      this.setData({ backedPlayer });
+    }
   },
 
   methods: {
@@ -165,11 +189,20 @@ Component({
               this.initializeGameData(databaseRoomData);
             } else if (dataType === 'update') {
               const updatedFields = docChange.updatedFields!;
+              console.log(updatedFields);
 
               const updatedMemberList = Object.keys(updatedFields).find(updatedField => updatedField.startsWith('memberList'));
 
               if (updatedMemberList) {
-                await this.updateMemberData(databaseRoomData, updatedFields[updatedMemberList]);
+                await this.updateMemberData(updatedFields[updatedMemberList]);
+              }
+
+              if (updatedFields.isGamePlaying) {
+                this.updateIsGamePlaying(databaseRoomData);
+              }
+
+              if (updatedFields.nextPlayerTuple) {
+                this.updateNextPlayerDataTuple(databaseRoomData);
               }
             }
           },
@@ -244,7 +277,7 @@ Component({
       }
     },
 
-    async updateMemberData(databaseRoomData: DatabaseRoomData, openid: string): Promise<void> {
+    async updateMemberData(openid: string): Promise<void> {
       try {
         const { result } = await wx.cloud.callFunction({
           name: 'P2_getUserDataList',
@@ -277,14 +310,22 @@ Component({
     },
 
     initializeGameData(databaseRoomData: DatabaseRoomData): void {
-      const {
-        qrCodeUrl, createdAt,
-        gameConfig,
-        isGamePlaying, 
-        nextPlayerTuple, nextBackerMap, nextDealer
-      } = databaseRoomData;
+      this.updateIsGamePlaying(databaseRoomData);
+      this.updateNextPlayerDataTuple(databaseRoomData);
+      this.updateNextBackerDataMap(databaseRoomData);
+      this.updateNextDealer(databaseRoomData);
+      this.updateIsRandomBack(databaseRoomData);
 
-      const nextPlayerDataTuple = nextPlayerTuple.map(nextPlayer => {
+      const { qrCodeUrl, createdAt, gameConfig } = databaseRoomData;
+      this.setData({ qrCodeUrl, createdAt, gameConfig });
+    },
+
+    updateIsGamePlaying(databaseRoomData: DatabaseRoomData): void {
+      this.setData({ isGamePlaying: databaseRoomData.isGamePlaying });
+    },
+
+    updateNextPlayerDataTuple(databaseRoomData: DatabaseRoomData): void {
+      const nextPlayerDataTuple = databaseRoomData.nextPlayerTuple.map(nextPlayer => {
         if (!nextPlayer) {
           return {}
         }
@@ -293,44 +334,147 @@ Component({
         return nextPlayerData
       }) as [UserData | {}, UserData | {}, UserData | {}, UserData | {}];
 
-      const nextBackerDataMap: Record<string, UserData[]> = Object.entries(nextBackerMap).reduce((acc: Record<string, UserData[]>, [target, nextBackerList]) => {
-        const nextBackerDataList = nextBackerList.map(nextBacker => {
-          const nextBackerData = this.data.memberDataList.find(memberData => memberData.openid === nextBacker)!;
-          return nextBackerData
-        });
-        
-        acc[target] = nextBackerDataList;
-        return acc;
-      }, {});
-
-      this.setData({
-        qrCodeUrl,
-        createdAt,
-
-        gameConfig,
-
-        isGamePlaying,
-
-        nextPlayerDataTuple,
-        nextBackerDataMap,
-        nextDealer
-      });
+      this.setData({ nextPlayerDataTuple });
     },
 
-    showBackerData() {
+    updateNextBackerDataMap(databaseRoomData: DatabaseRoomData): void {
+      const nextBackerDataMap: Record<string, UserData[]> = Object.entries(databaseRoomData.nextBackerMap).reduce(
+        (acc: Record<string, UserData[]>, [target, nextBackerList]) => {
+          const nextBackerDataList = nextBackerList.map(nextBacker => {
+            const nextBackerData = this.data.memberDataList.find(memberData => memberData.openid === nextBacker)!;
+            return nextBackerData
+          });
+          
+          acc[target] = nextBackerDataList;
+          return acc;
+      }, {});
+
+      this.setData({ nextBackerDataMap });
+    },
+
+    updateNextDealer(databaseRoomData: DatabaseRoomData): void {
+      this.setData({ nextDealer: databaseRoomData.nextDealer });
+    },
+
+    updateIsRandomBack(databaseRoomData: DatabaseRoomData): void {
+      const isRandomBack = databaseRoomData.isRandomBackMap[this.data.openid] ?? false;
+      this.setData({ isRandomBack });
+    },
+
+    async handleBePlayer(e: WechatMiniprogram.BaseEvent): Promise<void> {
+      this.setData({ statusButtonDisabled: true });
+
+      try {
+        const { result } = await wx.cloud.callFunction({
+          name: 'P2_updateNextPlayerTuple',
+          data: {
+            roomid: this.data.roomid,
+            seat: e.currentTarget.dataset.seat
+          }
+        }) as CallFunctionResult<null>;
+
+        if (result.code === 403) {
+          wx.showToast({
+            title: `${result.message}`,
+            icon: 'none'
+          });
+        } else if (result.code !== 200) {
+          throw result
+        }
+      } catch (err) {
+        console.error('切换座位失败', err);
+        wx.showToast({
+          title: '切换座位失败',
+          icon: 'error'
+        });
+      }
+
+      this.setData({ statusButtonDisabled: false });
+    },
+
+    async handleBeSpectator(): Promise<void> {
+      if (!this.data.isNextPlayer) {
+        return
+      }
+
+      this.setData({ statusButtonDisabled: true });
+
+      try {
+        const { result } = await wx.cloud.callFunction({
+          name: 'P2_updateNextPlayerTuple',
+          data: {
+            roomid: this.data.roomid,
+            seat: -1
+          }
+        }) as CallFunctionResult<null>;
+
+        if (result.code === 403) {
+          wx.showToast({
+            title: `${result.message}`,
+            icon: 'none'
+          });
+        } else if (result.code !== 200) {
+          throw result
+        }
+      } catch (err) {
+        console.error('切换旁观失败', err);
+        wx.showToast({
+          title: '切换旁观失败',
+          icon: 'error'
+        });
+      }
+
+      this.setData({ statusButtonDisabled: false });
+    },
+
+    toggleStatusButtonDisabled(): void {
+      this.setData({ statusButtonDisabled: this.data.statusButtonDisabled });
+    },
+
+    toggleDirectionLock(): void {
+      this.setData({ directionLock: !this.data.directionLock });
+    },
+
+    rotateDirection(offset: number): void {
+      const seatDataList = this.data.seatDataList.map(seatData => {
+        if (seatData.label > 3) {
+          seatData.label = ((seatData.label + offset) % 4 + 4) as typeof seatData.label;
+        } else if (seatData.label > -1) {
+          seatData.label = ((seatData.label + offset) % 4) as typeof seatData.label;
+        }
+
+        return seatData;
+      });
+
+      this.setData({ seatDataList });
+    },
+
+    handleRotate(e: WechatMiniprogram.BaseEvent): void {
+      const offset: number = e.currentTarget.dataset.offset;
+
+      if (!this.data.directionLock) {
+        this.rotateDirection(offset);
+      }
+    },
+
+    showBackerData(): void {
       this.setData({ backerDataVisible: true });
     },
 
-    closeBackerData() {
+    closeBackerData(): void {
       this.setData({ backerDataVisible: false });
     },
 
-    showSelector() {
+    showSelector(): void {
       this.setData({ selectorVisible: true });
     },
 
-    closeSelector() {
+    closeSelector(): void {
       this.setData({ selectorVisible: false });
+    },
+
+    navigateToHistory(): void {
+      wx.switchTab({ url: '/pages/history/history' });
     }
   }
 })

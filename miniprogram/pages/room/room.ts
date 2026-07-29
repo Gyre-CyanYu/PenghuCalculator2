@@ -88,11 +88,13 @@ Component({
     },
     
     'playerDataList': function (): void {
-      this.setData({ isPlayer: this.data.playerDataList.some(playerData => playerData.openid === this.data.openid) });
+      const isPlayer: boolean = this.data.playerDataList.some(playerData => playerData.openid === this.data.openid);
+      this.setData({ isPlayer });
     },
 
     'nextPlayerDataList': function (): void {
-      this.setData({ isNextPlayer: this.data.nextPlayerDataList.some(nextPlayerData => nextPlayerData.openid === this.data.openid) });
+      const isNextPlayer: boolean = this.data.nextPlayerDataList.some(nextPlayerData => nextPlayerData.openid === this.data.openid);
+      this.setData({ isNextPlayer });
     },
 
     'isOperationPanel': function (): void {

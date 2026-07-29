@@ -63,24 +63,24 @@ Page({
         defaultValue: true,
 
         optionList: [
-          {value: true, label: '是'},
-          {value: false, label: '否'}
+          {value: true, label: '考虑连庄'},
+          {value: false, label: '不考虑连庄'}
         ],
 
         title: '庄家五福',
-        content: '庄家的五福得分将根据连庄数叠加'
+        content: '庄家的五福得分是否根据连庄数叠加'
       },
       {
         name: 'heavenWinConsiderHoldDealer',
         defaultValue: true,
 
         optionList: [
-          {value: true, label: '是'},
-          {value: false, label: '否'}
+          {value: true, label: '考虑连庄'},
+          {value: false, label: '不考虑连庄'}
         ],
 
         title: '庄家天胡',
-        content: '庄家的天胡得分将根据连庄数叠加'
+        content: '庄家的天胡得分是否根据连庄数叠加'
       }
     ]
   } as CreatePageData,

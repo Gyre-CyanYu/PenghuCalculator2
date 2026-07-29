@@ -1,0 +1,22 @@
+function getBackerDataColumn(backerDataList) {
+  var row = Math.ceil(backerDataList.length / 4)
+  var column = Math.ceil(backerDataList.length / row)
+  return column
+}
+
+function getSelectorColumn(openid, isNextPlayer, nextPlayerDataTuple, nextDealer) {
+  var column = 0;
+
+  nextPlayerDataTuple.forEach(function(nextPlayerData) {
+    if (nextPlayerData.openid && (!isNextPlayer || openid !== nextDealer)) {
+      column++
+    };
+  });
+
+  return column
+}
+
+module.exports = {
+  getBackerDataColumn: getBackerDataColumn,
+  getSelectorColumn: getSelectorColumn
+};

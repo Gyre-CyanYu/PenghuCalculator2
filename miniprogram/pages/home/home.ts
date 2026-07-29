@@ -243,10 +243,6 @@ Page({
     }
   },
 
-  navigateToCreate(): void {
-    wx.navigateTo({ url: '/pages/create/create' });
-  },
-
   onInputChange(e: WechatMiniprogram.CustomEvent): void {
     this.setData({ roomidInput: e.detail.value.toLowerCase() });
   },
@@ -266,5 +262,9 @@ Page({
 
   closeNotice(): void {
     this.setData({ noticeVisible: false });
+  },
+
+  navigateToCreate(): void {
+    wx.navigateTo({ url: '/pages/create/create' });
   }
 })
