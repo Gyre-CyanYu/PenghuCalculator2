@@ -47,13 +47,13 @@
     "t-icon": "tdesign-miniprogram/icon/icon",
 
     "t-input": "tdesign-miniprogram/input/input",
-    "t-switch": "tdesign-miniprogram/switch/switch",
 
     "t-avatar": "tdesign-miniprogram/avatar/avatar",
     "t-avatar-group": "tdesign-miniprogram/avatar-group/avatar-group",
     "t-count-down": "tdesign-miniprogram/count-down/count-down",
     "t-footer": "tdesign-miniprogram/footer/footer",
     "t-image": "tdesign-miniprogram/image/image",
+    "t-segmented": "tdesign-miniprogram/segmented/segmented",
     "t-tag": "tdesign-miniprogram/tag/tag",
     
     "t-dialog": "tdesign-miniprogram/dialog/dialog",

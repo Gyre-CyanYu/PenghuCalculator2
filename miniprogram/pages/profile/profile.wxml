@@ -18,7 +18,7 @@
   visible="{{editVisible}}"
   title="编辑资料"
   content="{{editButtonLoading ? '上传进度' + progress + '%' : '点击上传头像'}}"
-  confirm-btn="{{ {loading: editButtonLoading, content: editButtonLoading ? '更新中' : '更新', variant: 'base'} }}"
+  confirm-btn="{{ {loading: editButtonLoading, content: editButtonLoading ? '更新中' : '更新'} }}"
   cancel-btn="{{ {disabled: editButtonLoading, content: '取消', theme: 'default', variant: 'outline'} }}"
   bind:confirm="handleUpdate"
   bind:cancel="closeEdit"

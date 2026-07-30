@@ -32,7 +32,7 @@
 <t-dialog
   visible="{{joinVisible}}"
   title="加入房间"
-  confirm-btn="{{ {loading: joinButtonLoading, content: joinButtonLoading ? '加入中' : '加入', variant: 'base'} }}"
+  confirm-btn="{{ {loading: joinButtonLoading, content: joinButtonLoading ? '加入中' : '加入'} }}"
   cancel-btn="{{ {disabled: joinButtonLoading, content: '取消', theme: 'default', variant: 'outline'} }}"
   bind:confirm="handleJoin"
   bind:cancel="closeJoin"

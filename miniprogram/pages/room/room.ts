@@ -185,10 +185,10 @@ Component({
             } else if (dataType === 'update') {
               const updatedFields = docChange.updatedFields!;
 
-              const updatedMemberList = Object.keys(updatedFields).find(updatedField => updatedField.startsWith('memberList'));
+              const updatedMember = Object.keys(updatedFields).find(updatedField => updatedField.startsWith('memberList'));
 
-              if (updatedMemberList) {
-                await this.updateMemberData(databaseRoomData, updatedFields[updatedMemberList]);
+              if (updatedMember) {
+                await this.updateMemberData(databaseRoomData, updatedFields[updatedMember]);
               }
             }
           },

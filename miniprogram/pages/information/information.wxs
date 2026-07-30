@@ -1,14 +1,14 @@
-function getBackerDataColumn(backerDataList) {
+function calculateBackerDataColumn(backerDataList) {
   var row = Math.ceil(backerDataList.length / 4)
   var column = Math.ceil(backerDataList.length / row)
   return column
 }
 
-function getSelectorColumn(openid, isNextPlayer, nextPlayerDataTuple, nextDealer) {
+function calculateSelectorColumn(isNextPlayer, nextPlayerDataTuple, nextDealer) {
   var column = 0;
 
   nextPlayerDataTuple.forEach(function(nextPlayerData) {
-    if (nextPlayerData.openid && (!isNextPlayer || openid !== nextDealer)) {
+    if (nextPlayerData.openid && (!isNextPlayer || nextPlayerData.openid !== nextDealer)) {
       column++
     };
   });
@@ -17,6 +17,6 @@ function getSelectorColumn(openid, isNextPlayer, nextPlayerDataTuple, nextDealer
 }
 
 module.exports = {
-  getBackerDataColumn: getBackerDataColumn,
-  getSelectorColumn: getSelectorColumn
+  calculateBackerDataColumn: calculateBackerDataColumn,
+  calculateSelectorColumn: calculateSelectorColumn
 };

@@ -1,8 +1,6 @@
 <wxs module="utils" src="./information.wxs" />
 
 <view class="seatWrapper">
-  <view class="content">{{isRandomBack ? '随机砸鸟下局开始后可见' : '已加入的玩家'}}</view>
-
   <view class="playerGridWrapper">
     <view
       wx:for="{{seatDataList}}"
@@ -26,13 +24,13 @@
           wx:if="{{nextPlayerDataTuple[item.label].openid}}"
           avatarUrl="{{nextPlayerDataTuple[item.label].avatarUrl}}"
           nickname="{{nextPlayerDataTuple[item.label].nickname}}"
-          badgeProps="{{}}"
+          badgeProps="{{ {count: nextPlayerDataTuple[item.label].openid === nextDealer ? '下局庄' : '', offset: [-6, 6]} }}"
         />
 
         <block wx:else>
           <t-button
             bind:tap="handleBePlayer"
-            disabled="{{statusButtonDisabled || selectorVisible}}"
+            disabled="{{statusButtonDisabled}}"
             data-seat="{{item.label}}"
             theme="light"
             size="large"
@@ -46,10 +44,10 @@
 
       <user
         bind:tap="showBackerData"
+        data-seat="{{item.label - 4}}"
         wx:elif="{{nextBackerDataMap[nextPlayerDataTuple[item.label - 4].openid].length}}"
         avatarUrl="{{nextBackerDataMap[nextPlayerDataTuple[item.label - 4].openid][0].avatarUrl}}"
         nickname="{{nextBackerDataMap[nextPlayerDataTuple[item.label - 4].openid][0].nickname}}"
-        badgeProps="{{}}"
         userGroupLength="{{nextBackerDataMap[nextPlayerDataTuple[item.label - 4].openid].length}}"
       />
 
@@ -59,9 +57,9 @@
   <view class="buttonGridWrapper">
     <view />
 
-    <t-button wx:if="{{openid === nextDealer}}" bind:tap="showSelector" disabled="{{statusButtonDisabled}}" size="extra-small" content="转让" />
-    <t-button wx:elif="{{isNextPlayer}}" bind:tap="handleBeSpectator" disabled="{{statusButtonDisabled}}" size="extra-small" content="旁观" />
-    <t-button wx:else bind:tap="showSelector" disabled="{{statusButtonDisabled}}" size="extra-small" content="砸鸟" />
+    <t-button wx:if="{{openid === nextDealer}}" bind:tap="showSelector" disabled="{{statusButtonDisabled}}" size="extra-small" content="转让" block />
+    <t-button wx:elif="{{isNextPlayer}}" bind:tap="handleBeSpectator" disabled="{{statusButtonDisabled}}" size="extra-small" content="旁观" block />
+    <t-button wx:else bind:tap="showSelector" disabled="{{statusButtonDisabled}}" size="extra-small" content="砸鸟" block />
 
     <view class="rotateButtonWrapper">
       <view><t-button
@@ -155,20 +153,82 @@
   visible="{{settleVisible}}"
   title="结算房间"
   content="房间结算后将无法继续计分"
-  confirm-btn="{{ { loading: settleButtonLoading, content: settleButtonLoading ? '结算中' : '结算', variant: 'base', theme: 'danger' } }}"
-  cancel-btn="取消"
+  confirm-btn="{{ { loading: settleButtonLoading, content: settleButtonLoading ? '结算中' : '结算', theme: 'danger' } }}"
+  cancel-btn="{{ {disabled: settleButtonLoading, content: '取消', theme: 'default', variant: 'outline'} }}"
   bind:confirm=""
-  bind:cancel=""
+  bind:cancel="closeSettle"
 />
+
+<t-dialog
+  visible="{{selectorVisible}}"
+  title="{{isNextPlayer ? '转让庄家' : '砸鸟'}}"
+  content="{{isNextPlayer ? '请选择要转让的玩家' : isRandomBack ? '随机砸鸟目标下局开始后刷新' : selectedPlayer ? '不选择玩家可退出砸鸟' : '请选择要砸鸟的玩家'}}"
+>
+  <view slot="actions" class="selectorButtonWrapper">
+    <t-button
+      bind:tap="closeSelector"
+      disabled="{{selectorButtonLoading || randomBackButtonLoading}}"
+      content="取消"
+      variant="outline"
+      block
+    />
+
+    <t-button
+      wx:if="{{isNextPlayer}}"
+      bind:tap="handleTransferDealer"
+      loading="{{selectorButtonLoading}}"
+      content="{{selectorButtonLoading ? '转让中' : '转让'}}"
+      theme="primary"
+      block
+    />
+
+    <block wx:else>
+      <t-button
+        wx:if="{{!selectorButtonLoading}}"
+        bind:tap="handleRandomBack"
+        loading="{{randomBackButtonLoading}}"
+        content="{{(isRandomBack ? '退出随机' : '随机砸鸟') + (randomBackButtonLoading ? '中' : '')}}"
+        theme="{{isRandomBack ? 'primary' : 'light'}}"
+        block
+      />
+
+      <t-button
+        wx:if="{{!isRandomBack && !randomBackButtonLoading}}"
+        bind:tap="handleBeBacker"
+        loading="{{selectorButtonLoading}}"
+        content="{{(selectedPlayer ? '砸鸟' : '退出砸鸟') + (selectorButtonLoading ? '中' : '')}}"
+        theme="primary"
+        block
+      />
+    </block>
+  </view>
+
+  <view
+    style="grid-template-columns: repeat({{utils.calculateSelectorColumn(isNextPlayer, nextPlayerDataTuple, nextDealer)}}, 1fr);"
+    class="dialogWrapper"
+    slot="content"
+  >
+    <user
+      bind:tap="handlePlayerSelect"
+      data-seat="{{index}}"
+      wx:if="{{item.openid && (!isNextPlayer || item.openid !== nextDealer)}}"
+      wx:for="{{nextPlayerDataTuple}}"
+      wx:key="openid"
+      avatarUrl="{{item.avatarUrl}}"
+      nickname="{{item.nickname}}"
+      badgeProps="{{ {count: selectedPlayer === item.openid ? (isNextPlayer ? '转让' : '砸鸟') : '', offset: [-6, 6]} }}"
+    />
+  </view>
+</t-dialog>
 
 <t-dialog
   visible="{{backerDataVisible}}"
   title="砸鸟玩家"
-  cancel-btn="{{ {content: '关闭', variant: 'base'} }}"
+  cancel-btn="{{ {content: '关闭', theme: 'default', variant: 'outline'} }}"
   bind:cancel="closeBackerData"
 >
   <view
-    style="grid-template-columns: repeat({{utils.getBackerDataColumn(backerDataList)}}, 1fr);"
+    style="grid-template-columns: repeat({{utils.calculateBackerDataColumn(backerDataList)}}, 1fr);"
     class="dialogWrapper"
     slot="content"
   >
@@ -177,31 +237,6 @@
       wx:key="openid"
       avatarUrl="{{item.avatarUrl}}"
       nickname="{{item.nickname}}"
-    />
-  </view>
-</t-dialog>
-
-<t-dialog
-  visible="{{selectorVisible}}"
-  title="请选择一位玩家"
-  confirm-btn="{{ {disabled: statusButtonDisabled, content: '选择', variant: 'base'} }}"
-  cancel-btn="{{ {disabled: statusButtonDisabled, content: '关闭'} }}"
-  bind:cancel="closeSelector"
->
-  <view
-    style="grid-template-columns: repeat({{utils.getSelectorColumn(openid, isNextPlayer, nextPlayerDataTuple, nextDealer)}}, 1fr);"
-    class="dialogWrapper"
-    slot="content"
-  >
-    <user
-      bind:tap=""
-      data-seat="{{index}}"
-      wx:if="{{item.openid && (!isNextPlayer || openid !== nextDealer)}}"
-      wx:for="{{nextPlayerDataTuple}}"
-      wx:key="openid"
-      avatarUrl="{{item.avatarUrl}}"
-      nickname="{{item.nickname}}"
-      badgeProps="{{}}"
     />
   </view>
 </t-dialog>

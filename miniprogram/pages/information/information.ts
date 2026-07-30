@@ -42,11 +42,13 @@ interface InformationPageData {
   settleVisible: boolean,
   settleButtonLoading: boolean,
 
-  backerDataVisible: boolean,
-  backerDataList: UserData[],
-
   selectorVisible: boolean,
-  selectedPlayer: string
+  selectorButtonLoading: boolean,
+  randomBackButtonLoading: boolean,
+  selectedPlayer: string,
+
+  backerDataVisible: boolean,
+  backerDataList: UserData[]
 }
 
 Component({
@@ -95,11 +97,13 @@ Component({
     settleVisible: false,
     settleButtonLoading: false,
 
-    backerDataVisible: false,
-    backerDataList: [],
-
     selectorVisible: false,
-    selectedPlayer: ''
+    selectorButtonLoading: false,
+    randomBackButtonLoading: false,
+    selectedPlayer: '',
+
+    backerDataVisible: false,
+    backerDataList: []
   } as InformationPageData,
 
   observers: {
@@ -191,10 +195,10 @@ Component({
               const updatedFields = docChange.updatedFields!;
               console.log(updatedFields);
 
-              const updatedMemberList = Object.keys(updatedFields).find(updatedField => updatedField.startsWith('memberList'));
+              const updatedMember = Object.keys(updatedFields).find(updatedField => updatedField.startsWith('memberList'));
 
-              if (updatedMemberList) {
-                await this.updateMemberData(updatedFields[updatedMemberList]);
+              if (updatedMember) {
+                await this.updateMemberData(updatedFields[updatedMember]);
               }
 
               if (updatedFields.isGamePlaying) {
@@ -203,6 +207,22 @@ Component({
 
               if (updatedFields.nextPlayerTuple) {
                 this.updateNextPlayerDataTuple(databaseRoomData);
+              }
+
+              const updatedNextBackerMap = Object.keys(updatedFields).find(updatedField => updatedField.startsWith('nextBackerMap'));
+
+              if (updatedNextBackerMap) {
+                this.updateNextBackerDataMap(databaseRoomData);
+              }
+
+              if (updatedFields.nextDealer) {
+                this.updateNextDealer(databaseRoomData);
+              }
+
+              const updatedIsRandomBackBacker = Object.keys(updatedFields).find(updatedField => updatedField.startsWith('isRandomBackMap'));
+
+              if (updatedIsRandomBackBacker) {
+                this.updateIsRandomBack(databaseRoomData);
               }
             }
           },
@@ -427,8 +447,106 @@ Component({
       this.setData({ statusButtonDisabled: false });
     },
 
-    toggleStatusButtonDisabled(): void {
-      this.setData({ statusButtonDisabled: this.data.statusButtonDisabled });
+    async handleTransferDealer(): Promise<void> {
+      this.setData({ selectorButtonLoading: true });
+
+      try {  
+        const { result } = await wx.cloud.callFunction({
+          name: 'P2_updateNextDealer',
+          data: {
+            roomid: this.data.roomid,
+            nextDealer: this.data.selectedPlayer
+          }
+        }) as CallFunctionResult<null>;
+
+        if (result.code === 403) {
+          wx.showToast({
+            title: `${result.message}`,
+            icon: 'none'
+          });
+        } else if (result.code === 200) {
+          this.closeSelector();
+        } else {
+          throw result
+        }
+      } catch (err) {
+        console.error('转让庄家失败', err);
+        wx.showToast({
+          title: '转让庄家失败',
+          icon: 'error'
+        });
+      }
+
+      this.setData({ selectorButtonLoading: false });
+    },
+
+    async handleBeBacker(): Promise<void> {
+      this.setData({ selectorButtonLoading: true });
+
+      try {
+        const { result } = await wx.cloud.callFunction({
+          name: 'P2_updateNextBackerMap',
+          data: {
+            roomid: this.data.roomid,
+            target: this.data.selectedPlayer
+          }
+        }) as CallFunctionResult<null>;
+
+        if (result.code === 403) {
+          wx.showToast({
+            title: `${result.message}`,
+            icon: 'none'
+          });
+        } else if (result.code === 200) {
+          this.closeSelector();
+        } else {
+          throw result
+        }
+      } catch (err) {
+        console.error('砸鸟失败', err);
+        wx.showToast({
+          title: '砸鸟失败',
+          icon: 'error'
+        });
+      }
+
+      this.setData({ selectorButtonLoading: false });
+    },
+
+    async handleRandomBack(): Promise<void> {
+      this.setData({
+        randomBackButtonLoading: true,
+        selectedPlayer: this.data.backedPlayer
+      });
+
+      try {
+        const { result } = await wx.cloud.callFunction({
+          name: 'P2_updateIsRandomBackMap',
+          data: {
+            roomid: this.data.roomid,
+            isRandomBack: !this.data.isRandomBack
+          }
+        }) as CallFunctionResult<null>;
+
+        if (result.code === 403) {
+          wx.showToast({
+            title: `${result.message}`,
+            icon: 'none'
+          });
+        } else if (result.code === 200) {
+          this.closeSelector();
+        } else {
+          throw result
+        }
+      } catch (err) {
+        console.error('随机砸鸟失败', err);
+        wx.showToast({
+          title: '随机砸鸟失败',
+          icon: 'error'
+        });
+      }
+
+      this.setData({ randomBackButtonLoading: false });
     },
 
     toggleDirectionLock(): void {
@@ -457,20 +575,57 @@ Component({
       }
     },
 
-    showBackerData(): void {
-      this.setData({ backerDataVisible: true });
+    handlePlayerSelect(e: WechatMiniprogram.BaseEvent): void {
+      if (!this.data.isNextPlayer && this.data.isRandomBack) {
+        return
+      }
+
+      const targetSeat: number = e.currentTarget.dataset.seat;
+      const target = (this.data.nextPlayerDataTuple[targetSeat] as UserData).openid;
+
+      if (target === this.data.selectedPlayer) {
+        this.setData({ selectedPlayer: '' });
+      } else {
+        this.setData({ selectedPlayer: target });
+      }
     },
 
-    closeBackerData(): void {
-      this.setData({ backerDataVisible: false });
+    showSettle(): void {
+      this.setData({ settleVisible: true });
+    },
+
+    closeSettle(): void {
+      this.setData({ settleVisible: false });
     },
 
     showSelector(): void {
+      if (!this.data.isNextPlayer) {
+        this.setData({ selectedPlayer: this.data.backedPlayer });
+      }
+
       this.setData({ selectorVisible: true });
     },
 
     closeSelector(): void {
-      this.setData({ selectorVisible: false });
+      this.setData({
+        selectorVisible: false,
+        selectedPlayer: ''
+      });
+    },
+
+    showBackerData(e: WechatMiniprogram.BaseEvent): void {
+      const targetSeat: number = e.currentTarget.dataset.seat;
+      const target = (this.data.nextPlayerDataTuple[targetSeat] as UserData).openid;
+      const backerDataList = this.data.nextBackerDataMap[target];
+
+      this.setData({
+        backerDataVisible: true,
+        backerDataList
+      });
+    },
+
+    closeBackerData(): void {
+      this.setData({ backerDataVisible: false });
     },
 
     navigateToHistory(): void {
