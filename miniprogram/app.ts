@@ -27,6 +27,12 @@ App<IAppOption>({
         traceUser: true,
       });
     }
+
+    wx.getStorage({ key: 'user' }).then(({ data }: { data: UserData }) => {
+      this.globalData.userData = data;
+    }).catch(err => {
+      console.warn('读取用户信息缓存失败', err);
+    });
   },
 
   async getCurrentUserData(): Promise<void> {
@@ -48,7 +54,13 @@ App<IAppOption>({
       }
 
       this.globalData.userData = userData;
-      // storage.cacheUserData(userData);
+
+      wx.setStorage({
+        key: 'user',
+        data: userData
+      }).catch(err => {
+        console.warn('缓存用户信息失败', err);
+      });
     } catch (err) {
       console.error('获取用户信息失败', err);
       wx.showToast({

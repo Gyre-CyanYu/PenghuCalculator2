@@ -33,7 +33,7 @@ exports.main = async () => {
       _openid: openid,
       avatarUrl: '',
       avatarFileID: '',
-      nickname: `用户${Date.now().toString().slice(-4)}`,
+      nickname: `用户${Date.now().toString().slice(-3)}`,
       createdAt: db.serverDate()
     };
 

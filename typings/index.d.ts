@@ -23,7 +23,29 @@ interface MemberData extends UserData {
   roundScores: number
 }
 
-type RoomData = AnyObject
+interface RoomData {
+  roomid: string,
+  qrCodeUrl: string,
+  createdAt: string,
+
+  gameConfig: GameConfig,
+
+  memberDataList: MemberData[],
+  actionGroupList: ActionGroup[],
+
+  isGamePlaying: number,
+  round: number,
+
+  playerDataList: UserData[],
+  dealer: string,
+  holdDealer: number,
+
+  nextPlayerDataTuple: [UserData | {}, UserData | {}, UserData | {}, UserData | {}],
+  nextBackerDataMap: Record<string, UserData[]>,
+  nextDealer: string,
+
+  isRandomBackMap: Record<string, boolean>
+}
 
 interface GameConfig {
   mode: 'addition' | 'multiplication',

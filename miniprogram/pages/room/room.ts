@@ -15,6 +15,8 @@ const OPERATION_MAP: Record<OperationInput, OperationDisplay> = {
   '坎坎': '七对', '蛇蛇': '双龙',
 }
 
+type RoomPageRoomData = Pick<RoomData, Extract<keyof RoomData, keyof RoomPageData>>
+
 interface RoomPageData {
   openid: string,
   roomid: string,
@@ -31,7 +33,7 @@ interface RoomPageData {
   holdDealer: number,
 
   isNextPlayer: boolean,
-  nextPlayerDataList: UserData[],
+  nextPlayerDataTuple: [UserData | {}, UserData | {}, UserData | {}, UserData | {}],
   nextDealer: string,
 
   watcher: DB.RealtimeListener | null,
@@ -65,7 +67,7 @@ Component({
     holdDealer: 1,
 
     isNextPlayer: false,
-    nextPlayerDataList: [],
+    nextPlayerDataTuple: [{}, {}, {}, {}],
     nextDealer: '',
     
     watcher: null,
@@ -92,8 +94,10 @@ Component({
       this.setData({ isPlayer });
     },
 
-    'nextPlayerDataList': function (): void {
-      const isNextPlayer: boolean = this.data.nextPlayerDataList.some(nextPlayerData => nextPlayerData.openid === this.data.openid);
+    'nextPlayerDataTuple': function (): void {
+      const isNextPlayer: boolean = this.data.nextPlayerDataTuple.some(nextPlayerData =>
+        'openid' in nextPlayerData && nextPlayerData.openid === this.data.openid
+      );
       this.setData({ isNextPlayer });
     },
 
@@ -124,6 +128,7 @@ Component({
       this.getTabBar().updateRoomid();
 
       if (this.data.roomid) {
+        this.getCachedRoomData();
         this.watchRoomData();
       }
     },
@@ -165,6 +170,36 @@ Component({
       return shareData
     },
 
+    getCachedRoomData(): void {
+      const cachedRoomData: Partial<RoomData> = wx.getStorageSync('room') || {};
+
+      if (cachedRoomData.roomid !== this.data.roomid) {
+        return
+      }
+
+      const {
+        memberDataList = [],
+        actionGroupList = [],
+
+        isGamePlaying = 0,
+        round = 0,
+
+        playerDataList = [],
+        dealer = '',
+        holdDealer = 1,
+
+        nextPlayerDataTuple = [{}, {}, {}, {}],
+        nextDealer = ''
+      } = cachedRoomData;
+
+      this.setData({
+        memberDataList, actionGroupList,
+        isGamePlaying, round,
+        playerDataList, dealer, holdDealer,
+        nextPlayerDataTuple, nextDealer
+      });
+    },
+
     async watchRoomData(): Promise<void> {
       try {
         await this.closeWatcher();
@@ -179,9 +214,17 @@ Component({
             const databaseRoomData = docChange.doc as DatabaseRoomData;
 
             if (dataType === 'init') {
+              wx.showLoading({
+                title: '加载中',
+                mask: true
+              });
+
               await this.initializeMemberData(databaseRoomData);
               this.updateActionGroupList(databaseRoomData);
               this.initializeGameData(databaseRoomData);
+
+              wx.hideLoading();
+              this.cacheRoomData();
             } else if (dataType === 'update') {
               const updatedFields = docChange.updatedFields!;
 
@@ -189,6 +232,7 @@ Component({
 
               if (updatedMember) {
                 await this.updateMemberData(databaseRoomData, updatedFields[updatedMember]);
+                this.cacheRoomData(['memberDataList']);
               }
             }
           },
@@ -400,14 +444,18 @@ Component({
         return playerData;
       });
 
-      const nextPlayerDataList = nextPlayerTuple.filter(Boolean).map(nextPlayer => {
+      const nextPlayerDataTuple = nextPlayerTuple.map(nextPlayer => {
+        if (!nextPlayer) {
+          return {}
+        }
+
         const {
           scores: nextPlayerScores, roundScores: nextPlayerRoundScores,
           ...nextPlayerData
         } = this.data.memberDataList.find(memberData => memberData.openid === nextPlayer)!;
 
         return nextPlayerData;
-      });
+      }) as [UserData | {}, UserData | {}, UserData | {}, UserData | {}];
 
       this.setData({
         isGamePlaying,
@@ -417,9 +465,53 @@ Component({
         dealer,
         holdDealer,
 
-        nextPlayerDataList,
+        nextPlayerDataTuple,
         nextDealer
       });
+    },
+
+    cacheRoomData(fieldList?: (keyof RoomPageRoomData)[]): void {
+      const cachedRoomData: RoomData = wx.getStorageSync('room') || {};
+      const currentRoomData: RoomPageRoomData = {
+        roomid: this.data.roomid,
+
+        memberDataList: this.data.memberDataList,
+        actionGroupList: this.data.actionGroupList,
+
+        isGamePlaying: this.data.isGamePlaying,
+        round: this.data.round,
+
+        playerDataList: this.data.playerDataList,
+        dealer: this.data.dealer,
+        holdDealer: this.data.holdDealer,
+
+        nextPlayerDataTuple: this.data.nextPlayerDataTuple,
+        nextDealer: this.data.nextDealer,
+      };
+
+      if (cachedRoomData.roomid !== this.data.roomid) {
+        wx.setStorage({ key: 'room', data: currentRoomData }).catch(err => {
+          console.warn('缓存房间信息失败', err);
+        });
+      } else if (fieldList?.length) {
+        const updatedRoomData = Object.fromEntries(
+          fieldList.map(field => [field, currentRoomData[field]])
+        );
+
+        wx.setStorage({
+          key: 'room',
+          data: { ...cachedRoomData, ...updatedRoomData }
+        }).catch(err => {
+          console.warn('缓存房间信息失败', err);
+        });
+      } else {
+        wx.setStorage({
+          key: 'room',
+          data: { ...cachedRoomData, ...currentRoomData }
+        }).catch(err => {
+          console.warn('缓存房间信息失败', err);
+        });
+      }
     },
 
     undoAction(e: WechatMiniprogram.CustomEvent): void {
@@ -561,7 +653,9 @@ Component({
     },
 
     navigateToInformation(): void {
-      wx.navigateTo({ url: '/pages/information/information' });
+      if (this.data.roomid) {
+        wx.navigateTo({ url: '/pages/information/information' });
+      }
     }
   }
 })

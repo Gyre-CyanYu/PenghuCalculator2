@@ -1,5 +1,3 @@
-const { mergeWith } = require('lodash');
-
 async function downloadImage(url: string, fileID: string, cachedUrl?: string): Promise<string> {
   const timestamp: string = url.split('?t=')[1];
   const fileIDParts: string[] = fileID.split('/');
@@ -40,7 +38,7 @@ async function downloadImage(url: string, fileID: string, cachedUrl?: string): P
   }
 };
 
-async function removeImage(imageType: ImageType, idList: string[]): Promise<void> {
+function removeImage(imageType: ImageType, idList: string[]): void {
   const fs = wx.getFileSystemManager();
   const dirPath: string = `${wx.env.USER_DATA_PATH}/${imageType}`;
 
@@ -51,50 +49,15 @@ async function removeImage(imageType: ImageType, idList: string[]): Promise<void
   }
 
   const fileList = fs.readdirSync(dirPath);
-
-  await Promise.all(fileList.map(file => {
+  fileList.forEach(file => {
     const id: string = file.split('.')[0];
 
     if (idList.includes(id)) {
-      try {
-        fs.unlinkSync(`${dirPath}/${file}`);
-      } catch (err) {
-        console.warn(`删除${imageType}图像${id}失败`, err);
-      }
+      fs.unlink({ filePath: `${dirPath}/${file}`, fail: err => {
+        console.warn(`清除${imageType}图像${id}失败`, err);
+      }});
     }
-  }));
+  });
 };
 
-function cacheUserData(userData: UserData): void {
-  const cachedUserDataList: UserData[] = wx.getStorageSync('users') || [];
-  const cachedUserDataIndex: number = cachedUserDataList.findIndex(cachedUserData => cachedUserData.openid === userData.openid);
-  
-  if (cachedUserDataIndex === -1) {
-    cachedUserDataList.push(userData);
-  } else {
-    cachedUserDataList[cachedUserDataIndex] = userData;
-  }
-  
-  wx.setStorageSync('users', cachedUserDataList);
-};
-
-function cacheRoomData(roomData: RoomData): void {
-  const cachedRoomDataList: RoomData[] = wx.getStorageSync('rooms') || [];
-  const cachedRoomDataIndex: number = cachedRoomDataList.findIndex(cachedRoomData => cachedRoomData.roomid === roomData.roomid);
-
-  if (cachedRoomDataIndex === -1) {
-    cachedRoomDataList.push(roomData);
-  } else {
-    const cachedRoomData: RoomData = cachedRoomDataList[cachedRoomDataIndex];
-    
-    cachedRoomDataList[cachedRoomDataIndex] = mergeWith(cachedRoomData, roomData, (objValue: any, srcValue: any) => {
-      if (Array.isArray(objValue)) {
-        return srcValue;
-      }
-    });
-  }
-
-  wx.setStorageSync('rooms', cachedRoomDataList);
-};
-
-export default{ downloadImage, removeImage, cacheUserData, cacheRoomData };
+export default{ downloadImage, removeImage };

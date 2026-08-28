@@ -1,16 +1,6 @@
 const app = getApp<IAppOption>();
 export {};
 
-interface CreatePageData {
-  createButtonLoading: boolean,
-
-  configDataList: ConfigData[]
-}
-
-interface CreatePageCustomData {
-  gameConfig: GameConfig
-}
-
 interface ConfigDataItem<T extends keyof GameConfig> {
   name: T,
   defaultValue: GameConfig[T],
@@ -27,6 +17,16 @@ interface ConfigDataItem<T extends keyof GameConfig> {
 type ConfigData = {
   [T in keyof GameConfig]: ConfigDataItem<T>
 }[keyof GameConfig]
+
+interface CreatePageData {
+  createButtonLoading: boolean,
+
+  configDataList: ConfigData[]
+}
+
+interface CreatePageCustomData {
+  gameConfig: GameConfig
+}
 
 Page({
   data: {

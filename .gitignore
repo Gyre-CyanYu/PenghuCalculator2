@@ -26,3 +26,5 @@ miniprogram/envList.js
 
 # TypeScript
 *.tsbuildinfo
+
+.codegraph/

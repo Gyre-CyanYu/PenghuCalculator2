@@ -3,6 +3,19 @@ import storage from '../../utils/storage';
 const app = getApp<IAppOption>();
 export {};
 
+type SeatData =
+| { label: -1, seat: '中心' }
+| { label: 0, seat: '北' }
+| { label: 1, seat: '西' }
+| { label: 2, seat: '南' }
+| { label: 3, seat: '东' }
+| { label: 4, seat: '北鸟' }
+| { label: 5, seat: '西鸟' }
+| { label: 6, seat: '南鸟' }
+| { label: 7, seat: '东鸟' }
+
+type InformationPageRoomData = Pick<RoomData, Extract<keyof RoomData, keyof InformationPageData>>
+
 interface InformationPageData {
   openid: string,
   roomid: string,
@@ -12,7 +25,7 @@ interface InformationPageData {
 
   gameConfig: GameConfig,
 
-  memberDataList: UserData[],
+  memberDataList: MemberData[],
 
   isGamePlaying: number,
 
@@ -25,16 +38,7 @@ interface InformationPageData {
 
   watcher: DB.RealtimeListener | null,
 
-  seatDataList: ({
-    label: -1,
-    seat: '中心'
-  } | {
-    label: 0 | 1 | 2 | 3,
-    seat: '北' | '西' | '南' | '东'
-  } | {
-    label: 4 | 5 | 6 | 7,
-    seat: '北鸟' | '西鸟' | '南鸟' | '东鸟'
-  })[],
+  seatDataList: SeatData[],
 
   seatLock: boolean,
   statusButtonDisabled: boolean,
@@ -48,6 +52,7 @@ interface InformationPageData {
   selectedPlayer: string,
 
   backerDataVisible: boolean,
+  targetNickname: string,
   backerDataList: UserData[]
 }
 
@@ -103,6 +108,7 @@ Component({
     selectedPlayer: '',
 
     backerDataVisible: false,
+    targetNickname: '',
     backerDataList: []
   } as InformationPageData,
 
@@ -175,6 +181,42 @@ Component({
       }
     },
 
+    getCachedRoomData(): void {
+      const cachedRoomData: Partial<RoomData> = wx.getStorageSync('room') || {};
+
+      if (cachedRoomData.roomid !== this.data.roomid) {
+        return
+      }
+
+      const {
+        qrCodeUrl = '',
+        createdAt = '',
+
+        gameConfig = {
+          mode: 'addition',
+          limit: 4,
+          fiveTriWinConsiderHoldDealer: true,
+          heavenWinConsiderHoldDealer: true
+        },
+
+        memberDataList = [],
+
+        isGamePlaying = 0,
+
+        nextPlayerDataTuple = [{}, {}, {}, {}],
+        nextBackerDataMap = {},
+        nextDealer = ''
+      } = cachedRoomData;
+
+      this.setData({
+        qrCodeUrl, createdAt,
+        gameConfig,
+        memberDataList,
+        isGamePlaying,
+        nextPlayerDataTuple, nextBackerDataMap, nextDealer
+      });
+    },
+
     async watchRoomData(): Promise<void> {
       try {
         await this.closeWatcher();
@@ -198,7 +240,7 @@ Component({
               const updatedMember = Object.keys(updatedFields).find(updatedField => updatedField.startsWith('memberList'));
 
               if (updatedMember) {
-                await this.updateMemberData(updatedFields[updatedMember]);
+                await this.updateMemberData(databaseRoomData, updatedFields[updatedMember]);
               }
 
               if (updatedFields.isGamePlaying) {
@@ -262,7 +304,7 @@ Component({
     },
 
     async initializeMemberData(databaseRoomData: DatabaseRoomData): Promise<void> {
-      const { memberList } = databaseRoomData;
+      const { memberList, scoresMap, roundScoresMap } = databaseRoomData;
 
       try {
         const { result } = await wx.cloud.callFunction({
@@ -277,14 +319,20 @@ Component({
         const userDataList = result.data;
         userDataList.unshift(app.globalData.userData);
 
-        const memberDataList: UserData[] = await Promise.all(userDataList.map(async userData => {
+        const memberDataList: MemberData[] = await Promise.all(userDataList.map(async userData => {
           if (userData.avatarUrl && userData.avatarFileID) {  
             userData.avatarUrl = await storage.downloadImage(userData.avatarUrl, userData.avatarFileID);
           } else {
             userData.avatarUrl = '/images/PenghuScorekeeper.jpg';
           }
 
-          return userData
+          const memberData: MemberData = {
+            ...userData,
+            scores: scoresMap[userData.openid],
+            roundScores: roundScoresMap[userData.openid]
+          }
+
+          return memberData
         }));
 
         this.setData({ memberDataList });
@@ -297,7 +345,7 @@ Component({
       }
     },
 
-    async updateMemberData(openid: string): Promise<void> {
+    async updateMemberData(databaseRoomData: DatabaseRoomData, openid: string): Promise<void> {
       try {
         const { result } = await wx.cloud.callFunction({
           name: 'P2_getUserDataList',
@@ -316,8 +364,14 @@ Component({
           userData.avatarUrl = '/images/PenghuScorekeeper.jpg';
         }
 
+        const memberData: MemberData = {
+          ...userData,
+          scores: databaseRoomData.scoresMap[openid],
+          roundScores: databaseRoomData.roundScoresMap[openid]
+        }
+
         const memberDataList = this.data.memberDataList;
-        memberDataList.push(userData);
+        memberDataList.push(memberData);
 
         this.setData({ memberDataList });
       } catch (err) {
@@ -379,6 +433,49 @@ Component({
     updateIsRandomBack(databaseRoomData: DatabaseRoomData): void {
       const isRandomBack = databaseRoomData.isRandomBackMap[this.data.openid] ?? false;
       this.setData({ isRandomBack });
+    },
+
+    cacheRoomData(fieldList?: (keyof InformationPageRoomData)[]): void {
+      const cachedRoomData: RoomData = wx.getStorageSync('room') || {};
+      const currentRoomData: InformationPageRoomData = {
+        roomid: this.data.roomid,
+        qrCodeUrl: this.data.qrCodeUrl,
+        createdAt: this.data.createdAt,
+
+        gameConfig: this.data.gameConfig,
+
+        memberDataList: this.data.memberDataList,
+
+        isGamePlaying: this.data.isGamePlaying,
+
+        nextPlayerDataTuple: this.data.nextPlayerDataTuple,
+        nextBackerDataMap: this.data.nextBackerDataMap,
+        nextDealer: this.data.nextDealer
+      };
+
+      if (cachedRoomData.roomid !== this.data.roomid) {
+        wx.setStorage({ key: 'room', data: currentRoomData }).catch(err => {
+          console.warn('缓存房间信息失败', err);
+        });
+      } else if (fieldList?.length) {
+        const updatedRoomData = Object.fromEntries(
+          fieldList.map(field => [field, currentRoomData[field]])
+        );
+
+        wx.setStorage({
+          key: 'room',
+          data: { ...cachedRoomData, ...updatedRoomData }
+        }).catch(err => {
+          console.warn('缓存房间信息失败', err);
+        });
+      } else {
+        wx.setStorage({
+          key: 'room',
+          data: { ...cachedRoomData, ...currentRoomData }
+        }).catch(err => {
+          console.warn('缓存房间信息失败', err);
+        });
+      }
     },
 
     async handleBePlayer(e: WechatMiniprogram.BaseEvent): Promise<void> {
@@ -554,14 +651,23 @@ Component({
     },
 
     rotateDirection(offset: number): void {
-      const seatDataList = this.data.seatDataList.map(seatData => {
-        if (seatData.label > 3) {
-          seatData.label = ((seatData.label + offset) % 4 + 4) as typeof seatData.label;
-        } else if (seatData.label > -1) {
-          seatData.label = ((seatData.label + offset) % 4) as typeof seatData.label;
-        }
+      const seatDataList: SeatData[] = [];
 
-        return seatData;
+      this.data.seatDataList.forEach((seatData, index) => {
+        if (seatData.label === -1) {
+          seatDataList[index] = seatData;
+        } else {
+          let row = Math.floor(index / 3);
+          let col = index % 3;
+
+          for (let i = 0; i < offset; i++) {
+            const currentRow = row;
+            row = 2 - col;
+            col = currentRow;
+          }
+          
+          seatDataList[row * 3 + col] = seatData;
+        }
       });
 
       this.setData({ seatDataList });
@@ -615,11 +721,16 @@ Component({
 
     showBackerData(e: WechatMiniprogram.BaseEvent): void {
       const targetSeat: number = e.currentTarget.dataset.seat;
-      const target = (this.data.nextPlayerDataTuple[targetSeat] as UserData).openid;
-      const backerDataList = this.data.nextBackerDataMap[target];
+      const { openid, nickname: targetNickname } = this.data.nextPlayerDataTuple[targetSeat] as UserData;
+      const backerDataList = this.data.nextBackerDataMap[openid];
+
+      if (backerDataList.length < 2) {
+        return
+      }
 
       this.setData({
         backerDataVisible: true,
+        targetNickname,
         backerDataList
       });
     },

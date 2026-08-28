@@ -12,6 +12,7 @@ interface ProfilePageData {
 
   editVisible: boolean;
   editButtonLoading: boolean;
+  inputError: boolean;
 }
 
 Page({
@@ -29,6 +30,7 @@ Page({
 
     editVisible: false,
     editButtonLoading: false,
+    inputError: false,
   } as ProfilePageData,
 
   onLoad() {
@@ -70,6 +72,15 @@ Page({
       return
     }
 
+    if (this.data.nicknameInput.length > 5) {
+      wx.showToast({
+        title: '昵称长度不能超过5个字符',
+        icon: 'none'
+      });
+
+      return
+    }
+
     this.setData({ editButtonLoading: true });
 
     try {
@@ -98,26 +109,36 @@ Page({
         }
       }) as CallFunctionResult<{ avatarUrl?: string, avatarFileID?: string, nickname?: string }>;
 
-      if (result.code !== 200) {
+      if (result.code === 403) {
+        wx.showToast({
+          title: `${result.message}`,
+          icon: 'none'
+        });
+      } else if (result.code === 200) {
+        if (result.data.nickname) {
+          app.globalData.userData.nickname = result.data.nickname;
+        }
+
+        if (result.data.avatarUrl && result.data.avatarFileID) {
+          app.globalData.userData.avatarUrl = await storage.downloadImage(result.data.avatarUrl, result.data.avatarFileID, app.globalData.userData.avatarUrl);
+        }
+
+        this.setData({ userData: app.globalData.userData });
+        wx.setStorage({
+          key: 'user',
+          data: app.globalData.userData
+        }).catch(err => {
+          console.warn('缓存用户信息失败', err);
+        });
+
+        this.closeEdit();
+        wx.showToast({
+          title: '更新成功',
+          icon: 'none'
+        });
+      } else {
         throw result
       }
-
-      if (result.data.nickname) {
-        app.globalData.userData.nickname = result.data.nickname;
-      }
-
-      if (result.data.avatarUrl && result.data.avatarFileID) {
-        app.globalData.userData.avatarUrl = await storage.downloadImage(result.data.avatarUrl, result.data.avatarFileID, app.globalData.userData.avatarUrl);
-      }
-
-      this.setData({ userData: app.globalData.userData });
-      // storage.cacheUserData(app.globalData.userData);
-
-      this.closeEdit();
-      wx.showToast({
-        title: '更新成功',
-        icon: 'none'
-      });
     } catch (err) {
       console.error('更新失败', err);
       wx.showToast({
@@ -138,6 +159,12 @@ Page({
 
   onInputChange(e: WechatMiniprogram.CustomEvent): void {
     this.setData({ nicknameInput: e.detail.value });
+
+    if (!this.data.inputError && this.data.nicknameInput.length > 5) {
+      this.setData({ inputError: true });
+    } else if (this.data.inputError && this.data.nicknameInput.length <= 5) {
+      this.setData({ inputError: false });
+    }
   },
 
   showEdit(): void {
@@ -148,7 +175,8 @@ Page({
     this.setData({
       choosedAvatarUrl: '',
       nicknameInput: '',
-      editVisible: false
+      editVisible: false,
+      inputError: false
     });
   }
 })

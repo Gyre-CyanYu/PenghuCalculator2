@@ -1,5 +1,5 @@
 import format from '../../utils/format';
-// import storage from '../../utils/storage';
+import storage from '../../utils/storage';
 
 const app = getApp<IAppOption>();
 export {};
@@ -107,20 +107,15 @@ Page({
         app.globalData.currentRoomid = joinedRoomList[0];
       }
 
-      /* const cachedRoomDataList: RoomData[] = wx.getStorageSync('rooms') || [];
-      const reservedRoomDataList: RoomData[] = [];
-      const removedRoomList: string[] = [];
+      const { roomid: cachedRoomid }: RoomData = wx.getStorageSync('room') || {};
 
-      cachedRoomDataList.forEach(roomData => {
-        if (joinedRoomList.includes(roomData.roomid)) {
-          reservedRoomDataList.push(roomData);
-        } else {
-          removedRoomList.push(roomData.roomid);
-        }
-      });
+      if (cachedRoomid && !joinedRoomList.includes(cachedRoomid)) {
+        wx.removeStorage({ key: 'room' }).catch(err => {
+          console.warn('清除房间信息缓存失败', err);
+        });
 
-      wx.setStorageSync('rooms', reservedRoomDataList);
-      await storage.removeImage('qrCode', removedRoomList); */
+        storage.removeImage('qrCode', [cachedRoomid]);
+      }
     } catch (err) {
       console.warn('获取已加入房间列表失败', err);
     }

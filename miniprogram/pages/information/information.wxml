@@ -5,7 +5,7 @@
     <view
       wx:for="{{seatDataList}}"
       wx:key="label"
-      class="{{item.label < 0 ? 'playerGridWrapper' : item.label < 4 ? 'playerWrapper' : 'backerWrapper backerWrapper' + [item.label]}}"
+      class="{{item.label < 0 ? 'playerGridWrapper' : item.label < 4 ? 'playerWrapper' : 'backerWrapper backerWrapper' + [index]}}"
     >
       <block wx:if="{{item.label < 0}}">
         <t-icon name="system-2" size="48rpx" color="var(--td-error-color)" t-class="seat seatC" />
@@ -15,7 +15,7 @@
           wx:for="{{seatDataList}}"
           wx:for-item="seatItem"
           wx:key="label"
-          class="seat seat{{seatItem.label}}"
+          class="seat seat{{index}}"
         >{{seatItem.seat}}</view>
       </block>
 
@@ -38,7 +38,7 @@
             shape="circle"
           />
 
-          <view class="subtitle">待加入</view>
+          <view class="subtitle">点击加入</view>
         </block>
       </block>
 
@@ -224,6 +224,7 @@
 <t-dialog
   visible="{{backerDataVisible}}"
   title="砸鸟玩家"
+  content="{{targetNickname}}"
   cancel-btn="{{ {content: '关闭', theme: 'default', variant: 'outline'} }}"
   bind:cancel="closeBackerData"
 >
