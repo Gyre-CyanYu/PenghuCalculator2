@@ -34,6 +34,7 @@ interface InformationPageData {
   backedPlayer: string,
   nextBackerDataMap: Record<string, UserData[]>,
   nextDealer: string,
+
   isRandomBack: boolean,
 
   watcher: DB.RealtimeListener | null,
@@ -46,8 +47,10 @@ interface InformationPageData {
   settleVisible: boolean,
   settleButtonLoading: boolean,
 
-  selectorVisible: boolean,
-  selectorButtonLoading: boolean,
+  targetSelectorVisible: boolean,
+  targetSelectorButtonLoading: boolean,
+  dealerSelectorVisible: boolean,
+  dealerSelectorButtonLoading: boolean,
   randomBackButtonLoading: boolean,
   selectedPlayer: string,
 
@@ -102,8 +105,10 @@ Component({
     settleVisible: false,
     settleButtonLoading: false,
 
-    selectorVisible: false,
-    selectorButtonLoading: false,
+    targetSelectorVisible: false,
+    targetSelectorButtonLoading: false,
+    dealerSelectorVisible: false,
+    dealerSelectorButtonLoading: false,
     randomBackButtonLoading: false,
     selectedPlayer: '',
 
@@ -205,7 +210,9 @@ Component({
 
         nextPlayerDataTuple = [{}, {}, {}, {}],
         nextBackerDataMap = {},
-        nextDealer = ''
+        nextDealer = '',
+
+        isRandomBack = false
       } = cachedRoomData;
 
       this.setData({
@@ -213,7 +220,8 @@ Component({
         gameConfig,
         memberDataList,
         isGamePlaying,
-        nextPlayerDataTuple, nextBackerDataMap, nextDealer
+        nextPlayerDataTuple, nextBackerDataMap, nextDealer,
+        isRandomBack
       });
     },
 
@@ -233,6 +241,7 @@ Component({
             if (dataType === 'init') {
               await this.initializeMemberData(databaseRoomData);
               this.initializeGameData(databaseRoomData);
+              this.cacheRoomData();
             } else if (dataType === 'update') {
               const updatedFields = docChange.updatedFields!;
               console.log(updatedFields);
@@ -241,30 +250,36 @@ Component({
 
               if (updatedMember) {
                 await this.updateMemberData(databaseRoomData, updatedFields[updatedMember]);
+                this.cacheRoomData(['memberDataList']);
               }
 
               if (updatedFields.isGamePlaying) {
                 this.updateIsGamePlaying(databaseRoomData);
+                this.cacheRoomData(['isGamePlaying']);
               }
 
               if (updatedFields.nextPlayerTuple) {
                 this.updateNextPlayerDataTuple(databaseRoomData);
+                this.cacheRoomData(['nextPlayerDataTuple']);
               }
 
               const updatedNextBackerMap = Object.keys(updatedFields).find(updatedField => updatedField.startsWith('nextBackerMap'));
 
               if (updatedNextBackerMap) {
                 this.updateNextBackerDataMap(databaseRoomData);
+                this.cacheRoomData(['nextBackerDataMap']);
               }
 
               if (updatedFields.nextDealer) {
                 this.updateNextDealer(databaseRoomData);
+                this.cacheRoomData(['nextDealer']);
               }
 
-              const updatedIsRandomBackBacker = Object.keys(updatedFields).find(updatedField => updatedField.startsWith('isRandomBackMap'));
+              const updatedIsRandomBack = Object.keys(updatedFields).find(updatedField => updatedField.startsWith('isRandomBackMap'));
 
-              if (updatedIsRandomBackBacker) {
+              if (updatedIsRandomBack) {
                 this.updateIsRandomBack(databaseRoomData);
+                this.cacheRoomData(['isRandomBack']);
               }
             }
           },
@@ -450,7 +465,9 @@ Component({
 
         nextPlayerDataTuple: this.data.nextPlayerDataTuple,
         nextBackerDataMap: this.data.nextBackerDataMap,
-        nextDealer: this.data.nextDealer
+        nextDealer: this.data.nextDealer,
+
+        isRandomBack: this.data.isRandomBack
       };
 
       if (cachedRoomData.roomid !== this.data.roomid) {
@@ -545,7 +562,16 @@ Component({
     },
 
     async handleTransferDealer(): Promise<void> {
-      this.setData({ selectorButtonLoading: true });
+      if (!this.data.selectedPlayer) {
+        wx.showToast({
+          title: '未选择玩家',
+          icon: 'none'
+        });
+
+        return
+      }
+
+      this.setData({ dealerSelectorButtonLoading: true });
 
       try {  
         const { result } = await wx.cloud.callFunction({
@@ -562,7 +588,7 @@ Component({
             icon: 'none'
           });
         } else if (result.code === 200) {
-          this.closeSelector();
+          this.closeDealerSelector();
         } else {
           throw result
         }
@@ -574,11 +600,20 @@ Component({
         });
       }
 
-      this.setData({ selectorButtonLoading: false });
+      this.setData({ dealerSelectorButtonLoading: false });
     },
 
     async handleBeBacker(): Promise<void> {
-      this.setData({ selectorButtonLoading: true });
+      if (!this.data.selectedPlayer) {
+        wx.showToast({
+          title: '未选择玩家',
+          icon: 'none'
+        });
+
+        return
+      }
+
+      this.setData({ targetSelectorButtonLoading: true });
 
       try {
         const { result } = await wx.cloud.callFunction({
@@ -595,7 +630,7 @@ Component({
             icon: 'none'
           });
         } else if (result.code === 200) {
-          this.closeSelector();
+          this.closeTargetSelector();
         } else {
           throw result
         }
@@ -607,14 +642,11 @@ Component({
         });
       }
 
-      this.setData({ selectorButtonLoading: false });
+      this.setData({ targetSelectorButtonLoading: false });
     },
 
     async handleRandomBack(): Promise<void> {
-      this.setData({
-        randomBackButtonLoading: true,
-        selectedPlayer: this.data.backedPlayer
-      });
+      this.setData({ randomBackButtonLoading: true });
 
       try {
         const { result } = await wx.cloud.callFunction({
@@ -631,7 +663,7 @@ Component({
             icon: 'none'
           });
         } else if (result.code === 200) {
-          this.closeSelector();
+          this.setData({ selectedPlayer: this.data.backedPlayer });
         } else {
           throw result
         }
@@ -686,12 +718,9 @@ Component({
         return
       }
 
-      const targetSeat: number = e.currentTarget.dataset.seat;
-      const target = (this.data.nextPlayerDataTuple[targetSeat] as UserData).openid;
+      const target: string = e.currentTarget.dataset.openid;
 
-      if (target === this.data.selectedPlayer) {
-        this.setData({ selectedPlayer: '' });
-      } else {
+      if (target !== this.data.selectedPlayer) {
         this.setData({ selectedPlayer: target });
       }
     },
@@ -704,17 +733,27 @@ Component({
       this.setData({ settleVisible: false });
     },
 
-    showSelector(): void {
-      if (!this.data.isNextPlayer) {
-        this.setData({ selectedPlayer: this.data.backedPlayer });
-      }
-
-      this.setData({ selectorVisible: true });
+    showDealerSelector(): void {
+      this.setData({ dealerSelectorVisible: true });
     },
 
-    closeSelector(): void {
+    closeDealerSelector(): void {
       this.setData({
-        selectorVisible: false,
+        dealerSelectorVisible: false,
+        selectedPlayer: ''
+      });
+    },
+
+    showTargetSelector(): void {
+      this.setData({
+        targetSelectorVisible: true,
+        selectedPlayer: this.data.backedPlayer
+      });
+    },
+
+    closeTargetSelector(): void {
+      this.setData({
+        targetSelectorVisible: false,
         selectedPlayer: ''
       });
     },

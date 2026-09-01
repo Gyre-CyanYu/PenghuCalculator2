@@ -55,37 +55,23 @@ exports.main = async (event) => {
       }
     }
 
+    if (!nextPlayerTuple.filter(Boolean).includes(target)) {
+      return {
+        code: 403,
+        data: null,
+        message: '被砸鸟者不是玩家'
+      }
+    }
+
     const currentTarget = Object.keys(nextBackerMap).find(target => 
       nextBackerMap[target].includes(openid)
     ) ?? '';
 
-    if (!currentTarget) {
-      if (!target) {
-        return {
-          code: 200,
-          data: null,
-          message: '已经取消砸鸟'
-        }
-      }
-    } else if (currentTarget === target) {
-      return {
-        code: 200,
-        data: null,
-        message: '已经砸鸟该玩家'
-      }
-    } else {
+    if (currentTarget) {
       nextBackerMap[currentTarget].splice(nextBackerMap[currentTarget].indexOf(openid), 1);
     }
 
-    if (target) {
-      if (!nextPlayerTuple.filter(Boolean).includes(target)) {
-        return {
-          code: 403,
-          data: null,
-          message: '被砸鸟者不是玩家'
-        }
-      }
-
+    if (currentTarget !== target) {
       if (!nextBackerMap[target]) {
         nextBackerMap[target] = [];
       }

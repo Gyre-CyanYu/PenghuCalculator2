@@ -128,16 +128,17 @@
   margin: 0 8rpx;
 }
 
-.selectorButtonWrapper {
-  display: flex;
-  overflow: hidden;
-  gap: 24rpx;
-  width: 100%;
-  margin: -16rpx 48rpx 48rpx;
-}
-
 .dialogWrapper {
   display: grid;
   width: 100%;
   margin-top: 32rpx;
+}
+
+.randomBackeWrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0 32rpx;
 }

@@ -22,7 +22,7 @@ exports.main = async (event, context) => {
 
     const {
       isGamePlaying,
-      nextPlayerTuple, isRandomBackMap
+      nextPlayerTuple, nextBackerMap, isRandomBackMap
     } = data[0];
 
     if (isGamePlaying === -1) {
@@ -46,10 +46,36 @@ exports.main = async (event, context) => {
       }
     }
 
+    if (nextPlayerTuple.filter(Boolean).length !== 4) {
+      return {
+        code: 403,
+        message: '请等待所有玩家加入'
+      }
+    }
+
+    if (isRandomBack) {
+      const target = nextPlayerTuple[new Date().getTime() % 4];
+      const currentTarget = Object.keys(nextBackerMap).find(target => 
+        nextBackerMap[target].includes(openid)
+      ) ?? '';
+
+      if (currentTarget !== target) {
+        if (currentTarget) {
+          nextBackerMap[currentTarget].splice(nextBackerMap[currentTarget].indexOf(openid), 1);
+        }
+
+        if (!nextBackerMap[target]) {
+          nextBackerMap[target] = [];
+        }
+
+        nextBackerMap[target].push(openid);
+      }
+    }
+
     isRandomBackMap[openid] = isRandomBack;
 
     await db.collection('rooms').where({ roomid }).update({
-      data: { isRandomBackMap }
+      data: { nextBackerMap, isRandomBackMap }
     });
 
     return {

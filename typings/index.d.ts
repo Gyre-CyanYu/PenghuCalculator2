@@ -44,7 +44,7 @@ interface RoomData {
   nextBackerDataMap: Record<string, UserData[]>,
   nextDealer: string,
 
-  isRandomBackMap: Record<string, boolean>
+  isRandomBack: boolean
 }
 
 interface GameConfig {
