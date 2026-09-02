@@ -10,7 +10,13 @@ exports.main = async (event, context) => {
   const { roomid, isRandomBack } = event;
 
   try {
-    const { data } = await db.collection('rooms').where({ roomid }).get();
+    const { data } = await db.collection('rooms').where({ roomid }).field({
+      isGamePlaying: true,
+      
+      nextPlayerTuple: true,
+      nextBackerMap: true,
+      isRandomBackMap: true
+    }).get();
 
     if (data.length < 1) {
       return {
@@ -74,9 +80,7 @@ exports.main = async (event, context) => {
 
     isRandomBackMap[openid] = isRandomBack;
 
-    await db.collection('rooms').where({ roomid }).update({
-      data: { nextBackerMap, isRandomBackMap }
-    });
+    await db.collection('rooms').where({ roomid }).update({ data: { nextBackerMap, isRandomBackMap } });
 
     return {
       code: 200,

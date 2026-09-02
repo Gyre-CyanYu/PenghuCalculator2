@@ -13,7 +13,7 @@ interface IAppOption {
 
 interface UserData {
   openid: string,
-  avatarUrl: string,
+  avatarSrc: string,
   avatarFileID: string,
   nickname: string
 }
@@ -25,7 +25,8 @@ interface MemberData extends UserData {
 
 interface RoomData {
   roomid: string,
-  qrCodeUrl: string,
+  qrCodeSrc: string,
+  qrCodeFileID: string,
   createdAt: string,
 
   gameConfig: GameConfig,

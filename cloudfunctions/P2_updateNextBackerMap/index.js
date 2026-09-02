@@ -10,7 +10,13 @@ exports.main = async (event) => {
   const { roomid, target } = event;
 
   try {
-    const { data } = await db.collection('rooms').where({ roomid }).get();
+    const { data } = await db.collection('rooms').where({ roomid }).field({
+      isGamePlaying: true,
+      
+      nextPlayerTuple: true,
+      nextBackerMap: true,
+      isRandomBackMap: true
+    }).get();
     
     if (data.length < 1) {
       return {
@@ -79,9 +85,7 @@ exports.main = async (event) => {
       nextBackerMap[target].push(openid);
     }
 
-    await db.collection('rooms').where({ roomid }).update({
-      data: { nextBackerMap }
-    });
+    await db.collection('rooms').where({ roomid }).update({ data: { nextBackerMap } });
 
     return {
       code: 200,

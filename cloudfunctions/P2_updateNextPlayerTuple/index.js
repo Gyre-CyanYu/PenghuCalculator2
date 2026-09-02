@@ -10,7 +10,15 @@ exports.main = async (event) => {
   const { roomid, seat } = event;
   
   try {
-    const { data } = await db.collection('rooms').where({ roomid }).get();
+    const { data } = await db.collection('rooms').where({ roomid }).field({
+      isGamePlaying: true,
+      
+      nextPlayerTuple: true,
+      nextBackerMap: true,
+      nextDealer: true,
+
+      isRandomBackMap: true
+    }).get();
 
     if (data.length < 1) {
       return {
@@ -100,9 +108,7 @@ exports.main = async (event) => {
       }
     }
 
-    await db.collection('rooms').where({ roomid }).update({
-      data: { nextPlayerTuple }
-    });
+    await db.collection('rooms').where({ roomid }).update({ data: { nextPlayerTuple } });
 
     return {
       code: 200,

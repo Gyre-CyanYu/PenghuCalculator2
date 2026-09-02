@@ -238,7 +238,7 @@
   bind:cancel="closeBackerData"
 >
   <view
-    style="grid-template-columns: repeat({{utils.calculateBackerDataColumn(backerDataList)}}, 1fr);"
+    style="grid-template-columns: repeat({{utils.calculateBackerDataColumn(backerDataList.length)}}, 1fr);"
     class="dialogWrapper"
     slot="content"
   >

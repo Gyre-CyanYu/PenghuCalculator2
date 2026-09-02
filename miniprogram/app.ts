@@ -9,7 +9,7 @@ App<IAppOption>({
 
     userData: {
       openid: '',
-      avatarUrl: '',
+      avatarSrc: '',
       avatarFileID: '',
       nickname: ''
     },
@@ -39,25 +39,27 @@ App<IAppOption>({
     try {
       const { result } = await wx.cloud.callFunction({
         name: 'P2_getCurrentUserData'
-      }) as CallFunctionResult<UserData>;
+      }) as CallFunctionResult<ClientDatabaseUserData>;
       
       if (![200, 201].includes(result.code)) {
         throw result;
       }
 
-      const userData: UserData = result.data;
+      const databaseUserData: ClientDatabaseUserData = result.data;
 
-      if (userData.avatarUrl && userData.avatarFileID) {  
-        userData.avatarUrl = await storage.downloadImage(userData.avatarUrl, userData.avatarFileID);
+      this.globalData.userData.openid = databaseUserData.openid;
+      this.globalData.userData.avatarFileID = databaseUserData.avatarFileID;
+      this.globalData.userData.nickname = databaseUserData.nickname;
+
+      if (databaseUserData.avatarFileID) {
+        this.globalData.userData.avatarSrc = await storage.cacheImage(databaseUserData.avatarFileID, databaseUserData.avatarUrl, this.globalData.userData.avatarSrc);
       } else {
-        userData.avatarUrl = '/images/PenghuScorekeeper.jpg';
+        this.globalData.userData.avatarSrc = '/images/PenghuScorekeeper.jpg';
       }
-
-      this.globalData.userData = userData;
 
       wx.setStorage({
         key: 'user',
-        data: userData
+        data: this.globalData.userData
       }).catch(err => {
         console.warn('缓存用户信息失败', err);
       });

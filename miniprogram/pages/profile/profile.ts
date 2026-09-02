@@ -19,7 +19,7 @@ Page({
   data: {
     userData: {
       openid: '',
-      avatarUrl: '',
+      avatarSrc: '',
       avatarFileID: '',
       nickname: ''
     },
@@ -107,7 +107,15 @@ Page({
           avatarFileID,
           nickname: this.data.nicknameInput
         }
-      }) as CallFunctionResult<{ avatarUrl?: string, avatarFileID?: string, nickname?: string }>;
+      }) as CallFunctionResult<{ 
+        avatarUrl: string; 
+        avatarFileID: string; 
+        nickname?: string 
+      } | { 
+        avatarUrl?: never; 
+        avatarFileID?: never; 
+        nickname?: string 
+      }>;
 
       if (result.code === 403) {
         wx.showToast({
@@ -119,8 +127,8 @@ Page({
           app.globalData.userData.nickname = result.data.nickname;
         }
 
-        if (result.data.avatarUrl && result.data.avatarFileID) {
-          app.globalData.userData.avatarUrl = await storage.downloadImage(result.data.avatarUrl, result.data.avatarFileID, app.globalData.userData.avatarUrl);
+        if (result.data.avatarFileID) {
+          app.globalData.userData.avatarSrc = await storage.cacheImage(result.data.avatarFileID, result.data.avatarUrl, app.globalData.userData.avatarSrc);
         }
 
         this.setData({ userData: app.globalData.userData });

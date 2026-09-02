@@ -10,7 +10,12 @@ exports.main = async (event) => {
   const { roomid, nextDealer } = event;
 
   try {
-    const { data } = await db.collection('rooms').where({ roomid }).get();
+    const { data } = await db.collection('rooms').where({ roomid }).field({
+      isGamePlaying: true,
+      
+      nextPlayerTuple: true,
+      nextDealer: true
+    }).get();
 
     if (data.length < 1) {
       return {
@@ -55,9 +60,7 @@ exports.main = async (event) => {
       }
     }
 
-    await db.collection('rooms').where({ roomid }).update({
-      data: { nextDealer }
-    });
+    await db.collection('rooms').where({ roomid }).update({ data: { nextDealer } });
 
     return {
       code: 200,

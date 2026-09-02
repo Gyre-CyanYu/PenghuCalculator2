@@ -49,6 +49,7 @@ exports.main = async (event) => {
         const roomData = {
           roomid,
           qrCodeUrl: '',
+          qrCodeFileID: '',
           createBy: openid,
           createdAt: db.serverDate(),
 

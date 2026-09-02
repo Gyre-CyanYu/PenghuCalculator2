@@ -1,40 +1,40 @@
-async function downloadImage(url: string, fileID: string, cachedUrl?: string): Promise<string> {
-  const timestamp: string = url.split('?t=')[1];
-  const fileIDParts: string[] = fileID.split('/');
-
-  const id: string = fileIDParts[4].split('.')[0];
-  const imageType = fileIDParts[3].slice(0, -1) as ImageType;
-
+async function cacheImage(fileID: string, currentUrl: string, cachedSrc?: string): Promise<string> {
   const fs = wx.getFileSystemManager();
+  const timestamp: string = currentUrl.split('?t=')[1];
 
-  if (cachedUrl && !cachedUrl.startsWith('https://')) {
+  if (cachedSrc?.startsWith(wx.env.USER_DATA_PATH)) {
     try {
-      fs.accessSync(cachedUrl);
-      const cachedTimestamp: string = cachedUrl.split('?t=')[1];
+      fs.accessSync(cachedSrc);
+      
+      const cachedTimestamp: string = cachedSrc.split('?t=')[1];
 
       if (timestamp === cachedTimestamp) {
-        return cachedUrl
+        return cachedSrc
       }
     } catch (err) {}
   }
+  
+  const fileIDParts: string[] = fileID.split('/');
+  const imageType = fileIDParts[3].slice(0, -1) as ImageType;
+  const id: string = fileIDParts[4].split('.')[0];
+
+  const dirPath: string = `${wx.env.USER_DATA_PATH}/${imageType}`;
 
   try {
-    const dirPath: string = `${wx.env.USER_DATA_PATH}/${imageType}`;
-
-    try {
-      fs.accessSync(dirPath);
-    } catch (err) {
-      fs.mkdirSync(dirPath);
-    }
-
+    fs.accessSync(dirPath);
+  } catch (err) {
+    fs.mkdirSync(dirPath);
+  }
+  
+  try {
     const { tempFilePath } = await wx.cloud.downloadFile({ fileID });
     const savedFilePath: string = `${dirPath}/${id}.jpg`;
-
     fs.saveFileSync(tempFilePath, savedFilePath);
+
     return savedFilePath + '?t=' + timestamp
   } catch (err) {
     console.error(`下载${imageType}图像${id}失败`, err);
-    return url
+    return fileID
   }
 };
 
@@ -60,4 +60,4 @@ function removeImage(imageType: ImageType, idList: string[]): void {
   });
 };
 
-export default{ downloadImage, removeImage };
+export default{ cacheImage, removeImage };

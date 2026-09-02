@@ -278,30 +278,38 @@ Component({
         const { result } = await wx.cloud.callFunction({
           name: 'P2_getUserDataList',
           data: { userList: memberList.filter(member => member !== this.data.openid) }
-        }) as CallFunctionResult<UserData[]>;
+        }) as CallFunctionResult<ClientDatabaseUserData[]>;
         
         if (result.code !== 200) {
           throw result;
         }
 
-        const userDataList = result.data;
-        userDataList.unshift(app.globalData.userData);
+        const databaseUserDataList = result.data;
   
-        const memberDataList: MemberData[] = await Promise.all(userDataList.map(async userData => {
-          if (userData.avatarUrl && userData.avatarFileID) {  
-            userData.avatarUrl = await storage.downloadImage(userData.avatarUrl, userData.avatarFileID);
-          } else {
-            userData.avatarUrl = '/images/PenghuScorekeeper.jpg';
+        const memberDataList: MemberData[] = await Promise.all(databaseUserDataList.map(async databaseUserData => {
+          const memberData: MemberData = {
+            openid: databaseUserData.openid,
+            avatarSrc: '',
+            avatarFileID: databaseUserData.avatarFileID,
+            nickname: databaseUserData.nickname,
+            scores: scoresMap[databaseUserData.openid],
+            roundScores: roundScoresMap[databaseUserData.openid]
           }
 
-          const memberData: MemberData = {
-            ...userData,
-            scores: scoresMap[userData.openid],
-            roundScores: roundScoresMap[userData.openid]
+          if (databaseUserData.avatarFileID) {  
+            memberData.avatarSrc = await storage.cacheImage(databaseUserData.avatarFileID, databaseUserData.avatarUrl);
+          } else {
+            memberData.avatarSrc = '/images/PenghuScorekeeper.jpg';
           }
 
           return memberData
         }));
+
+        memberDataList.unshift({
+          ...app.globalData.userData,
+          scores: scoresMap[app.globalData.userData.openid],
+          roundScores: roundScoresMap[app.globalData.userData.openid]
+        });
   
         this.setData({ memberDataList });
       } catch (err) {
@@ -318,29 +326,32 @@ Component({
         const { result } = await wx.cloud.callFunction({
           name: 'P2_getUserDataList',
           data: { userList: [openid] }
-        }) as CallFunctionResult<UserData[]>;
+        }) as CallFunctionResult<ClientDatabaseUserData[]>;
         
         if (result.code !== 200) {
           throw result;
         }
 
-        const userData = result.data[0];
-
-        if (userData.avatarUrl && userData.avatarFileID) {  
-          userData.avatarUrl = await storage.downloadImage(userData.avatarUrl, userData.avatarFileID);
-        } else {
-          userData.avatarUrl = '/images/PenghuScorekeeper.jpg';
-        }
+        const databaseUserData = result.data[0];
 
         const memberData: MemberData = {
-          ...userData,
+          openid,
+          avatarSrc: '',
+          avatarFileID: databaseUserData.avatarFileID,
+          nickname: databaseUserData.nickname,
           scores: databaseRoomData.scoresMap[openid],
           roundScores: databaseRoomData.roundScoresMap[openid]
         }
 
+        if (databaseUserData.avatarFileID) {  
+          memberData.avatarSrc = await storage.cacheImage(databaseUserData.avatarFileID, databaseUserData.avatarUrl);
+        } else {
+          memberData.avatarSrc = '/images/PenghuScorekeeper.jpg';
+        }
+
         const memberDataList = this.data.memberDataList;
         memberDataList.push(memberData);
-  
+
         this.setData({ memberDataList });
       } catch (err) {
         console.error('更新成员信息列表失败', err);

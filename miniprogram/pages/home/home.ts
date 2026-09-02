@@ -214,7 +214,7 @@ Page({
   async handleScan(): Promise<void> {
     try {
       const { path } = await wx.scanCode({ scanType: ['qrCode'] });
-      const roomid: string | undefined = path.match(/roomid=([^&]+)/)?.[1];
+      const roomid: string = path.match(/roomid=([^&]+)/)?.[1] ?? '';
 
       if (roomid) {
         this.setData({ roomidInput: roomid });

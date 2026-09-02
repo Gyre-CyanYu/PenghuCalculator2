@@ -18,8 +18,10 @@ type InformationPageRoomData = Pick<RoomData, Extract<keyof RoomData, keyof Info
 
 interface InformationPageData {
   openid: string,
+
   roomid: string,
-  qrCodeUrl: string,
+  qrCodeSrc: string,
+  qrCodeFileID: string,
   createdAt: string,
   remainTime: number,
 
@@ -62,8 +64,10 @@ interface InformationPageData {
 Component({
   data: {
     openid: '',
+
     roomid: '',
-    qrCodeUrl: '',
+    qrCodeSrc: '',
+    qrCodeFileID: '',
     createdAt: '',
     remainTime: 0,
 
@@ -152,6 +156,8 @@ Component({
         openid: app.globalData.userData.openid,
         roomid: app.globalData.currentRoomid
       });
+
+      this.getCachedRoomData();
     },
 
     onReady() {
@@ -194,7 +200,8 @@ Component({
       }
 
       const {
-        qrCodeUrl = '',
+        qrCodeSrc = '',
+        qrCodeFileID = '',
         createdAt = '',
 
         gameConfig = {
@@ -216,7 +223,7 @@ Component({
       } = cachedRoomData;
 
       this.setData({
-        qrCodeUrl, createdAt,
+        qrCodeSrc, qrCodeFileID, createdAt,
         gameConfig,
         memberDataList,
         isGamePlaying,
@@ -325,30 +332,38 @@ Component({
         const { result } = await wx.cloud.callFunction({
           name: 'P2_getUserDataList',
           data: { userList: memberList.filter(member => member !== this.data.openid) }
-        }) as CallFunctionResult<UserData[]>;
+        }) as CallFunctionResult<ClientDatabaseUserData[]>;
         
         if (result.code !== 200) {
           throw result;
         }
 
-        const userDataList = result.data;
-        userDataList.unshift(app.globalData.userData);
+        const databaseUserDataList = result.data;
 
-        const memberDataList: MemberData[] = await Promise.all(userDataList.map(async userData => {
-          if (userData.avatarUrl && userData.avatarFileID) {  
-            userData.avatarUrl = await storage.downloadImage(userData.avatarUrl, userData.avatarFileID);
-          } else {
-            userData.avatarUrl = '/images/PenghuScorekeeper.jpg';
-          }
-
+        const memberDataList: MemberData[] = await Promise.all(databaseUserDataList.map(async databaseUserData => {
           const memberData: MemberData = {
-            ...userData,
-            scores: scoresMap[userData.openid],
-            roundScores: roundScoresMap[userData.openid]
+            openid: databaseUserData.openid,
+            avatarSrc: '',
+            avatarFileID: databaseUserData.avatarFileID,
+            nickname: databaseUserData.nickname,
+            scores: scoresMap[databaseUserData.openid],
+            roundScores: roundScoresMap[databaseUserData.openid]
+          }
+          
+          if (databaseUserData.avatarFileID) {  
+            memberData.avatarSrc = await storage.cacheImage(databaseUserData.avatarFileID, databaseUserData.avatarUrl);
+          } else {
+            memberData.avatarSrc = '/images/PenghuScorekeeper.jpg';
           }
 
           return memberData
         }));
+
+        memberDataList.unshift({
+          ...app.globalData.userData,
+          scores: scoresMap[app.globalData.userData.openid],
+          roundScores: roundScoresMap[app.globalData.userData.openid]
+        });
 
         this.setData({ memberDataList });
       } catch (err) {
@@ -365,24 +380,27 @@ Component({
         const { result } = await wx.cloud.callFunction({
           name: 'P2_getUserDataList',
           data: { userList: [openid] }
-        }) as CallFunctionResult<UserData[]>;
+        }) as CallFunctionResult<ClientDatabaseUserData[]>;
         
         if (result.code !== 200) {
           throw result;
         }
 
-        const userData = result.data[0];
-
-        if (userData.avatarUrl && userData.avatarFileID) {  
-          userData.avatarUrl = await storage.downloadImage(userData.avatarUrl, userData.avatarFileID);
-        } else {
-          userData.avatarUrl = '/images/PenghuScorekeeper.jpg';
-        }
+        const databaseUserData = result.data[0];
 
         const memberData: MemberData = {
-          ...userData,
+          openid,
+          avatarSrc: '',
+          avatarFileID: databaseUserData.avatarFileID,
+          nickname: databaseUserData.nickname,
           scores: databaseRoomData.scoresMap[openid],
           roundScores: databaseRoomData.roundScoresMap[openid]
+        }
+
+        if (databaseUserData.avatarFileID) {  
+          memberData.avatarSrc = await storage.cacheImage(databaseUserData.avatarFileID, databaseUserData.avatarUrl);
+        } else {
+          memberData.avatarSrc = '/images/PenghuScorekeeper.jpg';
         }
 
         const memberDataList = this.data.memberDataList;
@@ -454,7 +472,8 @@ Component({
       const cachedRoomData: RoomData = wx.getStorageSync('room') || {};
       const currentRoomData: InformationPageRoomData = {
         roomid: this.data.roomid,
-        qrCodeUrl: this.data.qrCodeUrl,
+        qrCodeSrc: this.data.qrCodeSrc,
+        qrCodeFileID: this.data.qrCodeFileID,
         createdAt: this.data.createdAt,
 
         gameConfig: this.data.gameConfig,

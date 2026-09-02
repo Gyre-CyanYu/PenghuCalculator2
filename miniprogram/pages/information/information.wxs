@@ -1,6 +1,7 @@
-function calculateBackerDataColumn(backerDataList) {
-  var row = Math.ceil(backerDataList.length / 4)
-  var column = Math.ceil(backerDataList.length / row)
+function calculateBackerDataColumn(backerDataListLength) {
+  var row = Math.ceil(backerDataListLength / 4)
+  var column = Math.ceil(backerDataListLength / row)
+  
   return column
 }
 

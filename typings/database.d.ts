@@ -1,11 +1,18 @@
-interface DatabaseUserData extends UserData {
+interface DatabaseUserData {
+  openid: string,
+  avatarUrl: string,
+  avatarFileID: string,
+  nickname: string
   createdAt: string
 }
+
+type ClientDatabaseUserData = Omit<DatabaseUserData, 'createdAt'>
 
 interface DatabaseRoomData {
   /* 房间信息 */
   roomid: string,
   qrCodeUrl: string,
+  qrCodeFileID: string,
   createBy: string,
   createdAt: string,
 

@@ -8,10 +8,13 @@ exports.main = async (event) => {
   const openid = cloud.getWXContext().OPENID;
   const db = cloud.database();
   const _ = db.command;
-  const roomid = event.roomid;
+  const { roomid } = event;
 
   try {
-    const { data } = await db.collection('rooms').where({ roomid }).get();
+    const { data } = await db.collection('rooms').where({ roomid }).field({
+      memberList: true,
+      isGamePlaying: true
+    }).get();
 
     if (data.length < 1) {
       return {
@@ -60,13 +63,11 @@ exports.main = async (event) => {
       };
     }
 
-    await db.collection('rooms').where({ roomid }).update({
-      data: {
-        memberList: _.push(openid),
-        [`scoresMap.${openid}`]: 0,
-        [`roundScoresMap.${openid}`]: 0
-      }
-    })
+    await db.collection('rooms').where({ roomid }).update({ data: {
+      memberList: _.push(openid),
+      [`scoresMap.${openid}`]: 0,
+      [`roundScoresMap.${openid}`]: 0
+    }})
 
     return {
       code: 201,
