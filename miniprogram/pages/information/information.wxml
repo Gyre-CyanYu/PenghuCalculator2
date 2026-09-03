@@ -22,7 +22,7 @@
       <block wx:elif="{{item.label < 4}}">
         <user
           wx:if="{{nextPlayerDataTuple[item.label].openid}}"
-          avatarUrl="{{nextPlayerDataTuple[item.label].avatarUrl}}"
+          avatarSrc="{{nextPlayerDataTuple[item.label].avatarSrc}}"
           nickname="{{nextPlayerDataTuple[item.label].nickname}}"
           badgeProps="{{ {count: nextPlayerDataTuple[item.label].openid === nextDealer ? '下局庄' : '', offset: [-6, 6]} }}"
         />
@@ -46,7 +46,7 @@
         bind:tap="showBackerData"
         data-seat="{{item.label - 4}}"
         wx:elif="{{nextBackerDataMap[nextPlayerDataTuple[item.label - 4].openid].length}}"
-        avatarUrl="{{nextBackerDataMap[nextPlayerDataTuple[item.label - 4].openid][0].avatarUrl}}"
+        avatarSrc="{{nextBackerDataMap[nextPlayerDataTuple[item.label - 4].openid][0].avatarSrc}}"
         nickname="{{nextBackerDataMap[nextPlayerDataTuple[item.label - 4].openid][0].nickname}}"
         userGroupLength="{{nextBackerDataMap[nextPlayerDataTuple[item.label - 4].openid].length}}"
       />
@@ -100,9 +100,9 @@
   <view class="dataGridWrapper">
     <view class="dataWrapper">
       <t-image
-        src="{{qrCodeUrl}}"
+        src="{{qrCodeFileID}}"
         error="slot"
-        style="height: 100%; aspect-ratio: 1"
+        style="height: 100%; aspect-ratio: 1; --td-image-round-radius: 32rpx;"
         mode="heightFix"
         shape="round"
         show-menu-by-longpress
@@ -179,7 +179,7 @@
       wx:if="{{item.openid && item.openid !== nextDealer}}"
       wx:for="{{nextPlayerDataTuple}}"
       wx:key="openid"
-      avatarUrl="{{item.avatarUrl}}"
+      avatarSrc="{{item.avatarSrc}}"
       nickname="{{item.nickname}}"
       badgeProps="{{ {count: selectedPlayer === item.openid ? '转让' : '', offset: [-6, 6]} }}"
     />
@@ -210,7 +210,7 @@
       wx:if="{{item.openid}}"
       wx:for="{{nextPlayerDataTuple}}"
       wx:key="openid"
-      avatarUrl="{{item.avatarUrl}}"
+      avatarSrc="{{item.avatarSrc}}"
       nickname="{{item.nickname}}"
       badgeProps="{{ {count: selectedPlayer === item.openid ? '砸鸟' : '', offset: [-6, 6]} }}"
     />
@@ -245,7 +245,7 @@
     <user
       wx:for="{{backerDataList}}"
       wx:key="openid"
-      avatarUrl="{{item.avatarUrl}}"
+      avatarSrc="{{item.avatarSrc}}"
       nickname="{{item.nickname}}"
     />
   </view>

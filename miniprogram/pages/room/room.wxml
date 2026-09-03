@@ -3,7 +3,7 @@
     <user
       wx:for="{{memberDataList}}"
       wx:key="openid"
-      avatarUrl="{{item.avatarUrl}}"
+      avatarSrc="{{item.avatarSrc}}"
       nickname="{{item.nickname}}"
       badgeProps="{{null}}"
       scores="{{item.scores}}"
@@ -46,13 +46,13 @@
 >
   <scroll-view hidden="{{!keyboardSelectorVisible}}" class="keyboardSelector" scroll-x>
     <user
-      wx:if="{{item.openid !== openid}}"
-      wx:for="{{isGamePlaying === 1 ? playerDataList : nextPlayerDataList}}"
+      wx:if="{{item.openid && item.openid !== openid}}"
+      wx:for="{{isGamePlaying === 1 ? playerDataList : nextPlayerDataTuple}}"
       wx:key="openid"
       hidden="{{!isOperationPanel}}"
       bind:tap="onSelectedPlayerChange"
       data-openid="{{item.openid}}"
-      avatarUrl="{{item.avatarUrl}}"
+      avatarSrc="{{item.avatarSrc}}"
       nickname="{{item.nickname}}"
       badgeProps="{{selectedPlayer === item.openid ? {count: '收取', offset: [-6, 6]} : null}}"
       width="calc(100vw / 3)"
@@ -67,7 +67,7 @@
       hidden="{{isOperationPanel}}"
       bind:tap="onSelectedMemberChange"
       data-openid="{{item.openid}}"
-      avatarUrl="{{item.avatarUrl}}"
+      avatarSrc="{{item.avatarSrc}}"
       nickname="{{item.nickname}}"
       badgeProps="{{selectedMemberMap[item.openid] ? {count: '付给', offset: [-6, 6]} : null}}"
       width="25vw"

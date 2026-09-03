@@ -1,6 +1,6 @@
 Component({
   properties: {
-    avatarUrl: { type: String },
+    avatarSrc: { type: String },
     nickname: { type: String },
     badgeProps: { type: Object },
     icon: { type: String, value: 'user' },

@@ -214,16 +214,9 @@ Component({
             const databaseRoomData = docChange.doc as DatabaseRoomData;
 
             if (dataType === 'init') {
-              wx.showLoading({
-                title: '加载中',
-                mask: true
-              });
-
               await this.initializeMemberData(databaseRoomData);
               this.updateActionGroupList(databaseRoomData);
               this.initializeGameData(databaseRoomData);
-
-              wx.hideLoading();
               this.cacheRoomData();
             } else if (dataType === 'update') {
               const updatedFields = docChange.updatedFields!;
@@ -285,6 +278,7 @@ Component({
         }
 
         const databaseUserDataList = result.data;
+        const cachedMemberDataList = this.data.memberDataList;
   
         const memberDataList: MemberData[] = await Promise.all(databaseUserDataList.map(async databaseUserData => {
           const memberData: MemberData = {
@@ -296,8 +290,9 @@ Component({
             roundScores: roundScoresMap[databaseUserData.openid]
           }
 
-          if (databaseUserData.avatarFileID) {  
-            memberData.avatarSrc = await storage.cacheImage(databaseUserData.avatarFileID, databaseUserData.avatarUrl);
+          if (databaseUserData.avatarFileID) {
+            const cachedAvatarSrc = cachedMemberDataList.find(cachedMemberData => cachedMemberData.openid === databaseUserData.openid)?.avatarSrc ?? '';
+            memberData.avatarSrc = await storage.cacheImage(databaseUserData.avatarFileID, databaseUserData.avatarUrl, cachedAvatarSrc);
           } else {
             memberData.avatarSrc = '/images/PenghuScorekeeper.jpg';
           }
@@ -448,7 +443,7 @@ Component({
 
       const playerDataList = playerList.map(player => {
         const {
-          scores: playerScores, roundScores: playerRoundScores,
+          scores, roundScores,
           ...playerData
         } = this.data.memberDataList.find(memberData => memberData.openid === player)!;
 
@@ -461,7 +456,7 @@ Component({
         }
 
         const {
-          scores: nextPlayerScores, roundScores: nextPlayerRoundScores,
+          scores, roundScores,
           ...nextPlayerData
         } = this.data.memberDataList.find(memberData => memberData.openid === nextPlayer)!;
 

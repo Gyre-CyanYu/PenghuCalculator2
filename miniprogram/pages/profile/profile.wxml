@@ -1,6 +1,6 @@
 <view class="profileWrapper">
   <view class="avatarWrapper">
-    <t-avatar image="{{userData.avatarUrl}}" icon="user" size="192rpx" />
+    <t-avatar image="{{userData.avatarSrc}}" icon="user" size="192rpx" />
   </view>
 
   <view class="informationWrapper">

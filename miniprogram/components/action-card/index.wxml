@@ -33,11 +33,11 @@
       class="card actionCard t-popover-wrapper--fixed"
     >
       <action
-        payerAvatarUrl="{{mainAction.payerData.avatarUrl || ''}}"
+        payerAvatarSrc="{{mainAction.payerData.avatarSrc || ''}}"
         payerNickname="{{mainAction.payerData.nickname || ''}}"
         payerGroupLength="{{actionGroup.payerList.length || 0}}"
 
-        receiverAvatarUrl="{{mainAction.receiverData.avatarUrl || ''}}"
+        receiverAvatarSrc="{{mainAction.receiverData.avatarSrc || ''}}"
         receiverNickname="{{mainAction.receiverData.nickname || ''}}"
         receiverGroupLength="{{actionGroup.receiverList.length || 0}}"
 
@@ -55,10 +55,10 @@
           wx:for="{{actionGroup.actionDataList}}"
           wx:key="actionid"
 
-          payerAvatarUrl="{{item.payerData.avatarUrl}}"
+          payerAvatarSrc="{{item.payerData.avatarSrc}}"
           payerNickname="{{item.payerData.nickname}}"
 
-          receiverAvatarUrl="{{item.receiverData.avatarUrl}}"
+          receiverAvatarSrc="{{item.receiverData.avatarSrc}}"
           receiverNickname="{{item.receiverData.nickname}}"
 
           name="{{item.name}}"

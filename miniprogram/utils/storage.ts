@@ -38,9 +38,11 @@ async function cacheImage(fileID: string, currentUrl: string, cachedSrc?: string
   }
 };
 
-function removeImage(imageType: ImageType, idList: string[]): void {
-  const fs = wx.getFileSystemManager();
+function removeImage(fileIDList: string[]): void {
+  const imageType = fileIDList[0].split('/')[3].slice(0, -1) as ImageType;
+  const idList: string[] = fileIDList.map(fileID => fileID.split('/')[4].split('.')[0]);
   const dirPath: string = `${wx.env.USER_DATA_PATH}/${imageType}`;
+  const fs = wx.getFileSystemManager();
 
   try {
     fs.accessSync(dirPath);
@@ -53,9 +55,10 @@ function removeImage(imageType: ImageType, idList: string[]): void {
     const id: string = file.split('.')[0];
 
     if (idList.includes(id)) {
-      fs.unlink({ filePath: `${dirPath}/${file}`, fail: err => {
-        console.warn(`清除${imageType}图像${id}失败`, err);
-      }});
+      fs.unlink({
+        filePath: `${dirPath}/${file}`,
+        fail: err => console.warn(`清除${imageType}图像${id}失败`, err)
+      });
     }
   });
 };

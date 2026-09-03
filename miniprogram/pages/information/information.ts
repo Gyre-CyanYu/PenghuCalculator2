@@ -339,6 +339,7 @@ Component({
         }
 
         const databaseUserDataList = result.data;
+        const cachedMemberDataList = this.data.memberDataList;
 
         const memberDataList: MemberData[] = await Promise.all(databaseUserDataList.map(async databaseUserData => {
           const memberData: MemberData = {
@@ -350,8 +351,9 @@ Component({
             roundScores: roundScoresMap[databaseUserData.openid]
           }
           
-          if (databaseUserData.avatarFileID) {  
-            memberData.avatarSrc = await storage.cacheImage(databaseUserData.avatarFileID, databaseUserData.avatarUrl);
+          if (databaseUserData.avatarFileID) {
+            const cachedAvatarSrc = cachedMemberDataList.find(cachedMemberData => cachedMemberData.openid === databaseUserData.openid)?.avatarSrc ?? '';
+            memberData.avatarSrc = await storage.cacheImage(databaseUserData.avatarFileID, databaseUserData.avatarUrl, cachedAvatarSrc);
           } else {
             memberData.avatarSrc = '/images/PenghuScorekeeper.jpg';
           }
@@ -423,8 +425,8 @@ Component({
       this.updateNextDealer(databaseRoomData);
       this.updateIsRandomBack(databaseRoomData);
 
-      const { qrCodeUrl, createdAt, gameConfig } = databaseRoomData;
-      this.setData({ qrCodeUrl, createdAt, gameConfig });
+      const { qrCodeUrl, qrCodeFileID, createdAt, gameConfig } = databaseRoomData;
+      this.setData({ qrCodeFileID, createdAt, gameConfig });
     },
 
     updateIsGamePlaying(databaseRoomData: DatabaseRoomData): void {
@@ -437,7 +439,11 @@ Component({
           return {}
         }
 
-        const nextPlayerData = this.data.memberDataList.find(memberData => memberData.openid === nextPlayer)!;
+        const {
+          scores, roundScores,
+          ...nextPlayerData
+        } = this.data.memberDataList.find(memberData => memberData.openid === nextPlayer)!;
+        
         return nextPlayerData
       }) as [UserData | {}, UserData | {}, UserData | {}, UserData | {}];
 
@@ -448,7 +454,11 @@ Component({
       const nextBackerDataMap: Record<string, UserData[]> = Object.entries(databaseRoomData.nextBackerMap).reduce(
         (acc: Record<string, UserData[]>, [target, nextBackerList]) => {
           const nextBackerDataList = nextBackerList.map(nextBacker => {
-            const nextBackerData = this.data.memberDataList.find(memberData => memberData.openid === nextBacker)!;
+            const {
+              scores, roundScores,
+              ...nextBackerData
+            } = this.data.memberDataList.find(memberData => memberData.openid === nextBacker)!;
+            
             return nextBackerData
           });
           

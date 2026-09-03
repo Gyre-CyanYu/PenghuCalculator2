@@ -40,16 +40,27 @@ exports.main = async (event) => {
 
       try {
         const { data } = await transaction.collection('rooms').where({ roomid }).get();
+        
         if (data.length !== 0) {
           await transaction.rollback();
           count ++;
           continue;
         }
 
+        const { buffer } = await cloud.openapi.wxacode.getUnlimited({ scene: roomid });
+
+        const { fileID: qrCodeFileID } = await cloud.uploadFile({
+          cloudPath: `qrCodes/${roomid}.jpg`,
+          fileContent: buffer
+        });
+
+        const { fileList } = await cloud.getTempFileURL({ fileList: [qrCodeFileID] });
+        qrCodeUrl = fileList[0].tempFileURL;
+
         const roomData = {
           roomid,
-          qrCodeUrl: '',
-          qrCodeFileID: '',
+          qrCodeUrl,
+          qrCodeFileID,
           createBy: openid,
           createdAt: db.serverDate(),
 

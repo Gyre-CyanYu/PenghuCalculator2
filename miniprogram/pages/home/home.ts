@@ -27,7 +27,7 @@ Page({
     noticeVisible: false
   } as HomePageData,
 
-  async onLoad(options: { roomid?: string }) {
+  async onLoad(options: { roomid?: string, scene?: string }) {
     wx.showLoading({
       title: '加载中',
       mask: true
@@ -48,11 +48,12 @@ Page({
 
     wx.hideLoading();
 
-    if (options.roomid) {
-      this.setData({ roomidInput: options.roomid }, () => {
-        this.showJoin();
-        this.handleJoin();
-      });
+    const roomid: string = options.roomid || options.scene || '';
+
+    if (roomid) {
+      this.setData({ roomidInput: roomid });
+      this.showJoin();
+      this.handleJoin();
     }
   },
 
@@ -107,14 +108,16 @@ Page({
         app.globalData.currentRoomid = joinedRoomList[0];
       }
 
-      const { roomid: cachedRoomid }: RoomData = wx.getStorageSync('room') || {};
+      const { roomid: cachedRoomid, qrCodeFileID }: RoomData = wx.getStorageSync('room') || {};
 
       if (cachedRoomid && !joinedRoomList.includes(cachedRoomid)) {
         wx.removeStorage({ key: 'room' }).catch(err => {
           console.warn('清除房间信息缓存失败', err);
         });
 
-        storage.removeImage('qrCode', [cachedRoomid]);
+        if (qrCodeFileID) {
+          storage.removeImage([qrCodeFileID]);
+        }
       }
     } catch (err) {
       console.warn('获取已加入房间列表失败', err);
@@ -214,7 +217,7 @@ Page({
   async handleScan(): Promise<void> {
     try {
       const { path } = await wx.scanCode({ scanType: ['qrCode'] });
-      const roomid: string = path.match(/roomid=([^&]+)/)?.[1] ?? '';
+      const roomid: string = path.match(/scene=([^&]+)/)?.[1] ?? '';
 
       if (roomid) {
         this.setData({ roomidInput: roomid });
