@@ -16,8 +16,7 @@ $RECYCLE.BIN/
 
 # Node.js
 miniprogram/miniprogram_npm/
-miniprogram/node_modules/
-cloudfunctions/*/node_modules/
+node_modules/
 
 # WeChat MiniProgram
 project.private.config.json

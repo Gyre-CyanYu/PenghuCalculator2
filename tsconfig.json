@@ -22,7 +22,7 @@
     ]
   },
   "include": [
-    "./**/*.ts"
+    "./**/*.d.ts"
   ],
   "exclude": [
     "node_modules"
