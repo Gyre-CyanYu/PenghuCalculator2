@@ -7,6 +7,7 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV }) // 使用当前云环境
 exports.main = async (event) => {
   const openid = cloud.getWXContext().OPENID;
   const db = cloud.database();
+  const _ = db.command;
   const { roomid, target } = event;
 
   try {
@@ -69,23 +70,21 @@ exports.main = async (event) => {
       }
     }
 
+    const updateData = {};
+
     const currentTarget = Object.keys(nextBackerMap).find(target => 
       nextBackerMap[target].includes(openid)
     ) ?? '';
 
     if (currentTarget) {
-      nextBackerMap[currentTarget].splice(nextBackerMap[currentTarget].indexOf(openid), 1);
+      updateData[`nextBackerMap.${currentTarget}`] = _.pull(openid);
     }
 
     if (currentTarget !== target) {
-      if (!nextBackerMap[target]) {
-        nextBackerMap[target] = [];
-      }
-
-      nextBackerMap[target].push(openid);
+      updateData[`nextBackerMap.${target}`] = _.push(openid);
     }
 
-    await db.collection('rooms').where({ roomid }).update({ data: { nextBackerMap } });
+    await db.collection('rooms').where({ roomid }).update({ data: updateData });
 
     return {
       code: 200,

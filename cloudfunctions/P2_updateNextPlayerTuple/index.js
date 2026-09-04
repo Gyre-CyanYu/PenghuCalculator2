@@ -65,6 +65,22 @@ exports.main = async (event) => {
         message: '已位于该位置'
       }
     } else {
+      if (nextDealer === openid) {
+        return {
+          code: 403,
+          data: null,
+          message: '请先转让庄家'
+        }
+      }
+
+      if (nextBackerMap[openid]?.length > 0) {
+        return {
+          code: 403,
+          data: null,
+          message: '被砸鸟时不能旁观'
+        }
+      }
+
       nextPlayerTuple[currentSeat] = '';
     }
 
@@ -81,7 +97,7 @@ exports.main = async (event) => {
         nextBackerMap[target].includes(openid)
       ) ?? '';
 
-      if (backedPlayer || isRandomBackMap[openid]) {
+      if (isRandomBackMap[openid] || backedPlayer) {
         return {
           code: 403,
           data: null,
@@ -90,22 +106,6 @@ exports.main = async (event) => {
       }
 
       nextPlayerTuple[seat] = openid;
-    } else {
-      if (nextDealer === openid) {
-        return {
-          code: 403,
-          data: null,
-          message: '请先转让庄家'
-        }
-      }
-
-      if (nextBackerMap[openid]?.length > 0) {
-        return {
-          code: 403,
-          data: null,
-          message: '被砸鸟时不能旁观'
-        }
-      }
     }
 
     await db.collection('rooms').where({ roomid }).update({ data: { nextPlayerTuple } });

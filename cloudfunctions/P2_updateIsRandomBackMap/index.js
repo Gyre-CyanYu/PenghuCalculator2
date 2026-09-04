@@ -4,9 +4,10 @@ const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV }) // 使用当前云环境
 
 // 云函数入口函数
-exports.main = async (event, context) => {
+exports.main = async (event) => {
   const openid = cloud.getWXContext().OPENID;
   const db = cloud.database();
+  const _ = db.command;
   const { roomid, isRandomBack } = event;
 
   try {
@@ -59,6 +60,8 @@ exports.main = async (event, context) => {
       }
     }
 
+    const updateData = { [`isRandomBackMap.${openid}`]: isRandomBack };
+
     if (isRandomBack) {
       const target = nextPlayerTuple[new Date().getTime() % 4];
       const currentTarget = Object.keys(nextBackerMap).find(target => 
@@ -67,20 +70,14 @@ exports.main = async (event, context) => {
 
       if (currentTarget !== target) {
         if (currentTarget) {
-          nextBackerMap[currentTarget].splice(nextBackerMap[currentTarget].indexOf(openid), 1);
+          updateData[`nextBackerMap.${currentTarget}`] = _.pull(openid);
         }
 
-        if (!nextBackerMap[target]) {
-          nextBackerMap[target] = [];
-        }
-
-        nextBackerMap[target].push(openid);
+        updateData[`nextBackerMap.${target}`] = _.push(openid);
       }
     }
 
-    isRandomBackMap[openid] = isRandomBack;
-
-    await db.collection('rooms').where({ roomid }).update({ data: { nextBackerMap, isRandomBackMap } });
+    await db.collection('rooms').where({ roomid }).update({ data: updateData });
 
     return {
       code: 200,

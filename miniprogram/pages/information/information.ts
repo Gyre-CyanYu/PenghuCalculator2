@@ -251,6 +251,7 @@ Component({
               this.cacheRoomData();
             } else if (dataType === 'update') {
               const updatedFields = docChange.updatedFields!;
+              console.log(updatedFields);
 
               const updatedMember = Object.keys(updatedFields).find(updatedField => updatedField.startsWith('memberList'));
 

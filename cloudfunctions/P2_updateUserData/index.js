@@ -10,13 +10,13 @@ exports.main = async (event) => {
   const { avatarFileID, nickname } = event;
 
   try {
-    const userData = {};
+    const updateData = {};
 
     if (avatarFileID) {
       const { fileList } = await cloud.getTempFileURL({ fileList: [avatarFileID] });
 
-      userData.avatarUrl = fileList[0].tempFileURL + '?t=' + Date.now();
-      userData.avatarFileID = avatarFileID;
+      updateData.avatarUrl = fileList[0].tempFileURL + '?t=' + Date.now();
+      updateData.avatarFileID = avatarFileID;
     }
 
     if (nickname) {
@@ -28,14 +28,14 @@ exports.main = async (event) => {
         }
       }
 
-      userData.nickname = nickname;
+      updateData.nickname = nickname;
     }
 
-    await db.collection('users').where({ _openid: openid }).update({ data: userData });
+    await db.collection('users').where({ _openid: openid }).update({ data: updateData });
 
     return {
       code: 200,
-      data: userData,
+      data: updateData,
       message: '更新资料成功'
     }
   } catch (err) {
