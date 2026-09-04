@@ -159,7 +159,7 @@ Component({
       const shareData = {
         title: '碰胡计分器',
         path: '/pages/home/home',
-        imageUrl: '/images/PenghuScorekeeper5_4.jpg'
+        imageUrl: '/images/PenghuScoreCalculator5_4.jpg'
       }
 
       if (this.data.roomid) {
@@ -220,6 +220,7 @@ Component({
               this.cacheRoomData();
             } else if (dataType === 'update') {
               const updatedFields = docChange.updatedFields!;
+              console.log(updatedFields);
 
               const updatedMember = Object.keys(updatedFields).find(updatedField => updatedField.startsWith('memberList'));
 
@@ -294,7 +295,7 @@ Component({
             const cachedAvatarSrc = cachedMemberDataList.find(cachedMemberData => cachedMemberData.openid === databaseUserData.openid)?.avatarSrc ?? '';
             memberData.avatarSrc = await storage.cacheImage(databaseUserData.avatarFileID, databaseUserData.avatarUrl, cachedAvatarSrc);
           } else {
-            memberData.avatarSrc = '/images/PenghuScorekeeper.jpg';
+            memberData.avatarSrc = '/images/PenghuScoreCalculator.jpg';
           }
 
           return memberData
@@ -341,7 +342,7 @@ Component({
         if (databaseUserData.avatarFileID) {  
           memberData.avatarSrc = await storage.cacheImage(databaseUserData.avatarFileID, databaseUserData.avatarUrl);
         } else {
-          memberData.avatarSrc = '/images/PenghuScorekeeper.jpg';
+          memberData.avatarSrc = '/images/PenghuScoreCalculator.jpg';
         }
 
         const memberDataList = this.data.memberDataList;

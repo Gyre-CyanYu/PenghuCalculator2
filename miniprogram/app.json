@@ -60,6 +60,5 @@
     "t-dialog": "tdesign-miniprogram/dialog/dialog",
     "t-popup": "tdesign-miniprogram/popup/popup"
   },
-  "sitemapLocation": "sitemap.json",
   "lazyCodeLoading": "requiredComponents"
 }

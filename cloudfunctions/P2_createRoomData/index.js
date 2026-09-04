@@ -55,7 +55,7 @@ exports.main = async (event) => {
         });
 
         const { fileList } = await cloud.getTempFileURL({ fileList: [qrCodeFileID] });
-        qrCodeUrl = fileList[0].tempFileURL;
+        const qrCodeUrl = fileList[0].tempFileURL + '?t=' + Date.now();
 
         const roomData = {
           roomid,

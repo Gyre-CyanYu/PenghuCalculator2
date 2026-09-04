@@ -123,7 +123,7 @@ Component({
 
   observers: {
     'createdAt': function (): void {
-      const remainTime: number = 12 * 60 * 60 * 1000 - (Date.now() - new Date(this.data.createdAt).getTime());
+      const remainTime: number = 12 * 60 * 60 * 1000 - (Date.now() - new Date(this.data.createdAt).getTime()) || 0;
       this.setData({ remainTime });
     },
 
@@ -188,7 +188,7 @@ Component({
       return {
         title: `碰胡计分器房间：${ this.data.roomid }`,
         path: `/pages/home/home?roomid=${ this.data.roomid }`,
-        imageUrl: '/images/PenghuScorekeeper5_4.jpg'
+        imageUrl: '/images/PenghuScoreCalculator5_4.jpg'
       }
     },
 
@@ -247,11 +247,10 @@ Component({
 
             if (dataType === 'init') {
               await this.initializeMemberData(databaseRoomData);
-              this.initializeGameData(databaseRoomData);
+              await this.initializeGameData(databaseRoomData);
               this.cacheRoomData();
             } else if (dataType === 'update') {
               const updatedFields = docChange.updatedFields!;
-              console.log(updatedFields);
 
               const updatedMember = Object.keys(updatedFields).find(updatedField => updatedField.startsWith('memberList'));
 
@@ -355,7 +354,7 @@ Component({
             const cachedAvatarSrc = cachedMemberDataList.find(cachedMemberData => cachedMemberData.openid === databaseUserData.openid)?.avatarSrc ?? '';
             memberData.avatarSrc = await storage.cacheImage(databaseUserData.avatarFileID, databaseUserData.avatarUrl, cachedAvatarSrc);
           } else {
-            memberData.avatarSrc = '/images/PenghuScorekeeper.jpg';
+            memberData.avatarSrc = '/images/PenghuScoreCalculator.jpg';
           }
 
           return memberData
@@ -402,7 +401,7 @@ Component({
         if (databaseUserData.avatarFileID) {  
           memberData.avatarSrc = await storage.cacheImage(databaseUserData.avatarFileID, databaseUserData.avatarUrl);
         } else {
-          memberData.avatarSrc = '/images/PenghuScorekeeper.jpg';
+          memberData.avatarSrc = '/images/PenghuScoreCalculator.jpg';
         }
 
         const memberDataList = this.data.memberDataList;
@@ -418,7 +417,7 @@ Component({
       }
     },
 
-    initializeGameData(databaseRoomData: DatabaseRoomData): void {
+    async initializeGameData(databaseRoomData: DatabaseRoomData): Promise<void> {
       this.updateIsGamePlaying(databaseRoomData);
       this.updateNextPlayerDataTuple(databaseRoomData);
       this.updateNextBackerDataMap(databaseRoomData);
@@ -426,7 +425,9 @@ Component({
       this.updateIsRandomBack(databaseRoomData);
 
       const { qrCodeUrl, qrCodeFileID, createdAt, gameConfig } = databaseRoomData;
-      this.setData({ qrCodeFileID, createdAt, gameConfig });
+      const qrCodeSrc = await storage.cacheImage(qrCodeFileID, qrCodeUrl, this.data.qrCodeSrc);
+
+      this.setData({ qrCodeSrc, qrCodeFileID, createdAt, gameConfig });
     },
 
     updateIsGamePlaying(databaseRoomData: DatabaseRoomData): void {

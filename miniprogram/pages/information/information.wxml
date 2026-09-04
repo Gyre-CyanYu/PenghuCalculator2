@@ -100,7 +100,7 @@
   <view class="dataGridWrapper">
     <view class="dataWrapper">
       <t-image
-        src="{{qrCodeFileID}}"
+        src="{{qrCodeSrc}}"
         error="slot"
         style="height: 100%; aspect-ratio: 1; --td-image-round-radius: 32rpx;"
         mode="heightFix"
