@@ -35,7 +35,7 @@ interface DatabaseRoomData {
   holdDealer: number,
 
   roundScoresMap: Record<string, number>,
-  tripletMap: Record<string, number>,
+  tripletMap: Record<string, number[]>,
   winner: string,
 
   /* 下局信息 */

@@ -55,14 +55,6 @@ exports.main = async (event) => {
       };
     }
 
-    if (memberList.length >= 16) {
-      return {
-        code: 403,
-        data: null,
-        message: '房间已满'
-      };
-    }
-
     await db.collection('rooms').where({ roomid }).update({ data: {
       memberList: _.push(openid),
       [`scoresMap.${openid}`]: 0,

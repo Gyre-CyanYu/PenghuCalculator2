@@ -10,111 +10,115 @@ exports.main = async (event) => {
   const { roomid, seat } = event;
   
   try {
-    const { data } = await db.collection('rooms').where({ roomid }).field({
-      isGamePlaying: true,
+    return await db.runTransaction(async transaction => {
+      const { data } = await transaction.collection('rooms').where({ roomid }).field({
+        isGamePlaying: true,
+        
+        nextPlayerTuple: true,
+        nextBackerMap: true,
+        nextDealer: true,
+
+        isRandomBackMap: true
+      }).get();
+
+      if (data.length < 1) {
+        return {
+          code: 404,
+          data: null,
+          message: '房间不存在'
+        };
+      }
+
+      const {
+        isGamePlaying,
+        nextPlayerTuple, nextBackerMap, nextDealer,
+        isRandomBackMap
+      } = data[0];
       
-      nextPlayerTuple: true,
-      nextBackerMap: true,
-      nextDealer: true,
-
-      isRandomBackMap: true
-    }).get();
-
-    if (data.length < 1) {
-      return {
-        code: 404,
-        data: null,
-        message: '房间不存在'
-      };
-    }
-
-    const {
-      isGamePlaying,
-      nextPlayerTuple, nextBackerMap, nextDealer,
-      isRandomBackMap
-    } = data[0];
-    
-    if (isGamePlaying === -1) {
-      return {
-        code: 403,
-        data: null,
-        message: '房间已结算'
+      if (isGamePlaying === -1) {
+        return {
+          code: 403,
+          data: null,
+          message: '房间已结算'
+        }
+      } else if (isGamePlaying === 1) {
+        return {
+          code: 403,
+          data: null,
+          message: '对局已开始'
+        }
       }
-    } else if (isGamePlaying === 1) {
-      return {
-        code: 403,
-        data: null,
-        message: '对局已开始'
-      }
-    }
 
-    const currentSeat = nextPlayerTuple.findIndex(nextPlayer => nextPlayer === openid);
+      const currentSeat = nextPlayerTuple.findIndex(nextPlayer => nextPlayer === openid);
 
-    if (currentSeat === -1) {
-      if (seat === -1) {
+      if (currentSeat === -1) {
+        if (![0, 1, 2, 3].includes(seat)) {
+          return {
+            code: 200,
+            data: null,
+            message: '已位于旁观'
+          }
+        }
+      } else if (currentSeat === seat) {
         return {
           code: 200,
           data: null,
-          message: '已位于旁观'
+          message: '已位于该位置'
         }
+      } else {
+        if (![0, 1, 2, 3].includes(seat)) {
+          if (nextDealer === openid) {
+            return {
+              code: 403,
+              data: null,
+              message: '请先转让庄家'
+            }
+          }
+
+          if (nextBackerMap[openid]?.length > 0) {
+            return {
+              code: 403,
+              data: null,
+              message: '被砸鸟时不能旁观'
+            }
+          }
+        }
+
+        nextPlayerTuple[currentSeat] = '';
       }
-    } else if (currentSeat === seat) {
+
+      if ([0, 1, 2, 3].includes(seat)) {
+        if (nextPlayerTuple[seat]) {
+          return {
+            code: 403,
+            data: null,
+            message: '该位置已有玩家'
+          }
+        }
+
+        const backedPlayer = Object.keys(nextBackerMap).find(target => 
+          nextBackerMap[target].includes(openid)
+        ) ?? '';
+
+        if (isRandomBackMap[openid] || backedPlayer) {
+          return {
+            code: 403,
+            data: null,
+            message: '请先取消砸鸟'
+          }
+        }
+
+        nextPlayerTuple[seat] = openid;
+      }
+
+      await transaction.collection('rooms').where({ roomid }).update({ data: { nextPlayerTuple } });
+    
       return {
         code: 200,
         data: null,
-        message: '已位于该位置'
+        message: '更新下局玩家成功'
       }
-    } else {
-      if (nextDealer === openid) {
-        return {
-          code: 403,
-          data: null,
-          message: '请先转让庄家'
-        }
-      }
-
-      if (nextBackerMap[openid]?.length > 0) {
-        return {
-          code: 403,
-          data: null,
-          message: '被砸鸟时不能旁观'
-        }
-      }
-
-      nextPlayerTuple[currentSeat] = '';
-    }
-
-    if ([0, 1, 2, 3].includes(seat)) {
-      if (nextPlayerTuple[seat]) {
-        return {
-          code: 403,
-          data: null,
-          message: '该位置已有玩家'
-        }
-      }
-
-      const backedPlayer = Object.keys(nextBackerMap).find(target => 
-        nextBackerMap[target].includes(openid)
-      ) ?? '';
-
-      if (isRandomBackMap[openid] || backedPlayer) {
-        return {
-          code: 403,
-          data: null,
-          message: '请先取消砸鸟'
-        }
-      }
-
-      nextPlayerTuple[seat] = openid;
-    }
-
-    await db.collection('rooms').where({ roomid }).update({ data: { nextPlayerTuple } });
-
-    return {
-      code: 200,
-      data: null,
-      message: '更新下局玩家成功'
-    }
+    });
   } catch (err) {
     console.error(err);
     return {

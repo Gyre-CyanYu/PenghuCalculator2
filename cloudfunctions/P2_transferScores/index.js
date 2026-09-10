@@ -8,18 +8,18 @@ exports.main = async (event) => {
   const openid = cloud.getWXContext().OPENID;
   const db = cloud.database();
   const _ = db.command;
-  const { roomid, target } = event;
+  const { roomid, receiverList, scores } = event;
 
   try {
     return await db.runTransaction(async transaction => {
       const { data } = await transaction.collection('rooms').where({ roomid }).field({
+        memberList: true,
+        actionDataList: true,
+
         isGamePlaying: true,
-        
-        nextPlayerTuple: true,
-        nextBackerMap: true,
-        isRandomBackMap: true
+        round: true
       }).get();
-      
+
       if (data.length < 1) {
         return {
           code: 404,
@@ -29,8 +29,8 @@ exports.main = async (event) => {
       }
 
       const {
-        isGamePlaying,
-        nextPlayerTuple, nextBackerMap, isRandomBackMap
+        memberList, actionDataList,
+        isGamePlaying, round
       } = data[0];
 
       if (isGamePlaying === -1) {
@@ -39,58 +39,62 @@ exports.main = async (event) => {
           data: null,
           message: '房间已结算'
         }
-      } else if (isGamePlaying === 1) {
+      }
+
+      if (!memberList.includes(openid)) {
         return {
           code: 403,
           data: null,
-          message: '对局已开始'
+          message: '你不在房间中'
         }
       }
 
-      if (nextPlayerTuple.filter(Boolean).includes(openid)) {
+      if (!receiverList.every(receiver => memberList.includes(receiver))) {
         return {
           code: 403,
           data: null,
-          message: '玩家不允许砸鸟'
+          message: '收取者不在房间中'
         }
       }
 
-      if (isRandomBackMap[openid]) {
+      if (!Number.isInteger(scores) || scores < 1) {
         return {
           code: 403,
           data: null,
-          message: '已选择随机砸鸟'
+          message: '分值无效'
         }
       }
 
-      if (!nextPlayerTuple.filter(Boolean).includes(target)) {
+      const updateData = { [`scoresMap.${openid}`]: _.inc(-scores * receiverList.length) };
+
+      const group = actionDataList.length;
+      const newActionDataList = receiverList.map((receiver, index) => {
+        updateData[`scoresMap.${receiver}`] = _.inc(scores);
+
         return {
-          code: 403,
-          data: null,
-          message: '被砸鸟者不是玩家'
+          actionid: group + index,
+          group,
+
+          isUndo: false,
+
+          payer: openid,
+          receiver,
+
+          name: '支出分值',
+          scores,
+          round,
+          time: cloud.database().serverDate()
         }
-      }
+      });
 
-      const updateData = {};
-
-      const currentTarget = Object.keys(nextBackerMap).find(target => 
-        nextBackerMap[target].includes(openid)
-      ) ?? '';
-
-      if (currentTarget) {
-        updateData[`nextBackerMap.${currentTarget}`] = _.pull(openid);
-      }
-
-      if (currentTarget !== target) {
-        updateData[`nextBackerMap.${target}`] = _.push(openid);
-      }
+      updateData['actionDataList'] = _.push(newActionDataList);
 
       await transaction.collection('rooms').where({ roomid }).update({ data: updateData });
 
       return {
         code: 200,
         data: null,
-        message: '更新下局砸鸟列表成功'
+        message: '支出分值成功'
       }
     });
   } catch (err) {

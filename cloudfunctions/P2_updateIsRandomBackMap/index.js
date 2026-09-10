@@ -11,79 +11,80 @@ exports.main = async (event) => {
   const { roomid, isRandomBack } = event;
 
   try {
-    const { data } = await db.collection('rooms').where({ roomid }).field({
-      isGamePlaying: true,
-      
-      nextPlayerTuple: true,
-      nextBackerMap: true,
-      isRandomBackMap: true
-    }).get();
+    return await db.runTransaction(async transaction => {
+      const { data } = await transaction.collection('rooms').where({ roomid }).field({
+        isGamePlaying: true,
+        
+        nextPlayerTuple: true,
+        nextBackerMap: true
+      }).get();
 
-    if (data.length < 1) {
-      return {
-        code: 404,
-        data: null,
-        message: '房间不存在'
-      };
-    }
-
-    const {
-      isGamePlaying,
-      nextPlayerTuple, nextBackerMap, isRandomBackMap
-    } = data[0];
-
-    if (isGamePlaying === -1) {
-      return {
-        code: 403,
-        data: null,
-        message: '房间已结算'
+      if (data.length < 1) {
+        return {
+          code: 404,
+          data: null,
+          message: '房间不存在'
+        };
       }
-    } else if (isGamePlaying === 1) {
-      return {
-        code: 403,
-        data: null,
-        message: '对局已开始'
-      }
-    }
 
-    if (nextPlayerTuple.filter(Boolean).includes(openid)) {
-      return {
-        code: 403,
-        message: '玩家不允许砸鸟'
-      }
-    }
+      const {
+        isGamePlaying,
+        nextPlayerTuple, nextBackerMap
+      } = data[0];
 
-    if (nextPlayerTuple.filter(Boolean).length !== 4) {
-      return {
-        code: 403,
-        message: '请等待所有玩家加入'
-      }
-    }
-
-    const updateData = { [`isRandomBackMap.${openid}`]: isRandomBack };
-
-    if (isRandomBack) {
-      const target = nextPlayerTuple[new Date().getTime() % 4];
-      const currentTarget = Object.keys(nextBackerMap).find(target => 
-        nextBackerMap[target].includes(openid)
-      ) ?? '';
-
-      if (currentTarget !== target) {
-        if (currentTarget) {
-          updateData[`nextBackerMap.${currentTarget}`] = _.pull(openid);
+      if (isGamePlaying === -1) {
+        return {
+          code: 403,
+          data: null,
+          message: '房间已结算'
         }
-
-        updateData[`nextBackerMap.${target}`] = _.push(openid);
+      } else if (isGamePlaying === 1) {
+        return {
+          code: 403,
+          data: null,
+          message: '对局已开始'
+        }
       }
-    }
 
-    await db.collection('rooms').where({ roomid }).update({ data: updateData });
+      if (nextPlayerTuple.filter(Boolean).includes(openid)) {
+        return {
+          code: 403,
+          message: '玩家不允许砸鸟'
+        }
+      }
 
-    return {
-      code: 200,
-      data: null,
-      message: '更新随机砸鸟信息成功'
-    }
+      if (nextPlayerTuple.filter(Boolean).length !== 4) {
+        return {
+          code: 403,
+          message: '请等待所有玩家加入'
+        }
+      }
+
+      const updateData = { [`isRandomBackMap.${openid}`]: isRandomBack };
+
+      if (isRandomBack) {
+        const target = nextPlayerTuple[new Date().getTime() % 4];
+        const currentTarget = Object.keys(nextBackerMap).find(target => 
+          nextBackerMap[target].includes(openid)
+        ) ?? '';
+
+        if (currentTarget !== target) {
+          if (currentTarget) {
+            updateData[`nextBackerMap.${currentTarget}`] = _.pull(openid);
+          }
+
+          updateData[`nextBackerMap.${target}`] = _.push(openid);
+        }
+      }
+
+      await transaction.collection('rooms').where({ roomid }).update({ data: updateData });
+
+      return {
+        code: 200,
+        data: null,
+        message: '更新随机砸鸟信息成功'
+      }
+    });
   } catch (err) {
     console.error(err);
     return {

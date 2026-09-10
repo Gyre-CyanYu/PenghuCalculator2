@@ -10,63 +10,65 @@ exports.main = async (event) => {
   const { roomid, nextDealer } = event;
 
   try {
-    const { data } = await db.collection('rooms').where({ roomid }).field({
-      isGamePlaying: true,
-      
-      nextPlayerTuple: true,
-      nextDealer: true
-    }).get();
+    return await db.runTransaction(async transaction => {
+      const { data } = await transaction.collection('rooms').where({ roomid }).field({
+        isGamePlaying: true,
+        
+        nextPlayerTuple: true,
+        nextDealer: true
+      }).get();
 
-    if (data.length < 1) {
-      return {
-        code: 404,
-        data: null,
-        message: '房间不存在'
-      };
-    }
-
-    const {
-      isGamePlaying,
-      nextPlayerTuple, nextDealer: currentNextDealer
-    } = data[0];
-
-    if (isGamePlaying === -1) {
-      return {
-        code: 403,
-        data: null,
-        message: '房间已结算'
+      if (data.length < 1) {
+        return {
+          code: 404,
+          data: null,
+          message: '房间不存在'
+        };
       }
-    } else if (isGamePlaying === 1) {
-      return {
-        code: 403,
-        data: null,
-        message: '对局已开始'
+
+      const {
+        isGamePlaying,
+        nextPlayerTuple, nextDealer: currentNextDealer
+      } = data[0];
+
+      if (isGamePlaying === -1) {
+        return {
+          code: 403,
+          data: null,
+          message: '房间已结算'
+        }
+      } else if (isGamePlaying === 1) {
+        return {
+          code: 403,
+          data: null,
+          message: '对局已开始'
+        }
       }
-    }
 
-    if (currentNextDealer !== openid) {
-      return {
-        code: 403,
-        data: null,
-        message: '非庄家无法转让'
+      if (currentNextDealer !== openid) {
+        return {
+          code: 403,
+          data: null,
+          message: '非庄家无法转让'
+        }
       }
-    }
 
-    if (!nextPlayerTuple.filter(Boolean).includes(nextDealer)) {
-      return {
-        code: 403,
-        data: null,
-        message: '受让者不是玩家'
+      if (!nextPlayerTuple.filter(Boolean).includes(nextDealer)) {
+        return {
+          code: 403,
+          data: null,
+          message: '受让者不是玩家'
+        }
       }
-    }
 
-    await db.collection('rooms').where({ roomid }).update({ data: { nextDealer } });
+      await transaction.collection('rooms').where({ roomid }).update({ data: { nextDealer } });
 
-    return {
-      code: 200,
-      data: null,
-      message: '更新下局庄家成功'
-    }
+      return {
+        code: 200,
+        data: null,
+        message: '更新下局庄家成功'
+      }
+    });
   } catch (err) {
     console.error(err);
     return {

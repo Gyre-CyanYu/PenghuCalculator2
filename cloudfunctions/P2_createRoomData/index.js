@@ -34,72 +34,77 @@ exports.main = async (event) => {
     let count = 0
     let roomid;
 
-    while (count < 5) { 
+    while (count < 3) { 
       roomid = Math.random().toString(36).slice(2, 7);
-      const transaction = await db.startTransaction();
 
-      try {
-        const { data } = await transaction.collection('rooms').where({ roomid }).get();
-        
-        if (data.length !== 0) {
-          await transaction.rollback();
-          count ++;
-          continue;
-        }
+      const { total: beforeRoomCount } = await db.collection('rooms').where({ roomid }).count();
 
-        const { buffer } = await cloud.openapi.wxacode.getUnlimited({ scene: roomid });
-
-        const { fileID: qrCodeFileID } = await cloud.uploadFile({
-          cloudPath: `qrCodes/${roomid}.jpg`,
-          fileContent: buffer
-        });
-
-        const { fileList } = await cloud.getTempFileURL({ fileList: [qrCodeFileID] });
-        const qrCodeUrl = fileList[0].tempFileURL + '?t=' + Date.now();
-
-        const roomData = {
-          roomid,
-          qrCodeUrl,
-          qrCodeFileID,
-          createBy: openid,
-          createdAt: db.serverDate(),
-
-          gameConfig,
-          
-          memberList: [openid],
-          actionDataList: [],
-          scoresMap: {[openid]: 0},
-
-          isGamePlaying: 0,
-          round: 0,
-
-          playerList: [],
-          backerMap: {},
-          dealer: '',
-          holdDealer: 1,
-
-          roundScoresMap: {[openid]: 0},
-          tripletMap: {},
-          winner: '',
-
-          nextPlayerTuple: ['', '', '', ''],
-          nextBackerMap: {},
-          nextDealer: '',
-
-          isRandomBackMap: {}
-        };
-
-        await transaction.collection('rooms').add({ data: roomData });
-        await transaction.commit();
-        break;
-      } catch (err) {
-        await transaction.rollback();
-        count++;
-        continue;
+      if (beforeRoomCount !== 0) {
+        count ++;
+        continue
       }
+
+      const roomData = {
+        roomid,
+        qrCodeUrl: '',
+        qrCodeFileID: '',
+        createBy: openid,
+        createdAt: db.serverDate(),
+
+        gameConfig,
+        
+        memberList: [openid],
+        actionDataList: [],
+        scoresMap: {[openid]: 0},
+
+        isGamePlaying: -1,
+        round: 0,
+
+        playerList: [],
+        backerMap: {},
+        dealer: '',
+        holdDealer: 1,
+
+        roundScoresMap: {[openid]: 0},
+        tripletMap: {},
+        winner: '',
+
+        nextPlayerTuple: [openid, '', '', ''],
+        nextBackerMap: {},
+        nextDealer: openid,
+
+        isRandomBackMap: {}
+      };
+
+      const { _id } = await db.collection('rooms').add({ data: roomData });
+      const { total: afterRoomCount } = await db.collection('rooms').where({ roomid }).count();
+
+      if (afterRoomCount !== 1) {
+        await db.collection('rooms').doc(_id).remove();
+        count ++;
+        continue
+      }
+
+      const { buffer } = await cloud.openapi.wxacode.getUnlimited({ scene: roomid });
+
+      const { fileID: qrCodeFileID } = await cloud.uploadFile({
+        cloudPath: `qrCodes/${roomid}.jpg`,
+        fileContent: buffer
+      });
+
+      const { fileList } = await cloud.getTempFileURL({ fileList: [qrCodeFileID] });
+      const qrCodeUrl = fileList[0].tempFileURL + '?t=' + Date.now();
+
+      await db.collection('rooms').doc(_id).update({ data: {
+        qrCodeUrl,
+        qrCodeFileID,
+        isGamePlaying: 0
+      } });
+
+      break
     }
 
-    if (count >= 5) {
+    if (count >= 3) {
       return {
         code: 503,
         data: null,

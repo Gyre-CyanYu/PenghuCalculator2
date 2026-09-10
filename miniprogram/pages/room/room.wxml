@@ -91,7 +91,7 @@
 
     <view class="keyboardBody">
       <t-button  bind:tap="switchKeyboard" t-class="switchKey" content="切换" block />
-      <t-button  bind:tap="" disabled="{{confirmButtonDisabled}}" t-class="confirmKey" content="确定" icon="send" theme="primary" block />
+      <t-button  bind:tap="handleConfirm" disabled="{{confirmButtonDisabled}}" t-class="confirmKey" content="确定" icon="send" theme="primary" block />
       <t-button  bind:tap="closeKeyboard" t-class="closeKey" content="收起" icon="chevron-down" theme="primary" variant="outline" block />
       <t-button  bind:tap="onBackspace" t-class="backspaceKey" content="退格" icon="correct" theme="light" block />
 

@@ -358,12 +358,9 @@ Component({
       }
     },
 
-    updateActionGroupList(databaseRoomData: DatabaseRoomData): void {
+    updateActionGroupList(databaseRoomData: DatabaseRoomData, actionGroupList: ActionGroup[] = []): void {
       const { actionDataList } = databaseRoomData;
-
       const memberDataList = this.data.memberDataList;
-      const actionGroupList = this.data.actionGroupList;
-
       const lastActionid: number = actionGroupList.at(-1)?.actionDataList.at(-1)!.actionid ?? -1;
       let lastActionRound: number = actionGroupList.at(-1)?.actionDataList.at(-1)!.round ?? 0;
 
@@ -432,7 +429,7 @@ Component({
         }
       });
 
-      this.setData({ actionGroupList });
+      this.setData({ actionGroupList: actionGroupList });
     },
 
     initializeGameData(databaseRoomData: DatabaseRoomData): void {
@@ -521,8 +518,103 @@ Component({
       }
     },
 
-    undoAction(e: WechatMiniprogram.CustomEvent): void {
-      console.log(e.detail.value);
+    handleConfirm(): void {
+      if (this.data.isOperationPanel) {
+        this.takeOperation();
+      } else {
+        this.transferScores();
+      }
+    },
+
+    async takeOperation(): Promise<void> {
+      const payer: string = this.data.selectedPlayer;
+      const actionName = this.data.keyboardDisplay as OperationDisplay;
+
+      try {
+        const { result } = await wx.cloud.callFunction({
+          name: 'P2_takeOperation',
+          data: {
+            roomid: this.data.roomid,
+            payer,
+            actionName
+          }
+        }) as CallFunctionResult<null>;
+
+        if (result.code === 403) {
+          wx.showToast({
+            title: `${result.message}`,
+            icon: 'none'
+          });
+        } else if (result.code !== 200) {
+          throw result
+        }
+      } catch (err) {
+        console.error('收取失败', err);
+        wx.showToast({
+          title: '收取失败',
+          icon: 'error'
+        });
+      }
+    },
+
+    async transferScores(): Promise<void> {
+      const receiverList: string[] = Object.keys(this.data.selectedMemberMap).filter(selectedMember => this.data.selectedMemberMap[selectedMember]);
+      const scores: number = Number(this.data.keyboardDisplay) ?? 0;
+
+      try {
+        const { result } = await wx.cloud.callFunction({
+          name: 'P2_transferScores',
+          data: {
+            roomid: this.data.roomid,
+            receiverList,
+            scores
+          }
+        }) as CallFunctionResult<null>;
+
+        if (result.code === 403) {
+          wx.showToast({
+            title: `${result.message}`,
+            icon: 'none'
+          });
+        } else if (result.code !== 200) {
+          throw result
+        }
+      } catch (err) {
+        console.error('支出失败', err);
+        wx.showToast({
+          title: '支出失败',
+          icon: 'error'
+        });
+      }
+    },
+
+    async undoAction(e: WechatMiniprogram.CustomEvent): Promise<void> {
+      const actionid: number = e.detail.value;
+
+      try {
+        const { result } = await wx.cloud.callFunction({
+          name: 'P2_undoAction',
+          data: {
+            roomid: this.data.roomid,
+            actionid
+          }
+        }) as CallFunctionResult<null>;
+
+        if (result.code === 403) {
+          wx.showToast({
+            title: `${result.message}`,
+            icon: 'none'
+          });
+        } else if (result.code !== 200) {
+          throw result
+        }
+      } catch (err) {
+        console.error('撤回失败', err);
+        wx.showToast({
+          title: '撤回失败',
+          icon: 'error'
+        });
+      }
     },
 
     toggleConfirmButtonDisabled(): void {
