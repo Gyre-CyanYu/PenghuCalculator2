@@ -22,7 +22,7 @@ interface RoomPageData {
   roomid: string,
 
   memberDataList: MemberData[],
-  actionGroupList: ActionGroup[],
+  actionGroupList: (ActionGroup | TempActionGroup)[],
 
   isGamePlaying: number,
   round: number,
@@ -159,7 +159,7 @@ Component({
       const shareData = {
         title: '碰胡计分器',
         path: '/pages/home/home',
-        imageUrl: '/images/PenghuScoreCalculator5_4.jpg'
+        imageUrl: '/images/PenghuCalculator5_4.jpg'
       }
 
       if (this.data.roomid) {
@@ -215,7 +215,7 @@ Component({
 
             if (dataType === 'init') {
               await this.initializeMemberData(databaseRoomData);
-              this.updateActionGroupList(databaseRoomData);
+              this.updateActionGroupList(databaseRoomData, true);
               this.initializeGameData(databaseRoomData);
               this.cacheRoomData();
             } else if (dataType === 'update') {
@@ -227,6 +227,13 @@ Component({
               if (updatedMember) {
                 await this.updateMemberData(databaseRoomData, updatedFields[updatedMember]);
                 this.cacheRoomData(['memberDataList']);
+              }
+
+              const updatedActionDataList = Object.keys(updatedFields).find(updatedField => updatedField.startsWith('actionDataList'));
+
+              if (updatedActionDataList) {
+                this.updateActionGroupList(databaseRoomData);
+                this.cacheRoomData(['actionGroupList']);
               }
             }
           },
@@ -295,7 +302,7 @@ Component({
             const cachedAvatarSrc = cachedMemberDataList.find(cachedMemberData => cachedMemberData.openid === databaseUserData.openid)?.avatarSrc ?? '';
             memberData.avatarSrc = await storage.cacheImage(databaseUserData.avatarFileID, databaseUserData.avatarUrl, cachedAvatarSrc);
           } else {
-            memberData.avatarSrc = '/images/PenghuScoreCalculator.jpg';
+            memberData.avatarSrc = '/images/PenghuCalculator.jpg';
           }
 
           return memberData
@@ -342,7 +349,7 @@ Component({
         if (databaseUserData.avatarFileID) {  
           memberData.avatarSrc = await storage.cacheImage(databaseUserData.avatarFileID, databaseUserData.avatarUrl);
         } else {
-          memberData.avatarSrc = '/images/PenghuScoreCalculator.jpg';
+          memberData.avatarSrc = '/images/PenghuCalculator.jpg';
         }
 
         const memberDataList = this.data.memberDataList;
@@ -358,11 +365,13 @@ Component({
       }
     },
 
-    updateActionGroupList(databaseRoomData: DatabaseRoomData, actionGroupList: ActionGroup[] = []): void {
+    updateActionGroupList(databaseRoomData: DatabaseRoomData, isInit: boolean = false): void {
       const { actionDataList } = databaseRoomData;
-      const memberDataList = this.data.memberDataList;
-      const lastActionid: number = actionGroupList.at(-1)?.actionDataList.at(-1)!.actionid ?? -1;
-      let lastActionRound: number = actionGroupList.at(-1)?.actionDataList.at(-1)!.round ?? 0;
+      const actionGroupList = isInit ? [] : this.data.actionGroupList;
+
+      const lastActionData = actionGroupList.filter(actionGroup => !actionGroup.isTemp).at(-1)?.actionDataList.at(-1);
+      const lastActionid: number = lastActionData?.actionid ?? -1;
+      let lastActionRound: number = lastActionData?.round ?? 0;
 
       actionDataList.slice(lastActionid + 1).forEach(databaseActionData => {
         const {
@@ -375,19 +384,18 @@ Component({
         const {
           scores: payerScores, roundScores: payerRoundScores,
           ...payerData
-        } = memberDataList.find(memberData => memberData.openid === payer)!;
+        } = this.data.memberDataList.find(memberData => memberData.openid === payer)!;
 
         const {
           scores: receiverScores, roundScores: receiverRoundScores,
           ...receiverData
-        } = memberDataList.find(memberData => memberData.openid === receiver)!;
+        } = this.data.memberDataList.find(memberData => memberData.openid === receiver)!;
         
         const actionData: ActionData = {
           actionid,
           group,
 
           isUndo,
-          isTemp: false,
 
           payerData,
           receiverData,
@@ -401,10 +409,12 @@ Component({
           const isNewRound: boolean = round > lastActionRound;
 
           const actionGroup: ActionGroup = {
-            mainActionid: actionid,
+            group,
             payerList: [payer],
             receiverList: [receiver],
 
+            isUndo,
+            isTemp: false,
             isNewRound,
             totalScores: scores,
 
@@ -414,7 +424,7 @@ Component({
           actionGroupList.push(actionGroup);
           lastActionRound = round;
         } else {
-          const actionGroup = actionGroupList.find(actionGroup => actionGroup.mainActionid === group)!;
+          const actionGroup = actionGroupList.find(actionGroup => actionGroup.group === group && !actionGroup.isTemp)! as ActionGroup;
 
           if (!actionGroup.payerList.includes(payer)) {
             actionGroup.payerList.push(payer);
@@ -429,7 +439,7 @@ Component({
         }
       });
 
-      this.setData({ actionGroupList: actionGroupList });
+      this.setData({ actionGroupList });
     },
 
     initializeGameData(databaseRoomData: DatabaseRoomData): void {
@@ -480,7 +490,7 @@ Component({
         roomid: this.data.roomid,
 
         memberDataList: this.data.memberDataList,
-        actionGroupList: this.data.actionGroupList,
+        actionGroupList: this.data.actionGroupList.filter(actionGroup => !actionGroup.isTemp),
 
         isGamePlaying: this.data.isGamePlaying,
         round: this.data.round,
@@ -524,6 +534,8 @@ Component({
       } else {
         this.transferScores();
       }
+
+      this.closeKeyboard();
     },
 
     async takeOperation(): Promise<void> {
@@ -561,6 +573,47 @@ Component({
       const receiverList: string[] = Object.keys(this.data.selectedMemberMap).filter(selectedMember => this.data.selectedMemberMap[selectedMember]);
       const scores: number = Number(this.data.keyboardDisplay) ?? 0;
 
+      const currentActionGroupList = this.data.actionGroupList;
+      const group: number = (currentActionGroupList.at(-1)?.actionDataList.at(-1)?.actionid ?? -1) + 1;
+      const payerData: UserData = app.globalData.userData;
+
+      const actionDataList: TempActionData[] = receiverList.map((receiver, index) => {
+        const {
+          scores: receiverScores, roundScores: receiverRoundScores,
+          ...receiverData
+        } = this.data.memberDataList.find(memberData => memberData.openid === receiver)!;
+        
+        return {
+          actionid: group + index,
+          group,
+
+          isUndo: false,
+
+          payerData,
+          receiverData,
+
+          name: '支出分值',
+          scores,
+          round: this.data.round
+        }
+      });
+
+      const tempActionGroup: TempActionGroup = {
+        group,
+        payerList: [this.data.openid],
+        receiverList,
+
+        isUndo: false,
+        isTemp: true,
+        isNewRound: false,
+        totalScores: scores * receiverList.length,
+
+        actionDataList
+      }
+
+      currentActionGroupList.push(tempActionGroup);
+      this.setData({ actionGroupList: currentActionGroupList });
+
       try {
         const { result } = await wx.cloud.callFunction({
           name: 'P2_transferScores',
@@ -586,6 +639,12 @@ Component({
           icon: 'error'
         });
       }
+
+      const actionGroupList = this.data.actionGroupList.filter(
+        actionGroup => !(actionGroup.group === group && actionGroup.isTemp)
+      );
+
+      this.setData({ actionGroupList });
     },
 
     async undoAction(e: WechatMiniprogram.CustomEvent): Promise<void> {

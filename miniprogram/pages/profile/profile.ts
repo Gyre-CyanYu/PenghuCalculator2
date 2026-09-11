@@ -58,7 +58,7 @@ Page({
     return {
       title: '碰胡计分器',
       path: '/pages/home/home',
-      imageUrl: '/images/PenghuScoreCalculator5_4.jpg'
+      imageUrl: '/images/PenghuCalculator5_4.jpg'
     }
   },
 

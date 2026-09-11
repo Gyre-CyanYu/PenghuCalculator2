@@ -13,7 +13,7 @@
     />
   </block>
 
-  <image wx:else src="/images/PenghuScoreCalculatorTitle.png" mode="aspectFit" class="image" />
+  <image wx:else src="/images/PenghuCalculatorTitle.png" mode="aspectFit" class="image" />
 </scroll-view>
 
 <scroll-view class="actionScroll" scroll-y scroll-with-animation>

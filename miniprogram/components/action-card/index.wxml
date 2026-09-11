@@ -44,11 +44,11 @@
         name="{{mainAction.name || ''}}"
         scores="{{actionGroup.totalScores || 0}}"
 
-        isUndo="{{mainAction.isUndo}}"
-        isTemp="{{mainAction.isTemp}}"
+        isUndo="{{isUndo}}"
+        isTemp="{{isTemp}}"
       />
 
-      <block wx:if="{{actionGroup.actionDataList.length > 1}}" hidden="{{!actionGroupVisible}}">
+      <block wx:if="{{actionGroup.actionDataList.length > 1 && actionGroupVisible}}">
         <t-divider style="--td-divider-horizontal-margin: 0;" />
 
         <action
@@ -65,7 +65,7 @@
           scores="{{item.scores}}"
           
           isUndo="{{false}}"
-          isTemp="{{mainAction.isTemp}}"
+          isTemp="{{isTemp}}"
         />
       </block>
     </view>

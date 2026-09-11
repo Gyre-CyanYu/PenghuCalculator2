@@ -1,5 +1,7 @@
 interface ActionCardComponentData {
   mainAction: ActionData | TempActionData,
+  isUndo: boolean,
+  isTemp: boolean,
 
   popoverVisible: boolean,
   actionGroupVisible: boolean,
@@ -16,6 +18,8 @@ Component({
 
   data: {
     mainAction: {},
+    isUndo: false,
+    isTemp: false,
 
     popoverVisible: false,
     actionGroupVisible: false,
@@ -25,11 +29,13 @@ Component({
   } as ActionCardComponentData,
 
   observers: {
-    'actionGroup.actionDataList[0]': function(): void {
-      const actionDataList: (ActionData | TempActionData)[] = this.properties.actionGroup.actionDataList;
+    'actionGroup.**': function(): void {
+      const { isUndo, isTemp, actionDataList } = this.properties.actionGroup as ActionGroup | TempActionGroup;
 
       this.setData({
         mainAction: actionDataList[0],
+        isUndo,
+        isTemp,
         toggleVisible: actionDataList.length > 1
       });
     }
@@ -42,6 +48,10 @@ Component({
     },
 
     toggleActionGroup(): void {
+      if (this.properties.actionGroup.actionDataList.length <= 1) {
+        return
+      }
+
       this.setData({
         popoverVisible: false,
         actionGroupVisible: !this.data.actionGroupVisible

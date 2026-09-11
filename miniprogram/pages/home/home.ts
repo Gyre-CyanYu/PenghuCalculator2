@@ -12,7 +12,9 @@ interface HomePageData {
   joinButtonLoading: boolean,
 
   noticeDataList: NoticeData[],
-  noticeVisible: boolean
+  noticeVisible: boolean,
+
+  isJoinRoom: boolean
 }
 
 Page({
@@ -24,7 +26,9 @@ Page({
     joinButtonLoading: false,
 
     noticeDataList: [],
-    noticeVisible: false
+    noticeVisible: false,
+
+    isJoinRoom: false
   } as HomePageData,
 
   async onLoad(options: { roomid?: string, scene?: string }) {
@@ -52,8 +56,13 @@ Page({
 
     if (roomid) {
       this.setData({ roomidInput: roomid });
-      this.showJoin();
-      this.handleJoin();
+
+      if (this.data.noticeDataList.some(noticeData => noticeData.isImportant)) {
+        this.setData({ isJoinRoom: true });
+      } else {
+        this.showJoin();
+        this.handleJoin();
+      }
     }
   },
 
@@ -85,7 +94,7 @@ Page({
     return {
       title: '碰胡计分器',
       path: '/pages/home/home',
-      imageUrl: '/images/PenghuScoreCalculator5_4.jpg'
+      imageUrl: '/images/PenghuCalculator5_4.jpg'
     }
   },
 
@@ -102,13 +111,15 @@ Page({
       const joinedRoomList: string[] = result.data;
       app.globalData.joinedRoomList = joinedRoomList;
 
+      const { roomid: cachedRoomid, qrCodeFileID }: RoomData = wx.getStorageSync('room') || {};
+
       if (!joinedRoomList.length) {
         app.globalData.currentRoomid = '';
-      } else if (!app.globalData.currentRoomid) {
+      } else if (joinedRoomList.includes(cachedRoomid)) {
+        app.globalData.currentRoomid = cachedRoomid;
+      } else {
         app.globalData.currentRoomid = joinedRoomList[0];
       }
-
-      const { roomid: cachedRoomid, qrCodeFileID }: RoomData = wx.getStorageSync('room') || {};
 
       if (cachedRoomid && !joinedRoomList.includes(cachedRoomid)) {
         wx.removeStorage({ key: 'room' }).catch(err => {
@@ -260,6 +271,12 @@ Page({
 
   closeNotice(): void {
     this.setData({ noticeVisible: false });
+
+    if (this.data.isJoinRoom) {
+      this.setData({ isJoinRoom: false });
+      this.showJoin();
+      this.handleJoin();
+    }
   },
 
   navigateToCreate(): void {

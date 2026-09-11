@@ -60,7 +60,6 @@ interface ActionData {
   group: number,
 
   isUndo: boolean,
-  isTemp: false,
 
   payerData: UserData,
   receiverData: UserData,
@@ -70,30 +69,35 @@ interface ActionData {
   round: number
 }
 
-interface TempActionData {
-  actionid: number,
-  group: number,
-
+interface TempActionData extends ActionData {
   isUndo: false,
-  isTemp: true,
-
-  payerData: UserData,
-  receiverData: UserData,
-
-  name: TempActionName,
-  scores: number,
-  round: number
+  name: TempActionName
 }
 
 interface ActionGroup {
-  mainActionid: number,
+  group: number,
   payerList: string[],
   receiverList: string[],
 
+  isUndo: boolean,
+  isTemp: false,
   isNewRound: boolean,
   totalScores: number,
 
-  actionDataList: (ActionData | TempActionData)[]
+  actionDataList: ActionData[]
+}
+
+interface TempActionGroup {
+  group: number,
+  payerList: string[],
+  receiverList: string[],
+
+  isUndo: false,
+  isTemp: true,
+  isNewRound: boolean,
+  totalScores: number,
+
+  actionDataList: TempActionData[]
 }
 
 type ActionName = InputActionName | TripletActionName | UndoActionName

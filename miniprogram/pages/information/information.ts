@@ -188,7 +188,7 @@ Component({
       return {
         title: `碰胡计分器房间：${ this.data.roomid }`,
         path: `/pages/home/home?roomid=${ this.data.roomid }`,
-        imageUrl: '/images/PenghuScoreCalculator5_4.jpg'
+        imageUrl: '/images/PenghuCalculator5_4.jpg'
       }
     },
 
@@ -355,7 +355,7 @@ Component({
             const cachedAvatarSrc = cachedMemberDataList.find(cachedMemberData => cachedMemberData.openid === databaseUserData.openid)?.avatarSrc ?? '';
             memberData.avatarSrc = await storage.cacheImage(databaseUserData.avatarFileID, databaseUserData.avatarUrl, cachedAvatarSrc);
           } else {
-            memberData.avatarSrc = '/images/PenghuScoreCalculator.jpg';
+            memberData.avatarSrc = '/images/PenghuCalculator.jpg';
           }
 
           return memberData
@@ -402,7 +402,7 @@ Component({
         if (databaseUserData.avatarFileID) {  
           memberData.avatarSrc = await storage.cacheImage(databaseUserData.avatarFileID, databaseUserData.avatarUrl);
         } else {
-          memberData.avatarSrc = '/images/PenghuScoreCalculator.jpg';
+          memberData.avatarSrc = '/images/PenghuCalculator.jpg';
         }
 
         const memberDataList = this.data.memberDataList;
