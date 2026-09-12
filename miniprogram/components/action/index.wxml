@@ -17,7 +17,7 @@
       <t-icon name="swap-right" size="48rpx" color="var(--td-brand-color)" />
     </block>
     
-    <view class="subtitle">{{name}}</view>
+    <view class="subtitle actionName">{{name}}</view>
   </view>
 
   <user avatarSrc="{{receiverAvatarSrc}}" nickname="{{receiverNickname}}" userGroupLength="{{receiverGroupLength}}" nicknameClass="content" />

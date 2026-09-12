@@ -18,7 +18,7 @@
 
 <scroll-view class="actionScroll" scroll-y 	scroll-into-view="{{bottomGroup}}" scroll-with-animation>
   <block wx:if="{{roomid}}">
-    <view wx:for="{{actionGroupList}}" wx:key="index" id="group{{item.group}}" class="actionScrollCard">
+    <view wx:for="{{actionGroupList}}" wx:key="index" id="index{{index}}" class="actionScrollCard">
       <action-card bind:undo="undoAction" actionGroup="{{item}}" />
     </view>
 

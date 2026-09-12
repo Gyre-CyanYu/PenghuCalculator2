@@ -87,7 +87,7 @@ exports.main = async (event) => {
           code: 404,
           data: null,
           message: '房间不存在'
-        };
+        }
       }
 
       const {

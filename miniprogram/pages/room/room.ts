@@ -521,6 +521,14 @@ Component({
             actionGroup.receiverList.push(receiver);
           }
 
+          if (actionData.isUndo && !actionGroup.isUndo) {
+            actionGroup.isUndo = true;
+
+            actionGroup.actionDataList.forEach(actionData => {
+              actionData.isUndo = true;
+            });
+          }
+
           actionGroup.totalScores += scores;
           actionGroup.actionDataList.push(actionData);
         }
@@ -822,14 +830,57 @@ Component({
     },
 
     async undoAction(e: WechatMiniprogram.CustomEvent): Promise<void> {
-      const actionid: number = e.detail.value;
+      const group: number = Number(e.detail.value);
+
+      const currentActionGroupList = this.data.actionGroupList;
+      const newGroup: number = (currentActionGroupList.at(-1)?.actionDataList.at(-1)?.actionid ?? -1) + 1;
+      const actionGroup = currentActionGroupList.find(
+        actionGroup => actionGroup.group === group && !actionGroup.isTemp
+      )!;
+
+      const { payerList, receiverList } = actionGroup;
+
+      const actionDataList: TempActionData[] = actionGroup.actionDataList.map((actionData, index) => {
+        const { payerData, receiverData } = actionData;
+        const name = '撤回' + actionData.name as UndoActionName;
+
+        return {
+          actionid: newGroup + index,
+          group: newGroup,
+
+          isUndo: false,
+
+          payerData,
+          receiverData,
+
+          name,
+          scores: 0,
+          round: this.data.round
+        }
+      });
+
+      const tempActionGroup: TempActionGroup = {
+        group: newGroup,
+        payerList,
+        receiverList,
+
+        isUndo: false,
+        isTemp: true,
+        isNewRound: false,
+        totalScores: 0,
+
+        actionDataList
+      }
+
+      currentActionGroupList.push(tempActionGroup);
+      this.setData({ actionGroupList: currentActionGroupList });
 
       try {
         const { result } = await wx.cloud.callFunction({
           name: 'P2_undoAction',
           data: {
             roomid: this.data.roomid,
-            actionid
+            group
           }
         }) as CallFunctionResult<null>;
 
@@ -848,10 +899,16 @@ Component({
           icon: 'error'
         });
       }
+
+      const actionGroupList = this.data.actionGroupList.filter(
+        actionGroup => !(actionGroup.group === newGroup && actionGroup.isTemp)
+      );
+
+      this.setData({ actionGroupList });
     },
 
     scrollToBottom(): void {
-      const bottomGroup: string = 'group' + this.data.actionGroupList.at(-1)?.group;
+      const bottomGroup: string = 'index' + (this.data.actionGroupList.length - 1);
       this.setData({ bottomGroup });
     },
 

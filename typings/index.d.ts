@@ -71,7 +71,7 @@ interface ActionData {
 
 interface TempActionData extends ActionData {
   isUndo: false,
-  
+
   name: TempActionName,
   scores: 0
 }
@@ -96,16 +96,14 @@ interface TempActionGroup {
 
   isUndo: false,
   isTemp: true,
-  isNewRound: boolean,
+  isNewRound: false,
   totalScores: 0,
 
   actionDataList: TempActionData[]
 }
 
-type ActionName = InputActionName | TripletActionName | UndoActionName
-type TempActionName = InputActionName | UndoActionName
-
-type InputActionName = BaseActionName | CompoundActionName
+type ActionName = BaseActionName | CompoundActionName | TripletActionName | UndoActionName
+type TempActionName = BaseActionName | CompoundActionName | UndoActionName
 
 type BaseActionName =
   | '碰' | '扫' | '坎'
@@ -121,12 +119,7 @@ type TripletActionName =
   | '碰四清' | '扫四清' | '坎四清' | '碰四清连胡' | '扫四清连胡'
   | '五福'
 
-type UndoActionName =
-  | '撤回碰' | '撤回扫' | '撤回坎'
-  | '撤回跑' | '撤回提' | '撤回蛇'
-  | '撤回碰三大' | '撤回扫三大' | '撤回坎三大'
-  | '撤回碰四清' | '撤回扫四清' | '撤回坎四清'
-  | '撤回支出分值'
+type UndoActionName = `撤回${ BaseActionName | CompoundActionName | TripletActionName }`
 
 type OperationInput =
   | '碰' | '扫' | '坎'

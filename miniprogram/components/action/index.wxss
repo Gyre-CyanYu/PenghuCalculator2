@@ -10,4 +10,12 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  min-width: 0;
+}
+
+.actionName {
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

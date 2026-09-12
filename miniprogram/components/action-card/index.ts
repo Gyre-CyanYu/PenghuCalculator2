@@ -36,6 +36,8 @@ Component({
         mainAction: actionDataList[0],
         isUndo,
         isTemp,
+
+        undoVisible: !isUndo && !isTemp,
         toggleVisible: actionDataList.length > 1
       });
     }
@@ -44,7 +46,7 @@ Component({
   methods: {
     undoAction(): void {
       this.setData({ popoverVisible: false });
-      this.triggerEvent('undo', { value: this.data.mainAction.actionid });
+      this.triggerEvent('undo', { value: this.properties.actionGroup.group });
     },
 
     toggleActionGroup(): void {
