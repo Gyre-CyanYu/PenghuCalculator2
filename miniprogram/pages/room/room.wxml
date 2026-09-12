@@ -5,7 +5,7 @@
       wx:key="openid"
       avatarSrc="{{item.avatarSrc}}"
       nickname="{{item.nickname}}"
-      badgeProps="{{null}}"
+      badgeProps="{{ {count: item.openid === nextDealer ? (dealer === nextDealer ? '庄' + holdDealer : '下局庄') : '', offset: [-6, 6]} }}"
       scores="{{item.scores}}"
       roundScores="{{item.roundScores}}"
       width="25vw"
@@ -16,9 +16,9 @@
   <image wx:else src="/images/PenghuCalculatorTitle.png" mode="aspectFit" class="image" />
 </scroll-view>
 
-<scroll-view class="actionScroll" scroll-y scroll-with-animation>
+<scroll-view class="actionScroll" scroll-y 	scroll-into-view="{{bottomGroup}}" scroll-with-animation>
   <block wx:if="{{roomid}}">
-    <view wx:for="{{actionGroupList}}" wx:key="index" class="actionScrollCard">
+    <view wx:for="{{actionGroupList}}" wx:key="index" id="group{{item.group}}" class="actionScrollCard">
       <action-card bind:undo="undoAction" actionGroup="{{item}}" />
     </view>
 

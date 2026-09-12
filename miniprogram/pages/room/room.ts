@@ -38,6 +38,8 @@ interface RoomPageData {
 
   watcher: DB.RealtimeListener | null,
 
+  bottomGroup: string,
+
   keyboardVisible: boolean,
   keyboardSelectorVisible: boolean,
   isOperationPanel: boolean,
@@ -72,6 +74,8 @@ Component({
     
     watcher: null,
 
+    bottomGroup: '',
+
     keyboardVisible: false,
     keyboardSelectorVisible: false,
     isOperationPanel: true,
@@ -85,6 +89,10 @@ Component({
   } as RoomPageData,
 
   observers: {
+    'actionGroupList': function (): void {
+      this.scrollToBottom();
+    },
+
     'isGamePlaying': function (): void {
       this.toggleConfirmButtonDisabled();
     },
@@ -229,11 +237,64 @@ Component({
                 this.cacheRoomData(['memberDataList']);
               }
 
+              const updatedScoresMemberList = Object.keys(updatedFields).filter(
+                updatedField => updatedField.startsWith('scoresMap')
+              ).map(updatedField => updatedField.replace('scoresMap.', ''));
+
+              if (updatedScoresMemberList.length) {
+                this.updateScores(databaseRoomData, updatedScoresMemberList);
+                this.cacheRoomData(['memberDataList']);
+              }
+
+              const updatedRoundScoresMemberList = Object.keys(updatedFields).filter(
+                updatedField => updatedField.startsWith('roundScoresMap')
+              ).map(updatedField => updatedField.replace('roundScoresMap.', ''));
+
+              if (updatedRoundScoresMemberList.length) {
+                this.updateRoundScores(databaseRoomData, updatedRoundScoresMemberList);
+                this.cacheRoomData(['memberDataList']);
+              }
+
               const updatedActionDataList = Object.keys(updatedFields).find(updatedField => updatedField.startsWith('actionDataList'));
 
               if (updatedActionDataList) {
                 this.updateActionGroupList(databaseRoomData);
                 this.cacheRoomData(['actionGroupList']);
+              }
+
+              if (updatedFields.isGamePlaying) {
+                this.updateIsGamePlaying(databaseRoomData);
+                this.cacheRoomData(['isGamePlaying']);
+              }
+
+              if (updatedFields.round) {
+                this.updateRound(databaseRoomData);
+                this.cacheRoomData(['round']);
+              }
+
+              if (updatedFields.playerList) {
+                this.updatePlayerDataList(databaseRoomData);
+                this.cacheRoomData(['playerDataList']);
+              }
+
+              if (updatedFields.dealer) {
+                this.updateDealer(databaseRoomData);
+                this.cacheRoomData(['dealer']);
+              }
+
+              if (updatedFields.holdDealer) {
+                this.updateHoldDealer(databaseRoomData);
+                this.cacheRoomData(['holdDealer']);
+              }
+
+              if (updatedFields.nextPlayerTuple) {
+                this.updateNextPlayerDataTuple(databaseRoomData);
+                this.cacheRoomData(['nextPlayerDataTuple']);
+              }
+
+              if (updatedFields.nextDealer) {
+                this.updateNextDealer(databaseRoomData);
+                this.cacheRoomData(['nextDealer']);
               }
             }
           },
@@ -365,6 +426,32 @@ Component({
       }
     },
 
+    updateScores(databaseRoomData: DatabaseRoomData, memberList: string[]): void {
+      const { scoresMap } = databaseRoomData;
+      const memberDataList = this.data.memberDataList;
+
+      memberList.forEach(member => {
+        memberDataList.find(
+          memberData => memberData.openid === member
+        )!.scores = scoresMap[member];
+      });
+
+      this.setData({ memberDataList });
+    },
+
+    updateRoundScores(databaseRoomData: DatabaseRoomData, memberList: string[]): void {
+      const { roundScoresMap } = databaseRoomData;
+      const memberDataList = this.data.memberDataList;
+
+      memberList.forEach(member => {
+        memberDataList.find(
+          memberData => memberData.openid === member
+        )!.roundScores = roundScoresMap[member];
+      });
+
+      this.setData({ memberDataList });
+    },
+
     updateActionGroupList(databaseRoomData: DatabaseRoomData, isInit: boolean = false): void {
       const { actionDataList } = databaseRoomData;
       const actionGroupList = isInit ? [] : this.data.actionGroupList;
@@ -443,13 +530,27 @@ Component({
     },
 
     initializeGameData(databaseRoomData: DatabaseRoomData): void {
-      const {
-        isGamePlaying, round,
-        playerList, dealer, holdDealer,
-        nextPlayerTuple, nextDealer
-      } = databaseRoomData;
+      this.updateIsGamePlaying(databaseRoomData);
+      this.updateRound(databaseRoomData);
 
-      const playerDataList = playerList.map(player => {
+      this.updatePlayerDataList(databaseRoomData);
+      this.updateDealer(databaseRoomData);
+      this.updateHoldDealer(databaseRoomData);
+
+      this.updateNextPlayerDataTuple(databaseRoomData);
+      this.updateNextDealer(databaseRoomData);
+    },
+
+    updateIsGamePlaying(databaseRoomData: DatabaseRoomData): void {
+      this.setData({ isGamePlaying: databaseRoomData.isGamePlaying });
+    },
+
+    updateRound(databaseRoomData: DatabaseRoomData): void {
+      this.setData({ round: databaseRoomData.round });
+    },
+
+    updatePlayerDataList(databaseRoomData: DatabaseRoomData): void {
+      const playerDataList: UserData[] = databaseRoomData.playerList.map(player => {
         const {
           scores, roundScores,
           ...playerData
@@ -457,8 +558,20 @@ Component({
 
         return playerData;
       });
+      
+      this.setData({ playerDataList });
+    },
 
-      const nextPlayerDataTuple = nextPlayerTuple.map(nextPlayer => {
+    updateDealer(databaseRoomData: DatabaseRoomData): void {
+      this.setData({ dealer: databaseRoomData.dealer });
+    },
+
+    updateHoldDealer(databaseRoomData: DatabaseRoomData): void {
+      this.setData({ holdDealer: databaseRoomData.holdDealer });
+    },
+
+    updateNextPlayerDataTuple(databaseRoomData: DatabaseRoomData): void {
+      const nextPlayerDataTuple = databaseRoomData.nextPlayerTuple.map(nextPlayer => {
         if (!nextPlayer) {
           return {}
         }
@@ -467,21 +580,15 @@ Component({
           scores, roundScores,
           ...nextPlayerData
         } = this.data.memberDataList.find(memberData => memberData.openid === nextPlayer)!;
-
-        return nextPlayerData;
+        
+        return nextPlayerData
       }) as [UserData | {}, UserData | {}, UserData | {}, UserData | {}];
 
-      this.setData({
-        isGamePlaying,
-        round,
+      this.setData({ nextPlayerDataTuple });
+    },
 
-        playerDataList,
-        dealer,
-        holdDealer,
-
-        nextPlayerDataTuple,
-        nextDealer
-      });
+    updateNextDealer(databaseRoomData: DatabaseRoomData): void {
+      this.setData({ nextDealer: databaseRoomData.nextDealer });
     },
 
     cacheRoomData(fieldList?: (keyof RoomPageRoomData)[]): void {
@@ -542,6 +649,67 @@ Component({
       const payer: string = this.data.selectedPlayer;
       const actionName = this.data.keyboardDisplay as OperationDisplay;
 
+      const currentActionGroupList = this.data.actionGroupList;
+      const group: number = (currentActionGroupList.at(-1)?.actionDataList.at(-1)?.actionid ?? -1) + 1;
+      const receiverData: UserData = app.globalData.userData;
+
+      const tempActionGroup: TempActionGroup = {
+        group,
+        payerList: [],
+        receiverList: [this.data.openid],
+
+        isUndo: false,
+        isTemp: true,
+        isNewRound: false,
+        totalScores: 0,
+
+        actionDataList: []
+      }
+
+      if (payer) {
+        const {
+          scores: payerScores, roundScores: payerRoundScores,
+          ...payerData
+        } = this.data.memberDataList.find(memberData => memberData.openid === payer)!;
+
+        tempActionGroup.payerList.push(payer);
+        tempActionGroup.actionDataList.push({
+          actionid: group,
+          group,
+
+          isUndo: false,
+
+          payerData,
+          receiverData,
+
+          name: actionName,
+          scores: 0,
+          round: this.data.round
+        });
+      } else {
+        this.data.nextPlayerDataTuple.filter(
+          nextPlayerData => 'openid' in nextPlayerData
+        ).forEach(nextPlayerData => {
+          tempActionGroup.payerList.push(nextPlayerData.openid);
+          tempActionGroup.actionDataList.push({
+            actionid: group,
+            group,
+
+            isUndo: false,
+
+            payerData: nextPlayerData,
+            receiverData,
+
+            name: actionName,
+            scores: 0,
+            round: this.data.round
+          })
+        });
+      }
+
+      currentActionGroupList.push(tempActionGroup);
+      this.setData({ actionGroupList: currentActionGroupList });
+
       try {
         const { result } = await wx.cloud.callFunction({
           name: 'P2_takeOperation',
@@ -567,6 +735,12 @@ Component({
           icon: 'error'
         });
       }
+
+      const actionGroupList = this.data.actionGroupList.filter(
+        actionGroup => !(actionGroup.group === group && actionGroup.isTemp)
+      );
+
+      this.setData({ actionGroupList });
     },
 
     async transferScores(): Promise<void> {
@@ -593,7 +767,7 @@ Component({
           receiverData,
 
           name: '支出分值',
-          scores,
+          scores: 0,
           round: this.data.round
         }
       });
@@ -606,7 +780,7 @@ Component({
         isUndo: false,
         isTemp: true,
         isNewRound: false,
-        totalScores: scores * receiverList.length,
+        totalScores: 0,
 
         actionDataList
       }
@@ -674,6 +848,11 @@ Component({
           icon: 'error'
         });
       }
+    },
+
+    scrollToBottom(): void {
+      const bottomGroup: string = 'group' + this.data.actionGroupList.at(-1)?.group;
+      this.setData({ bottomGroup });
     },
 
     toggleConfirmButtonDisabled(): void {

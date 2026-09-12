@@ -71,7 +71,9 @@ interface ActionData {
 
 interface TempActionData extends ActionData {
   isUndo: false,
-  name: TempActionName
+  
+  name: TempActionName,
+  scores: 0
 }
 
 interface ActionGroup {
@@ -95,7 +97,7 @@ interface TempActionGroup {
   isUndo: false,
   isTemp: true,
   isNewRound: boolean,
-  totalScores: number,
+  totalScores: 0,
 
   actionDataList: TempActionData[]
 }

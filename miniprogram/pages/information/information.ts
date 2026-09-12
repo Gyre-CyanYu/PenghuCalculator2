@@ -160,10 +160,6 @@ Component({
       this.getCachedRoomData();
     },
 
-    onReady() {
-
-    },
-
     onShow() {
       this.watchRoomData();
     },
@@ -172,16 +168,8 @@ Component({
       this.closeWatcher();
     },
 
-    onUnload() {
-
-    },
-
     onPullDownRefresh() {
       this.watchRoomData();
-    },
-
-    onReachBottom() {
-
     },
 
     onShareAppMessage() {
@@ -251,7 +239,6 @@ Component({
               this.cacheRoomData();
             } else if (dataType === 'update') {
               const updatedFields = docChange.updatedFields!;
-              console.log(updatedFields);
 
               const updatedMember = Object.keys(updatedFields).find(updatedField => updatedField.startsWith('memberList'));
 
@@ -420,9 +407,11 @@ Component({
 
     async initializeGameData(databaseRoomData: DatabaseRoomData): Promise<void> {
       this.updateIsGamePlaying(databaseRoomData);
+
       this.updateNextPlayerDataTuple(databaseRoomData);
       this.updateNextBackerDataMap(databaseRoomData);
       this.updateNextDealer(databaseRoomData);
+      
       this.updateIsRandomBack(databaseRoomData);
 
       const { qrCodeUrl, qrCodeFileID, createdAt, gameConfig } = databaseRoomData;
