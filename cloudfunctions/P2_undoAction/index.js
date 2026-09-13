@@ -3,6 +3,13 @@ const cloud = require('wx-server-sdk')
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV }) // 使用当前云环境
 
+const END_OPERATION = [
+  '胡', '跑胡', '提龙连胡', '五福',
+  '碰胡', '碰三大连胡', '碰四清连胡',
+  '扫胡', '扫三大连胡', '扫四清连胡',
+  '地胡', '天胡', '七对', '双龙', '臭庄'
+];
+
 // 云函数入口函数
 exports.main = async (event) => {
   const openid = cloud.getWXContext().OPENID;
@@ -18,7 +25,15 @@ exports.main = async (event) => {
         isGamePlaying: true,
         round: true,
 
-        tripletMap: true
+        playerList: true,
+        backerMap: true,
+        dealer: true,
+        
+        roundScoresMap: true,
+        tripletMap: true,
+
+        previousHoldDealer: true,
+        previousWinner: true
       }).get();
 
       if (data.length < 1) {
@@ -32,7 +47,9 @@ exports.main = async (event) => {
       const {
         actionDataList,
         isGamePlaying, round,
-        tripletMap
+        playerList, backerMap, dealer,
+        roundScoresMap, tripletMap,
+        previousHoldDealer, previousWinner
       } = data[0];
 
       if (isGamePlaying === -1) {
@@ -53,6 +70,14 @@ exports.main = async (event) => {
         }
       }
 
+      if (mainAction.group !== group) {
+        return {
+          code: 403,
+          data: null,
+          message: '动作无效'
+        }
+      }
+
       const updateData = {};
 
       if (mainAction.name === '支出分值') {
@@ -70,6 +95,30 @@ exports.main = async (event) => {
             data: null,
             message: '不能撤回其他人的动作'
           }
+        }
+
+        if (mainAction.round !== round) {
+          return {
+            code: 403,
+            data: null,
+            message: '无法撤回上一局的动作'
+          }
+        }
+
+        if (END_OPERATION.includes(mainAction.name)) {
+          Object.keys(roundScoresMap).filter(member => roundScoresMap[member]).forEach(member => {
+            updateData[`scoresMap.${member}`] = _.inc(-roundScoresMap[member]);
+          });
+
+          updateData['isGamePlaying'] = 1;
+
+          updateData['holdDealer'] = previousHoldDealer;
+
+          updateData['winner'] = previousWinner;
+
+          updateData['nextPlayerTuple'] = playerList;
+          updateData['nextBackerMap'] = _.set(backerMap);
+          updateData['nextDealer'] = dealer;
         }
 
         if (tripletMap[openid]?.includes(group)) {
@@ -101,6 +150,11 @@ exports.main = async (event) => {
           newScoresMap[payer] = (newScoresMap[payer] ?? 0) - scores;
           newScoresMap[receiver] = (newScoresMap[receiver] ?? 0) + scores;
         } else {
+          if (isGamePlaying === 0 && !END_OPERATION.includes(mainAction.name)) {
+            newScoresMap[payer] = (newScoresMap[payer] ?? 0) - scores;
+            newScoresMap[receiver] = (newScoresMap[receiver] ?? 0) + scores;
+          }
+
           newRoundScoresMap[payer] = (newRoundScoresMap[payer] ?? 0) - scores;
           newRoundScoresMap[receiver] = (newRoundScoresMap[receiver] ?? 0) + scores;
         }

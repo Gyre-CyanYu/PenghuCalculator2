@@ -20,14 +20,6 @@ exports.main = async (event) => {
     }
 
     if (nickname) {
-      if (nickname.length > 5) {
-        return {
-          code: 403,
-          data: null,
-          message: '昵称长度不能超过5个字符'
-        }
-      }
-
       updateData.nickname = nickname;
     }
 

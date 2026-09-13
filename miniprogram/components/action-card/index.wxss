@@ -11,3 +11,9 @@
   gap: 32rpx;
   padding: 32rpx;
 }
+
+.actionGroupWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 32rpx;
+}

@@ -14,6 +14,13 @@
   width: 100%;
 }
 
+.nicknameText {
+  max-width: 4em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .scoresText {
   text-align: end;
 }

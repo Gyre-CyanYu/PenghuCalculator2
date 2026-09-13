@@ -69,6 +69,9 @@ exports.main = async (event) => {
         tripletMap: {},
         winner: '',
 
+        previousHoldDealer: 1,
+        previousWinner: '',
+
         nextPlayerTuple: [openid, '', '', ''],
         nextBackerMap: {},
         nextDealer: openid,

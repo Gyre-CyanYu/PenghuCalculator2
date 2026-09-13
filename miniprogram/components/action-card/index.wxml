@@ -48,7 +48,7 @@
         isTemp="{{isTemp}}"
       />
 
-      <block wx:if="{{actionGroup.actionDataList.length > 1 && actionGroupVisible}}">
+      <view wx:if="{{actionGroup.actionDataList.length > 1}}" hidden="{{!actionGroupVisible}}" class="actionGroupWrapper">
         <t-divider style="--td-divider-horizontal-margin: 0;" />
 
         <action
@@ -67,7 +67,7 @@
           isUndo="{{false}}"
           isTemp="{{isTemp}}"
         />
-      </block>
+      </view>
     </view>
   </t-popover>
 </view>

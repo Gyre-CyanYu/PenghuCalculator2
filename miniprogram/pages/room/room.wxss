@@ -20,6 +20,26 @@
 .actionScrollCard {
   margin: 32rpx;
 }
+.quickStartWrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 32rpx;
+}
+.nextPlayerListWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+.nextPlayerWrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 25%;
+}
 
 .footer {
   margin-top: 32rpx;

@@ -18,6 +18,39 @@
 
 <scroll-view class="actionScroll" scroll-y 	scroll-into-view="{{bottomGroup}}" scroll-with-animation>
   <block wx:if="{{roomid}}">
+    <view wx:if="{{!round}}" class="actionScrollCard quickStartWrapper">
+      <view class="subtitle">快速加入</view>
+
+      <view class="nextPlayerListWrapper">
+        <view wx:for="{{seatTuple}}" wx:key="index" class="nextPlayerWrapper">
+          <user
+            wx:if="{{nextPlayerDataTuple[3-index].openid}}"
+            avatarSrc="{{nextPlayerDataTuple[3-index].avatarSrc}}"
+            nickname="{{nextPlayerDataTuple[3-index].nickname}}"
+            badgeProps="{{ {count: nextPlayerDataTuple[3-index].openid === nextDealer ? '下局庄' : '', offset: [-6, 6]} }}"
+          />
+
+          <block wx:else class="nextPlayerWrapper">
+            <t-button
+              bind:tap="handleBePlayer"
+              disabled="{{statusButtonDisabled}}"
+              data-seat="{{3-index}}"
+              theme="light"
+              size="large"
+              icon="user-add"
+              shape="circle"
+            />
+
+            <view class="subtitle">点击加入</view>
+          </block>
+
+          <view class="title" style="color: var(--td-error-color);">{{item}}</view>
+        </view>
+      </view>
+    </view>
+
+    <t-divider wx:if="{{!round && actionGroupList.length}}" style="--td-divider-horizontal-margin: 0;" />
+
     <view wx:for="{{actionGroupList}}" wx:key="index" id="index{{index}}" class="actionScrollCard">
       <action-card bind:undo="undoAction" actionGroup="{{item}}" />
     </view>
@@ -109,7 +142,7 @@
         />
 
         <t-button  bind:tap="onOperationInputChange" data-value="胡" t-class="wideKey" theme="light" block
-          content="{{keyboardInput === '胡' || keyboardInput === '胡胡' ? (dealer === openid || nextDealer === openid ? '天胡' : '地胡') : '胡牌'}}"
+          content="{{keyboardInput === '胡' || keyboardInput === '胡胡' ? (nextDealer === openid ? '天胡' : '地胡') : '胡牌'}}"
         />
 
         <t-button  bind:tap="onOperationInputChange" data-value="臭" t-class="key" content="臭庄" theme="light" block />

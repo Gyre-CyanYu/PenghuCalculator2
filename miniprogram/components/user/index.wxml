@@ -5,12 +5,12 @@
       <t-avatar image="" />
     </t-avatar-group>
     
-    <view class="{{nicknameClass}}">{{nickname}} 等</view>
+    <view class="{{nicknameClass}} nicknameText" style="max-width: 5em;">{{nickname}}…</view>
   </block>
 
   <block wx:else>
     <t-avatar image="{{avatarSrc}}" badge-props="{{badgeProps}}" icon="{{icon}}" />
-    <view class="{{nicknameClass}}">{{nickname}}</view>
+    <view class="{{nicknameClass}} nicknameText">{{nickname}}</view>
 
     <block wx:if="{{scores !== '' || roundScores !== ''}}">
       <view class="scoresWrapper">

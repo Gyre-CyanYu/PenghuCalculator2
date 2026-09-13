@@ -3,6 +3,8 @@ import storage from '../../utils/storage';
 const app = getApp<IAppOption>();
 export {};
 
+type SeatTuple = ['东', '南', '西', '北']
+
 const OPERATION_MAP: Record<OperationInput, OperationDisplay> = {
   '碰': '碰', '扫': '扫', '坎': '坎',
   '跑': '跑', '提': '提', '蛇': '蛇',
@@ -37,6 +39,9 @@ interface RoomPageData {
   nextDealer: string,
 
   watcher: DB.RealtimeListener | null,
+
+  seatTuple: SeatTuple,
+  statusButtonDisabled: boolean,
 
   bottomGroup: string,
 
@@ -74,6 +79,9 @@ Component({
     
     watcher: null,
 
+    seatTuple: ['东', '南', '西', '北'],
+    statusButtonDisabled: true,
+
     bottomGroup: '',
 
     keyboardVisible: false,
@@ -94,6 +102,9 @@ Component({
     },
 
     'isGamePlaying': function (): void {
+      const statusButtonDisabled: boolean = this.data.isGamePlaying !== 0;
+      this.setData({ statusButtonDisabled });
+
       this.toggleConfirmButtonDisabled();
     },
     
@@ -262,37 +273,37 @@ Component({
                 this.cacheRoomData(['actionGroupList']);
               }
 
-              if (updatedFields.isGamePlaying) {
+              if ('isGamePlaying' in updatedFields) {
                 this.updateIsGamePlaying(databaseRoomData);
                 this.cacheRoomData(['isGamePlaying']);
               }
 
-              if (updatedFields.round) {
+              if ('round' in updatedFields) {
                 this.updateRound(databaseRoomData);
                 this.cacheRoomData(['round']);
               }
 
-              if (updatedFields.playerList) {
+              if ('playerList' in updatedFields) {
                 this.updatePlayerDataList(databaseRoomData);
                 this.cacheRoomData(['playerDataList']);
               }
 
-              if (updatedFields.dealer) {
+              if ('dealer' in updatedFields) {
                 this.updateDealer(databaseRoomData);
                 this.cacheRoomData(['dealer']);
               }
 
-              if (updatedFields.holdDealer) {
+              if ('holdDealer' in updatedFields) {
                 this.updateHoldDealer(databaseRoomData);
                 this.cacheRoomData(['holdDealer']);
               }
 
-              if (updatedFields.nextPlayerTuple) {
+              if ('nextPlayerTuple' in updatedFields) {
                 this.updateNextPlayerDataTuple(databaseRoomData);
                 this.cacheRoomData(['nextPlayerDataTuple']);
               }
 
-              if (updatedFields.nextDealer) {
+              if ('nextDealer' in updatedFields) {
                 this.updateNextDealer(databaseRoomData);
                 this.cacheRoomData(['nextDealer']);
               }
@@ -643,6 +654,37 @@ Component({
       }
     },
 
+    async handleBePlayer(e: WechatMiniprogram.BaseEvent): Promise<void> {
+      this.setData({ statusButtonDisabled: true });
+
+      try {
+        const { result } = await wx.cloud.callFunction({
+          name: 'P2_updateNextPlayerTuple',
+          data: {
+            roomid: this.data.roomid,
+            seat: e.currentTarget.dataset.seat
+          }
+        }) as CallFunctionResult<null>;
+
+        if (result.code === 403) {
+          wx.showToast({
+            title: `${result.message}`,
+            icon: 'none'
+          });
+        } else if (result.code !== 200) {
+          throw result
+        }
+      } catch (err) {
+        console.error('切换座位失败', err);
+        wx.showToast({
+          title: '切换座位失败',
+          icon: 'error'
+        });
+      }
+
+      this.setData({ statusButtonDisabled: false });
+    },
+
     handleConfirm(): void {
       if (this.data.isOperationPanel) {
         this.takeOperation();
@@ -988,7 +1030,7 @@ Component({
 
       if (this.data.isOperationPanel) {
         if (keyboardInput === '胡胡') {
-          if ([this.data.dealer, this.data.newDealer].includes(this.data.openid)) {
+          if (this.data.nextDealer === this.data.openid) {
             this.setData({ keyboardDisplay: '天胡' });
           } else {
             this.setData({ keyboardDisplay: '地胡' });

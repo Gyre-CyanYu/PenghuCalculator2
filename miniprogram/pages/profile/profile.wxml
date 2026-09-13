@@ -18,7 +18,7 @@
   visible="{{editVisible}}"
   title="编辑资料"
   content="{{editButtonLoading ? '头像上传进度' + progress + '%' : '点击上传头像'}}"
-  confirm-btn="{{ {disabled: inputError, loading: editButtonLoading, content: editButtonLoading ? '更新中' : '更新'} }}"
+  confirm-btn="{{ {loading: editButtonLoading, content: editButtonLoading ? '更新中' : '更新'} }}"
   cancel-btn="{{ {disabled: editButtonLoading, content: '取消', theme: 'default', variant: 'outline'} }}"
   bind:confirm="handleUpdate"
   bind:cancel="closeEdit"
@@ -42,12 +42,12 @@
     slot="content"
     bind:change="onInputChange"
     value="{{nicknameInput}}"
-    status="{{inputError ? 'error' : ''}}"
-    tips="{{inputError ? '昵称长度不能超过5个字符' : ''}}"
+    status="{{inputWarning ? 'warning' : ''}}"
+    tips="{{inputWarning ? '昵称长度建议不超过4个字符' : ''}}"
     type="nickname"
     borderless
     clearable
     label="昵称"
-    placeholder="不超过5个字符"
+    placeholder="{{userData.nickname}}"
   />
 </t-dialog>

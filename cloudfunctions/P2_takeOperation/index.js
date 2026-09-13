@@ -223,10 +223,10 @@ exports.main = async (event) => {
           playerList.map(player => [player, []])
         );
 
-        updateData['tripletMap'] = tripletMap;
+        updateData['tripletMap'] = _.set(tripletMap);
 
-        nextDealer = '';
-        updateData['nextDealer'] = '';
+        updateData['previousHoldDealer'] = holdDealer;
+        updateData['previousWinner'] = winner;
       }
 
       // 分值计算
@@ -237,7 +237,7 @@ exports.main = async (event) => {
         payer = dealer;
       } else if (['蛇', ...Object.keys(TRIPLET_OPERATION)].includes(actionName)) {
         tripletMap[openid].push(group);
-        updateData['tripletMap'] = tripletMap;
+        updateData['tripletMap'] = _.set(tripletMap);
 
         if (tripletMap[openid].length > 5) {
           throw new Error(`${openid}刻子数无效`);
@@ -355,8 +355,6 @@ exports.main = async (event) => {
         if (openid !== dealer || actionName === '臭庄') {
           updateData['holdDealer'] = 1;
         }
-
-        updateData['tripletMap'] = {};
 
         if (actionName === '臭庄') {
           updateData['winner'] = '';

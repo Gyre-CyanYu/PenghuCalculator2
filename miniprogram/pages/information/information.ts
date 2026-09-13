@@ -247,12 +247,12 @@ Component({
                 this.cacheRoomData(['memberDataList']);
               }
 
-              if (updatedFields.isGamePlaying) {
+              if ('isGamePlaying' in updatedFields) {
                 this.updateIsGamePlaying(databaseRoomData);
                 this.cacheRoomData(['isGamePlaying']);
               }
 
-              if (updatedFields.nextPlayerTuple) {
+              if ('nextPlayerTuple' in updatedFields) {
                 this.updateNextPlayerDataTuple(databaseRoomData);
                 this.cacheRoomData(['nextPlayerDataTuple']);
               }
@@ -264,7 +264,7 @@ Component({
                 this.cacheRoomData(['nextBackerDataMap']);
               }
 
-              if (updatedFields.nextDealer) {
+              if ('nextDealer' in updatedFields) {
                 this.updateNextDealer(databaseRoomData);
                 this.cacheRoomData(['nextDealer']);
               }

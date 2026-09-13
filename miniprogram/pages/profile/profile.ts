@@ -12,7 +12,7 @@ interface ProfilePageData {
 
   editVisible: boolean;
   editButtonLoading: boolean;
-  inputError: boolean;
+  inputWarning: boolean;
 }
 
 Page({
@@ -30,7 +30,7 @@ Page({
 
     editVisible: false,
     editButtonLoading: false,
-    inputError: false,
+    inputWarning: false,
   } as ProfilePageData,
 
   onLoad() {
@@ -66,15 +66,6 @@ Page({
     if (!this.data.choosedAvatarUrl && !this.data.nicknameInput) {
       wx.showToast({
         title: '未修改资料',
-        icon: 'none'
-      });
-
-      return
-    }
-
-    if (this.data.nicknameInput.length > 5) {
-      wx.showToast({
-        title: '昵称长度不能超过5个字符',
         icon: 'none'
       });
 
@@ -168,10 +159,10 @@ Page({
   onInputChange(e: WechatMiniprogram.CustomEvent): void {
     this.setData({ nicknameInput: e.detail.value });
 
-    if (!this.data.inputError && this.data.nicknameInput.length > 5) {
-      this.setData({ inputError: true });
-    } else if (this.data.inputError && this.data.nicknameInput.length <= 5) {
-      this.setData({ inputError: false });
+    if (!this.data.inputWarning && this.data.nicknameInput.length > 4) {
+      this.setData({ inputWarning: true });
+    } else if (this.data.inputWarning && this.data.nicknameInput.length <= 4) {
+      this.setData({ inputWarning: false });
     }
   },
 
@@ -184,7 +175,7 @@ Page({
       choosedAvatarUrl: '',
       nicknameInput: '',
       editVisible: false,
-      inputError: false
+      inputWarning: false
     });
   }
 })

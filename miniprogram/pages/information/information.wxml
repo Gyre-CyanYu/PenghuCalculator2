@@ -24,7 +24,7 @@
           wx:if="{{nextPlayerDataTuple[item.label].openid}}"
           avatarSrc="{{nextPlayerDataTuple[item.label].avatarSrc}}"
           nickname="{{nextPlayerDataTuple[item.label].nickname}}"
-          badgeProps="{{ {count: nextPlayerDataTuple[item.label].openid === nextDealer ? '下局庄' : '', offset: [-6, 6]} }}"
+          badgeProps="{{ {count: nextPlayerDataTuple[item.label].openid === nextDealer ? (isGamePlaying === 1 ? '庄' : '下局庄') : '', offset: [-6, 6]} }}"
         />
 
         <block wx:else>
@@ -163,7 +163,7 @@
   visible="{{dealerSelectorVisible}}"
   title="转让庄家"
   content="请选择要转让的玩家"
-  confirm-btn="{{ {loading: dealerSelectorButtonLoading, content: dealerSelectorButtonLoading ? '转让中' : '转让'} }}"
+  confirm-btn="{{ {disabled: statusButtonDisabled, loading: dealerSelectorButtonLoading, content: dealerSelectorButtonLoading ? '转让中' : '转让'} }}"
   cancel-btn="{{ {disabled: dealerSelectorButtonLoading, content: '取消', theme: 'default', variant: 'outline'} }}"
   bind:confirm="handleTransferDealer"
   bind:cancel="closeDealerSelector"
@@ -191,7 +191,7 @@
   title="砸鸟"
   content="{{isRandomBack ? '随机砸鸟时无法自由选择' : (selectedPlayer ? (selectedPlayer === backedPlayer ? '可以选择其他玩家进行砸鸟' : '已选择玩家') : '请选择要砸鸟的玩家')}}"
   confirm-btn="{{isRandomBack ? null : {
-    disabled: randomBackButtonLoading,
+    disabled: statusButtonDisabled || randomBackButtonLoading || isRandomBack,
     loading: targetSelectorButtonLoading,
     content: (selectedPlayer && selectedPlayer === backedPlayer ? '退出砸鸟' : '砸鸟') + (targetSelectorButtonLoading ? '中' : '')
   } }}"
@@ -223,8 +223,8 @@
     <t-switch
       bind:change="handleRandomBack"
       value="{{isRandomBack}}"
+      disabled="{{statusButtonDisabled || targetSelectorButtonLoading}}"
       loading="{{randomBackButtonLoading}}"
-      disabled="{{}}"
       size="small"
     />
   </view>

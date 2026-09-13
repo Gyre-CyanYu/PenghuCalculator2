@@ -38,6 +38,9 @@ interface DatabaseRoomData {
   tripletMap: Record<string, number[]>,
   winner: string,
 
+  previousHoldDealer: number,
+  previousWinner: string,
+
   /* 下局信息 */
   nextPlayerTuple: [string, string, string, string],
   nextBackerMap: Record<string, string[]>,
