@@ -467,9 +467,20 @@ Component({
       const { actionDataList } = databaseRoomData;
       const actionGroupList = isInit ? [] : this.data.actionGroupList;
 
-      const lastActionData = actionGroupList.filter(actionGroup => !actionGroup.isTemp).at(-1)?.actionDataList.at(-1);
-      const lastActionid: number = lastActionData?.actionid ?? -1;
-      let lastActionRound: number = lastActionData?.round ?? 0;
+      const lastActionData: ActionData = actionGroupList.filter(
+        actionGroup => !actionGroup.isTemp
+      ).flatMap(
+        actionGroup => actionGroup.actionDataList
+      ).reduce((currentActionData, actionData) => {
+        if (actionData.actionid > currentActionData.actionid) {
+          return actionData;
+        } else {
+          return currentActionData;
+        }
+      }, { actionid: -1, round: 0 } as ActionData);
+
+      const lastActionid: number = lastActionData.actionid;
+      let lastActionRound: number = lastActionData.round;
 
       actionDataList.slice(lastActionid + 1).forEach(databaseActionData => {
         const {
@@ -700,8 +711,17 @@ Component({
       const actionName = this.data.keyboardDisplay as OperationDisplay;
 
       const currentActionGroupList = this.data.actionGroupList;
-      const group: number = (currentActionGroupList.at(-1)?.actionDataList.at(-1)?.actionid ?? -1) + 1;
       const receiverData: UserData = app.globalData.userData;
+
+      const group: number = currentActionGroupList.flatMap(
+        actionGroup => actionGroup.actionDataList
+      ).reduce((actionid, actionData) => {
+        if (actionData.actionid > actionid) {
+          return actionData.actionid;
+        } else {
+          return actionid;
+        }
+      }, -1) + 1;
 
       const tempActionGroup: TempActionGroup = {
         group,
@@ -739,10 +759,10 @@ Component({
       } else {
         this.data.nextPlayerDataTuple.filter(
           nextPlayerData => 'openid' in nextPlayerData
-        ).forEach(nextPlayerData => {
+        ).forEach((nextPlayerData, index) => {
           tempActionGroup.payerList.push(nextPlayerData.openid);
           tempActionGroup.actionDataList.push({
-            actionid: group,
+            actionid: group + index,
             group,
 
             isUndo: false,
@@ -798,8 +818,17 @@ Component({
       const scores: number = Number(this.data.keyboardDisplay) ?? 0;
 
       const currentActionGroupList = this.data.actionGroupList;
-      const group: number = (currentActionGroupList.at(-1)?.actionDataList.at(-1)?.actionid ?? -1) + 1;
       const payerData: UserData = app.globalData.userData;
+
+      const group: number = currentActionGroupList.flatMap(
+        actionGroup => actionGroup.actionDataList
+      ).reduce((actionid, actionData) => {
+        if (actionData.actionid > actionid) {
+          return actionData.actionid;
+        } else {
+          return actionid;
+        }
+      }, -1) + 1;
 
       const actionDataList: TempActionData[] = receiverList.map((receiver, index) => {
         const {
@@ -875,12 +904,19 @@ Component({
       const group: number = Number(e.detail.value);
 
       const currentActionGroupList = this.data.actionGroupList;
-      const newGroup: number = (currentActionGroupList.at(-1)?.actionDataList.at(-1)?.actionid ?? -1) + 1;
       const actionGroup = currentActionGroupList.find(
         actionGroup => actionGroup.group === group && !actionGroup.isTemp
       )!;
 
-      const { payerList, receiverList } = actionGroup;
+      const newGroup: number = currentActionGroupList.flatMap(
+        actionGroup => actionGroup.actionDataList
+      ).reduce((actionid, actionData) => {
+        if (actionData.actionid > actionid) {
+          return actionData.actionid;
+        } else {
+          return actionid;
+        }
+      }, -1) + 1;
 
       const actionDataList: TempActionData[] = actionGroup.actionDataList.map((actionData, index) => {
         const { payerData, receiverData } = actionData;
@@ -901,6 +937,7 @@ Component({
         }
       });
 
+      const { payerList, receiverList } = actionGroup;
       const tempActionGroup: TempActionGroup = {
         group: newGroup,
         payerList,

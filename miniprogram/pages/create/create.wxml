@@ -11,7 +11,7 @@
   />
 </view>
 
-<view style="height: 176rpx;" />
+<view style="height: calc(112rpx + env(safe-area-inset-bottom));" />
 
 <view class="tabButtonWrapper">
   <t-button

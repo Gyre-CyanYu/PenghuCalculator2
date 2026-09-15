@@ -3,7 +3,8 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 32rpx;
+  gap: 32rpx;
+  margin: 32rpx ;
 }
 
 .playerGridWrapper {
@@ -27,22 +28,22 @@
   display: flex;
 }
 .backerWrapper0 {
-  border-right: 3rpx solid rgb(0, 82, 217, 0.1);
+  border-right: 2rpx solid var(--td-bg-color-component);
   justify-content: flex-start;
   align-items: flex-end;
 }
 .backerWrapper2 {
-  border-bottom: 3rpx solid rgb(0, 82, 217, 0.1);
+  border-bottom: 2rpx solid var(--td-bg-color-component);
   justify-content: flex-start;
   align-items: flex-start;
 }
 .backerWrapper6 {
-  border-top: 3rpx solid rgb(0, 82, 217, 0.1);
+  border-top: 2rpx solid var(--td-bg-color-component);
   justify-content: flex-end;
   align-items: flex-end;
 }
 .backerWrapper8 {
-  border-left: 3rpx solid rgb(0, 82, 217, 0.1);
+  border-left: 2rpx solid var(--td-bg-color-component);
   justify-content: flex-end;
   align-items: flex-start;
 }

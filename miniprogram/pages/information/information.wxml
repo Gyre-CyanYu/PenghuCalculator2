@@ -92,7 +92,8 @@
   </view>
 </view>
 
-<t-divider />
+<t-divider style="--td-divider-horizontal-margin: 0;" />
+<view style="height: 16rpx;" />
 
 <view class="card dataCard">
   <view class="title">分享房间</view>
@@ -142,7 +143,7 @@
   </view>
 </view>
 
-<view style="height: 176rpx;" />
+<view style="height: calc(16rpx + 112rpx + env(safe-area-inset-bottom));" />
 
 <view class="tabButtonWrapper">
   <t-button wx:if="{{isGamePlaying !== -1}}" bind:tap="showSettle" content="结算" theme="danger" block />

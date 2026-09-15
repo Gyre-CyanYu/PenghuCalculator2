@@ -33,8 +33,7 @@ page {
   box-sizing: border-box;
   z-index: 1000;
   background-color: var(--td-bg-color-container);
-  padding: 16rpx 32rpx;
-  height: 176rpx;
+  padding: 16rpx 32rpx calc(16rpx + env(safe-area-inset-bottom));
   position: fixed;
   bottom: 0;
   left: 0;

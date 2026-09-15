@@ -13,16 +13,12 @@ Component({
 
   lifetimes: {    
     ready() {
-      const value: string = getCurrentPages()[0].route;
+      const value: string = getCurrentPages()[0].route.split('/')[2];
       this.setData({ value });
     }
   },
 
   methods: {
-    _onTabChange(e: WechatMiniprogram.CustomEvent): void {
-      wx.switchTab({ url: '/' + e.detail.value });
-    },
-
     updateRoomid(): void {
       this.setData({ currentRoomid: app.globalData.currentRoomid });
     }

@@ -51,11 +51,11 @@
 
     <t-divider wx:if="{{!round && actionGroupList.length}}" style="--td-divider-horizontal-margin: 0;" />
 
-    <view wx:for="{{actionGroupList}}" wx:key="index" id="index{{index}}" class="actionScrollCard">
+    <view wx:for="{{actionGroupList}}" wx:key="index" id="index{{index}}" class="actionScrollCard {{index === actionGroupList.length - 1 ? 'lastActionScrollCard' : ''}}">
       <action-card bind:undo="undoAction" actionGroup="{{item}}" />
     </view>
 
-    <view style="height: 1rpx;" />
+    <view style="height: 32rpx;" />
   </block>
 
   <t-footer wx:else links="{{[

@@ -15,10 +15,13 @@
 }
 
 .actionScroll {
-  max-height: calc(80vh - 175rpx);
+  max-height: calc(80vh - (112rpx + env(safe-area-inset-bottom)));
 }
 .actionScrollCard {
   margin: 32rpx;
+}
+.lastActionScrollCard {
+  margin-bottom: 0;
 }
 .quickStartWrapper {
   display: flex;

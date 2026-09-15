@@ -3,21 +3,21 @@
 
   <view class="detailWrapper">
     <block wx:if="{{isTemp}}">
-      <view class="title">计分中</view>
+      <view class="subtitle">计分中</view>
       <t-loading theme="dots" size="48rpx" />
     </block>
 
     <block wx:elif="{{isUndo}}">
-      <view class="title">已撤回</view>
+      <view class="subtitle">已撤回</view>
       <t-icon name="code-off" size="48rpx" color="var(--td-brand-color)" />
     </block>
 
     <block wx:else>
-      <view class="title">{{scores}}</view>
+      <view class="subtitle">{{variant === 'total' ? '共' : (variant === 'each' ? '各' : '')}}{{scores}}{{variant === 'total' || variant === 'each' ? '分' : ''}}</view>
       <t-icon name="swap-right" size="48rpx" color="var(--td-brand-color)" />
     </block>
     
-    <view class="subtitle actionName">{{name}}</view>
+    <view class="title actionName">{{name}}</view>
   </view>
 
   <user avatarSrc="{{receiverAvatarSrc}}" nickname="{{receiverNickname}}" userGroupLength="{{receiverGroupLength}}" nicknameClass="content" />

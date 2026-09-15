@@ -10,6 +10,7 @@ Component({
 
     name: { type: String },
     scores: { type: Number },
+    variant: { type: String, value: 'base' },
 
     isUndo: { type: Boolean, value: false },
     isTemp: { type: Boolean, value: false }

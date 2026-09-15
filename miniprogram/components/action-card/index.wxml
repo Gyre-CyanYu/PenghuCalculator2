@@ -42,7 +42,8 @@
         receiverGroupLength="{{actionGroup.receiverList.length || 0}}"
 
         name="{{mainAction.name || ''}}"
-        scores="{{actionGroup.totalScores || 0}}"
+        scores="{{actionGroup.receiverList.length > 1 ? mainAction.scores : (actionGroup.totalScores || 0)}}"
+        variant="{{actionGroup.receiverList.length > 1 ? 'each' : (actionGroup.payerList.length > 1 ? 'total' : 'base')}}"
 
         isUndo="{{isUndo}}"
         isTemp="{{isTemp}}"

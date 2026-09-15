@@ -1,12 +1,30 @@
-<t-tab-bar bind:change="_onTabChange" value="{{value}}" t-class="tabBar" theme="tag" split="{{false}}">
-  <t-tab-bar-item value="pages/home/home" icon="forum" >首页</t-tab-bar-item>
+<t-tab-bar value="{{value}}" t-class="tabBar" theme="tag" split="{{false}}">
+  <t-tab-bar-item
+    value="home"
+    url="/pages/home/home"
+    icon="forum"
+    link-type="switchTab"
+  >首页</t-tab-bar-item>
 
   <t-tab-bar-item
     badge-props="{{ {count: currentRoomid, offset: [20, 0], shape: 'bubble'} }}"
-    value="pages/room/room"
+    value="room"
+    url="/pages/room/room"
     icon="home"
+    link-type="switchTab"
   >房间</t-tab-bar-item>
 
-  <t-tab-bar-item value="pages/history/history" icon="history" >历史</t-tab-bar-item>
-  <t-tab-bar-item value="pages/profile/profile" icon="user" >我的</t-tab-bar-item>
+  <t-tab-bar-item
+    value="history"
+    url="/pages/history/history"
+    icon="history"
+    link-type="switchTab"
+  >历史</t-tab-bar-item>
+  
+  <t-tab-bar-item
+    value="profile"
+    url="/pages/profile/profile"
+    icon="user"
+    link-type="switchTab"
+  >我的</t-tab-bar-item>
 </t-tab-bar>
