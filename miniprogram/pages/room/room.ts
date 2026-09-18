@@ -54,7 +54,9 @@ interface RoomPageData {
   selectedMemberMap: Record<string, boolean>,
 
   keyboardInput: KeyboardInput,
-  keyboardDisplay: KeyboardDisplay
+  keyboardDisplay: KeyboardDisplay,
+
+  settleVisible: boolean
 }
 
 Component({
@@ -93,7 +95,9 @@ Component({
     selectedMemberMap: {},
 
     keyboardInput: '',
-    keyboardDisplay: ''
+    keyboardDisplay: '',
+
+    settleVisible: false
   } as RoomPageData,
 
   observers: {
@@ -104,8 +108,11 @@ Component({
     'isGamePlaying': function (): void {
       const statusButtonDisabled: boolean = this.data.isGamePlaying !== 0;
       this.setData({ statusButtonDisabled });
-
       this.toggleConfirmButtonDisabled();
+
+      if (this.data.isGamePlaying === -1) {
+        this.showSettle();
+      }
     },
     
     'playerDataList': function (): void {
@@ -152,26 +159,14 @@ Component({
       }
     },
 
-    onReady() {
-
-    },
-
     onHide() {
       this.closeWatcher();
-    },
-
-    onUnload() {
-
     },
 
     onPullDownRefresh() {
       if (this.data.roomid) {
         this.watchRoomData();
       }
-    },
-
-    onReachBottom() {
-
     },
 
     onShareAppMessage() {
@@ -181,7 +176,7 @@ Component({
         imageUrl: '/images/PenghuCalculator5_4.jpg'
       }
 
-      if (this.data.roomid) {
+      if (this.data.roomid && this.data.isGamePlaying !== -1) {
         shareData.title += `房间：${ this.data.roomid }`;
         shareData.path += `?roomid=${ this.data.roomid }`;
       }
@@ -239,7 +234,6 @@ Component({
               this.cacheRoomData();
             } else if (dataType === 'update') {
               const updatedFields = docChange.updatedFields!;
-              console.log(updatedFields);
 
               const updatedMember = Object.keys(updatedFields).find(updatedField => updatedField.startsWith('memberList'));
 
@@ -373,8 +367,6 @@ Component({
           if (databaseUserData.avatarFileID) {
             const cachedAvatarSrc = cachedMemberDataList.find(cachedMemberData => cachedMemberData.openid === databaseUserData.openid)?.avatarSrc ?? '';
             memberData.avatarSrc = await storage.cacheImage(databaseUserData.avatarFileID, databaseUserData.avatarUrl, cachedAvatarSrc);
-          } else {
-            memberData.avatarSrc = '/images/PenghuCalculator.jpg';
           }
 
           return memberData
@@ -420,8 +412,6 @@ Component({
 
         if (databaseUserData.avatarFileID) {  
           memberData.avatarSrc = await storage.cacheImage(databaseUserData.avatarFileID, databaseUserData.avatarUrl);
-        } else {
-          memberData.avatarSrc = '/images/PenghuCalculator.jpg';
         }
 
         const memberDataList = this.data.memberDataList;
@@ -1125,10 +1115,23 @@ Component({
       });
     },
 
+    showSettle(): void {
+      this.setData({ settleVisible: true });
+    },
+
+    closeSettle(): void {
+      this.setData({ settleVisible: false });
+    },
+
     navigateToInformation(): void {
       if (this.data.roomid) {
         wx.navigateTo({ url: '/pages/information/information' });
       }
+    },
+
+    navigateToHistory(): void {
+      wx.switchTab({ url: '/pages/history/history' });
+      this.closeSettle();
     }
   }
 })

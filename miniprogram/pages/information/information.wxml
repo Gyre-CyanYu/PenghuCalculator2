@@ -100,7 +100,10 @@
 
   <view class="dataGridWrapper">
     <view class="dataWrapper">
+      <view wx:if="{{isGamePlaying === -1}}" class="content">房间已结算</view>
+
       <t-image
+        wx:else
         src="{{qrCodeSrc}}"
         error="slot"
         style="height: 100%; aspect-ratio: 1; --td-image-round-radius: 32rpx;"
@@ -115,7 +118,7 @@
     <view class="dataWrapper">
       <view class="content">房间号</view>
       <view class="roomid">{{roomid}}</view>
-      <t-button openType="share" content="分享" size="small" />
+      <t-button disabled="{{isGamePlaying === -1}}" openType="share" content="分享" size="small" />
     </view>
   </view>
 </view>
@@ -156,7 +159,7 @@
   content="房间结算后将无法继续计分"
   confirm-btn="{{ {loading: settleButtonLoading, content: settleButtonLoading ? '结算中' : '结算', theme: 'danger'} }}"
   cancel-btn="{{ {disabled: settleButtonLoading, content: '取消', theme: 'default', variant: 'outline'} }}"
-  bind:confirm=""
+  bind:confirm="handleSettleRoom"
   bind:cancel="closeSettle"
 />
 

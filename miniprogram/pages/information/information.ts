@@ -173,11 +173,18 @@ Component({
     },
 
     onShareAppMessage() {
-      return {
-        title: `碰胡计分器房间：${ this.data.roomid }`,
-        path: `/pages/home/home?roomid=${ this.data.roomid }`,
+      const shareData = {
+        title: '碰胡计分器',
+        path: '/pages/home/home',
         imageUrl: '/images/PenghuCalculator5_4.jpg'
       }
+
+      if (this.data.isGamePlaying !== -1) {
+        shareData.title += `房间：${ this.data.roomid }`;
+        shareData.path += `?roomid=${ this.data.roomid }`;
+      }
+
+      return shareData
     },
 
     getCachedRoomData(): void {
@@ -341,8 +348,6 @@ Component({
           if (databaseUserData.avatarFileID) {
             const cachedAvatarSrc = cachedMemberDataList.find(cachedMemberData => cachedMemberData.openid === databaseUserData.openid)?.avatarSrc ?? '';
             memberData.avatarSrc = await storage.cacheImage(databaseUserData.avatarFileID, databaseUserData.avatarUrl, cachedAvatarSrc);
-          } else {
-            memberData.avatarSrc = '/images/PenghuCalculator.jpg';
           }
 
           return memberData
@@ -388,8 +393,6 @@ Component({
 
         if (databaseUserData.avatarFileID) {  
           memberData.avatarSrc = await storage.cacheImage(databaseUserData.avatarFileID, databaseUserData.avatarUrl);
-        } else {
-          memberData.avatarSrc = '/images/PenghuCalculator.jpg';
         }
 
         const memberDataList = this.data.memberDataList;
@@ -696,6 +699,32 @@ Component({
       }
 
       this.setData({ randomBackButtonLoading: false });
+    },
+
+    async handleSettleRoom(): Promise<void> {
+      this.setData({ settleButtonLoading: true });
+
+      try {
+        const { result } = await wx.cloud.callFunction({
+          name: 'P2_settleRoom',
+          data: { roomid: this.data.roomid }
+        }) as CallFunctionResult<null>;
+
+        if ([200, 201].includes(result.code)) {
+          app.globalData.currentRoomid = '';
+          this.closeSettle();
+        } else {
+          throw result
+        }
+      } catch (err) {
+        console.error('结算房间失败', err);
+        wx.showToast({
+          title: '结算房间失败',
+          icon: 'error'
+        });
+      }
+
+      this.setData({ settleButtonLoading: false });
     },
 
     toggleDirectionLock(): void {

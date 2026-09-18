@@ -53,10 +53,8 @@ App<IAppOption>({
 
       if (databaseUserData.avatarFileID) {
         this.globalData.userData.avatarSrc = await storage.cacheImage(databaseUserData.avatarFileID, databaseUserData.avatarUrl, this.globalData.userData.avatarSrc);
-      } else {
-        this.globalData.userData.avatarSrc = '/images/PenghuCalculator.jpg';
       }
-
+      
       wx.setStorage({
         key: 'user',
         data: this.globalData.userData

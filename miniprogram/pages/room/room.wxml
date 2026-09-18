@@ -166,3 +166,13 @@
     </view>
   </view>
 </t-popup>
+
+<t-dialog
+  visible="{{settleVisible}}"
+  title="房间已结算"
+  content="请前往历史记录查看结果"
+  confirm-btn="{{ {content: '历史记录'} }}"
+  cancel-btn="{{ {content: '关闭', theme: 'default', variant: 'outline'} }}"
+  bind:confirm="navigateToHistory"
+  bind:cancel="closeSettle"
+/>

@@ -13,6 +13,7 @@ $RECYCLE.BIN/
 # IDE
 .vscode/
 .idea/
+*.code-workspace
 
 # Node.js
 miniprogram/miniprogram_npm/

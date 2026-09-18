@@ -16,11 +16,11 @@ exports.main = async () => {
       nickname: true
     }).get();
 
-    if (data.length === 1) {
+    if (data.length >= 1) {
       return {
         code: 200,
         data: {
-          openid: data[0]._openid,
+          openid,
           avatarUrl: data[0].avatarUrl,
           avatarFileID: data[0].avatarFileID,
           nickname: data[0].nickname
@@ -33,7 +33,7 @@ exports.main = async () => {
       _openid: openid,
       avatarUrl: '',
       avatarFileID: '',
-      nickname: `用户${Date.now().toString().slice(-3)}`,
+      nickname: ['碰', '扫', '坎', '跑', '提', '蛇'][Math.floor(Math.random() * 6)] + Date.now().toString().slice(-3),
       createdAt: db.serverDate()
     };
 

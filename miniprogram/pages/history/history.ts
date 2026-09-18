@@ -6,7 +6,7 @@ Page({
 
   },
 
-  onLoad(options) {
+  onLoad() {
 
   },
 

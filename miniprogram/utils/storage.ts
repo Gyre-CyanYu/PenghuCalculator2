@@ -18,7 +18,7 @@ async function cacheImage(fileID: string, currentUrl: string, cachedSrc?: string
   const imageType = fileIDParts[3].slice(0, -1) as ImageType;
   const id: string = fileIDParts[4].split('.')[0];
 
-  const dirPath: string = `${wx.env.USER_DATA_PATH}/${imageType}`;
+  const dirPath: string = `${wx.env.USER_DATA_PATH}/${imageType}s`;
 
   try {
     fs.accessSync(dirPath);
@@ -41,7 +41,7 @@ async function cacheImage(fileID: string, currentUrl: string, cachedSrc?: string
 function removeImage(fileIDList: string[]): void {
   const imageType = fileIDList[0].split('/')[3].slice(0, -1) as ImageType;
   const idList: string[] = fileIDList.map(fileID => fileID.split('/')[4].split('.')[0]);
-  const dirPath: string = `${wx.env.USER_DATA_PATH}/${imageType}`;
+  const dirPath: string = `${wx.env.USER_DATA_PATH}/${imageType}s`;
   const fs = wx.getFileSystemManager();
 
   try {

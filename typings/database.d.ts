@@ -63,3 +63,18 @@ interface DatabaseActionData {
   round: number,
   time: string
 }
+
+interface DatabaseHistoryData {
+  roomid: string,
+  createBy: string,
+  createdAt: string,
+  settledAt: string,
+
+  gameConfig: GameConfig,
+
+  memberList: string[],
+  actionDataList: DatabaseActionData[],
+  scoresMap: Record<string, number>,
+  
+  round: number
+}

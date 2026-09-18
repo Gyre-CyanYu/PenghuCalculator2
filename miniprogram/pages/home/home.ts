@@ -38,11 +38,6 @@ Page({
     });
 
     await Promise.all([app.getCurrentUserData(), (async () => {
-      await this.getJoinedRoomList();
-
-      this.setData({ joinedRoomList: app.globalData.joinedRoomList });
-      this.getTabBar().updateRoomid();
-    })(), (async () => {
       await this.getNoticeList();
 
       if (this.data.noticeDataList.some(noticeData => noticeData.isImportant)) {
@@ -66,23 +61,15 @@ Page({
     }
   },
 
-  onShow() {
+  async onShow() {
+    await this.getJoinedRoomList();
     this.setData({ joinedRoomList: app.globalData.joinedRoomList });
     this.getTabBar().updateRoomid();
-  },
-
-  onReady() {
-    
-  },
-
-  onHide() {
-
   },
 
   async onPullDownRefresh() {
     await Promise.all([(async () => {
       await this.getJoinedRoomList();
-      
       this.setData({ joinedRoomList: app.globalData.joinedRoomList });
       this.getTabBar().updateRoomid();
     })(), this.getNoticeList()]);
@@ -188,12 +175,9 @@ Page({
         this.getTabBar().updateRoomid();
         this.closeJoin();
       } else if ([403, 404].includes(result.code)) {
-        (async () => {
-          await this.getJoinedRoomList();
-          
-          this.setData({ joinedRoomList: app.globalData.joinedRoomList });
-          this.getTabBar().updateRoomid();
-        })();
+        await this.getJoinedRoomList();
+        this.setData({ joinedRoomList: app.globalData.joinedRoomList });
+        this.getTabBar().updateRoomid();
 
         wx.showToast({
           title: result.message,
@@ -235,7 +219,7 @@ Page({
         await this.handleJoin();
       } else {
         wx.showToast({
-          title: '小程序码无效',
+          title: '二维码无效',
           icon: 'none'
         });
       }

@@ -1,7 +1,7 @@
 <view hidden="{{hidden}}" style="width: {{width}}" class="userWrapper">
   <block wx:if="{{userGroup || userGroupLength > 1}}">
     <t-avatar-group collapseAvatar="+{{userGroupLength - 1}}" max="1" cascading="right-up">
-      <t-avatar image="{{avatarSrc}}" badge-props="{{badgeProps}}" icon="{{icon}}" />
+      <t-avatar image="{{avatarSrc}}" badge-props="{{badgeProps}}" icon="{{nickname ? '' : 'user'}}">{{nickname[0]}}</t-avatar>
       <t-avatar image="" />
     </t-avatar-group>
     
@@ -9,7 +9,7 @@
   </block>
 
   <block wx:else>
-    <t-avatar image="{{avatarSrc}}" badge-props="{{badgeProps}}" icon="{{icon}}" />
+    <t-avatar image="{{avatarSrc}}" badge-props="{{badgeProps}}" icon="{{nickname ? '' : 'user'}}">{{nickname[0]}}</t-avatar>
     <view class="{{nicknameClass}} nicknameText">{{nickname}}</view>
 
     <block wx:if="{{scores !== '' || roundScores !== ''}}">

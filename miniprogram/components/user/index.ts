@@ -3,7 +3,6 @@ Component({
     avatarSrc: { type: String },
     nickname: { type: String },
     badgeProps: { type: Object },
-    icon: { type: String, value: 'user' },
 
     userGroup: { type: Boolean, value: false },
     userGroupLength: { type: Number, value: 1 },
