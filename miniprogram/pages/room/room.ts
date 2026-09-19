@@ -17,8 +17,6 @@ const OPERATION_MAP: Record<OperationInput, OperationDisplay> = {
   '坎坎': '七对', '蛇蛇': '双龙',
 }
 
-type RoomPageRoomData = Pick<RoomData, Extract<keyof RoomData, keyof RoomPageData>>
-
 interface RoomPageData {
   openid: string,
   roomid: string,
@@ -154,7 +152,7 @@ Component({
       this.getTabBar().updateRoomid();
 
       if (this.data.roomid) {
-        this.getCachedRoomData();
+        this.getCachedData();
         this.watchRoomData();
       }
     },
@@ -184,27 +182,92 @@ Component({
       return shareData
     },
 
-    getCachedRoomData(): void {
-      const cachedRoomData: Partial<RoomData> = wx.getStorageSync('room') || {};
+    getCachedData(): void {
+      const cachedUserDataMap: Record<string, UserData> = wx.getStorageSync('userDataMap') || {};
+      const cachedRoomData: Partial<CachedRoomData> = wx.getStorageSync('room') || {};
 
       if (cachedRoomData.roomid !== this.data.roomid) {
         return
       }
 
       const {
-        memberDataList = [],
-        actionGroupList = [],
+        memberList = [],
+        actionGroupList: cachedActionGroupList = [],
+        scoresMap = {},
 
         isGamePlaying = 0,
         round = 0,
 
-        playerDataList = [],
+        playerList = [],
         dealer = '',
         holdDealer = 1,
 
-        nextPlayerDataTuple = [{}, {}, {}, {}],
+        roundScoresMap = {},
+
+        nextPlayerTuple = ['', '', '', ''],
         nextDealer = ''
       } = cachedRoomData;
+
+      const memberDataList: MemberData[] = memberList.map(member => ({
+        ...(cachedUserDataMap[member] ?? {
+          openid: member,
+          avatarSrc: '',
+          avatarFileID: '',
+          nickname: ''
+        }),
+
+        scores: scoresMap[member] ?? 0,
+        roundScores: roundScoresMap[member] ?? 0
+      }));
+
+      const actionGroupList: ActionGroup[] = cachedActionGroupList.map(cachedActionGroup => {
+        const actionDataList: ActionData[] = cachedActionGroup.actionDataList.map(cachedActionData => {
+          const { payer, receiver, ...rest } = cachedActionData;
+
+          return {
+            ...rest,
+
+            payerData: cachedUserDataMap[payer] ?? {
+              openid: payer,
+              avatarSrc: '',
+              avatarFileID: '',
+              nickname: ''
+            },
+
+            receiverData: cachedUserDataMap[receiver] ?? {
+              openid: receiver,
+              avatarSrc: '',
+              avatarFileID: '',
+              nickname: ''
+            }
+          }
+        });
+
+        return {
+          ...cachedActionGroup,
+          actionDataList
+        }
+      });
+
+      const playerDataList: UserData[] = playerList.map(player => cachedUserDataMap[player] ?? {
+        openid: player,
+        avatarSrc: '',
+        avatarFileID: '',
+        nickname: ''
+      });
+
+      const nextPlayerDataTuple = nextPlayerTuple.map(nextPlayer => {
+        if (!nextPlayer) {
+          return {}
+        }
+
+        return cachedUserDataMap[nextPlayer] ?? {
+          openid: nextPlayer,
+          avatarSrc: '',
+          avatarFileID: '',
+          nickname: ''
+        }
+      }) as [UserData | {}, UserData | {}, UserData | {}, UserData | {}];
 
       this.setData({
         memberDataList, actionGroupList,
@@ -231,7 +294,8 @@ Component({
               await this.initializeMemberData(databaseRoomData);
               this.updateActionGroupList(databaseRoomData, true);
               this.initializeGameData(databaseRoomData);
-              this.cacheRoomData();
+              this.cacheUserDataMap(databaseRoomData.memberList);
+              this.cacheRoomData(databaseRoomData);
             } else if (dataType === 'update') {
               const updatedFields = docChange.updatedFields!;
 
@@ -239,7 +303,8 @@ Component({
 
               if (updatedMember) {
                 await this.updateMemberData(databaseRoomData, updatedFields[updatedMember]);
-                this.cacheRoomData(['memberDataList']);
+                this.cacheUserDataMap([updatedFields[updatedMember]]);
+                this.cacheRoomData(databaseRoomData, ['memberList']);
               }
 
               const updatedScoresMemberList = Object.keys(updatedFields).filter(
@@ -248,7 +313,7 @@ Component({
 
               if (updatedScoresMemberList.length) {
                 this.updateScores(databaseRoomData, updatedScoresMemberList);
-                this.cacheRoomData(['memberDataList']);
+                this.cacheRoomData(databaseRoomData, ['scoresMap']);
               }
 
               const updatedRoundScoresMemberList = Object.keys(updatedFields).filter(
@@ -257,49 +322,49 @@ Component({
 
               if (updatedRoundScoresMemberList.length) {
                 this.updateRoundScores(databaseRoomData, updatedRoundScoresMemberList);
-                this.cacheRoomData(['memberDataList']);
+                this.cacheRoomData(databaseRoomData, ['roundScoresMap']);
               }
 
               const updatedActionDataList = Object.keys(updatedFields).find(updatedField => updatedField.startsWith('actionDataList'));
 
               if (updatedActionDataList) {
                 this.updateActionGroupList(databaseRoomData);
-                this.cacheRoomData(['actionGroupList']);
+                this.cacheRoomData(databaseRoomData, ['actionGroupList']);
               }
 
               if ('isGamePlaying' in updatedFields) {
                 this.updateIsGamePlaying(databaseRoomData);
-                this.cacheRoomData(['isGamePlaying']);
+                this.cacheRoomData(databaseRoomData, ['isGamePlaying']);
               }
 
               if ('round' in updatedFields) {
                 this.updateRound(databaseRoomData);
-                this.cacheRoomData(['round']);
+                this.cacheRoomData(databaseRoomData, ['round']);
               }
 
               if ('playerList' in updatedFields) {
                 this.updatePlayerDataList(databaseRoomData);
-                this.cacheRoomData(['playerDataList']);
+                this.cacheRoomData(databaseRoomData, ['playerList']);
               }
 
               if ('dealer' in updatedFields) {
                 this.updateDealer(databaseRoomData);
-                this.cacheRoomData(['dealer']);
+                this.cacheRoomData(databaseRoomData, ['dealer']);
               }
 
               if ('holdDealer' in updatedFields) {
                 this.updateHoldDealer(databaseRoomData);
-                this.cacheRoomData(['holdDealer']);
+                this.cacheRoomData(databaseRoomData, ['holdDealer']);
               }
 
               if ('nextPlayerTuple' in updatedFields) {
                 this.updateNextPlayerDataTuple(databaseRoomData);
-                this.cacheRoomData(['nextPlayerDataTuple']);
+                this.cacheRoomData(databaseRoomData, ['nextPlayerTuple']);
               }
 
               if ('nextDealer' in updatedFields) {
                 this.updateNextDealer(databaseRoomData);
-                this.cacheRoomData(['nextDealer']);
+                this.cacheRoomData(databaseRoomData, ['nextDealer']);
               }
             }
           },
@@ -357,7 +422,7 @@ Component({
         const memberDataList: MemberData[] = await Promise.all(databaseUserDataList.map(async databaseUserData => {
           const memberData: MemberData = {
             openid: databaseUserData.openid,
-            avatarSrc: '',
+            avatarSrc: databaseUserData.avatarFileID,
             avatarFileID: databaseUserData.avatarFileID,
             nickname: databaseUserData.nickname,
             scores: scoresMap[databaseUserData.openid],
@@ -403,7 +468,7 @@ Component({
 
         const memberData: MemberData = {
           openid,
-          avatarSrc: '',
+          avatarSrc: databaseUserData.avatarFileID,
           avatarFileID: databaseUserData.avatarFileID,
           nickname: databaseUserData.nickname,
           scores: databaseRoomData.scoresMap[openid],
@@ -611,47 +676,100 @@ Component({
       this.setData({ nextDealer: databaseRoomData.nextDealer });
     },
 
-    cacheRoomData(fieldList?: (keyof RoomPageRoomData)[]): void {
-      const cachedRoomData: RoomData = wx.getStorageSync('room') || {};
-      const currentRoomData: RoomPageRoomData = {
-        roomid: this.data.roomid,
+    cacheUserDataMap(memberList: string[]): void {
+      try {
+        const cachedUserDataMap: Record<string, UserData> = wx.getStorageSync('userDataMap') || {};
 
-        memberDataList: this.data.memberDataList,
-        actionGroupList: this.data.actionGroupList.filter(actionGroup => !actionGroup.isTemp),
+        memberList.forEach(member => {
+          const {
+            scores, roundScores,
+            ...rest
+          } = this.data.memberDataList.find(memberData => memberData.openid === member)!;
 
-        isGamePlaying: this.data.isGamePlaying,
-        round: this.data.round,
-
-        playerDataList: this.data.playerDataList,
-        dealer: this.data.dealer,
-        holdDealer: this.data.holdDealer,
-
-        nextPlayerDataTuple: this.data.nextPlayerDataTuple,
-        nextDealer: this.data.nextDealer,
-      };
-
-      if (cachedRoomData.roomid !== this.data.roomid) {
-        wx.setStorage({ key: 'room', data: currentRoomData }).catch(err => {
-          console.warn('缓存房间信息失败', err);
+          cachedUserDataMap[member] = rest;
         });
-      } else if (fieldList?.length) {
-        const updatedRoomData = Object.fromEntries(
-          fieldList.map(field => [field, currentRoomData[field]])
-        );
 
-        wx.setStorage({
-          key: 'room',
-          data: { ...cachedRoomData, ...updatedRoomData }
-        }).catch(err => {
-          console.warn('缓存房间信息失败', err);
+        wx.setStorageSync('userDataMap', cachedUserDataMap);
+      } catch (err) {
+        console.warn('缓存用户信息失败', err);
+      }
+    },
+
+    cacheRoomData(databaseRoomData: DatabaseRoomData, fieldList?: (keyof RoomPageCachedRoomData)[]): void {
+      const cachedRoomData: CachedRoomData = wx.getStorageSync('room') || {};
+      const isReplace: boolean = cachedRoomData.roomid !== this.data.roomid;
+      const updatedRoomData: Partial<RoomPageCachedRoomData> = { roomid: this.data.roomid };
+
+      const need = (field: keyof RoomPageCachedRoomData): boolean => isReplace || !fieldList?.length || fieldList.includes(field);
+
+      if (need('memberList')) {
+        updatedRoomData.memberList = databaseRoomData.memberList.filter(member => member !== this.data.openid);
+        updatedRoomData.memberList.unshift(this.data.openid);
+      }
+
+      if (need('actionGroupList')) {
+        updatedRoomData.actionGroupList = this.data.actionGroupList.filter(actionGroup => !actionGroup.isTemp).map(actionGroup => {
+          const actionDataList: CachedActionData[] = actionGroup.actionDataList.map(actionData => {
+            const { payerData, receiverData, ...rest } = actionData;
+
+            return {
+              ...rest,
+              payer: payerData.openid,
+              receiver: receiverData.openid
+            }
+          });
+
+          return {
+            ...actionGroup,
+            actionDataList
+          }
         });
-      } else {
-        wx.setStorage({
-          key: 'room',
-          data: { ...cachedRoomData, ...currentRoomData }
-        }).catch(err => {
-          console.warn('缓存房间信息失败', err);
-        });
+      }
+
+      if (need('scoresMap')) {
+        updatedRoomData.scoresMap = databaseRoomData.scoresMap;
+      }
+
+      if (need('isGamePlaying')) {
+        updatedRoomData.isGamePlaying = databaseRoomData.isGamePlaying;
+      }
+
+      if (need('round')) {
+        updatedRoomData.round = databaseRoomData.round;
+      }
+
+      if (need('playerList')) {
+        updatedRoomData.playerList = databaseRoomData.playerList;
+      }
+
+      if (need('dealer')) {
+        updatedRoomData.dealer = databaseRoomData.dealer;
+      }
+
+      if (need('holdDealer')) {
+        updatedRoomData.holdDealer = databaseRoomData.holdDealer;
+      }
+
+      if (need('roundScoresMap')) {
+        updatedRoomData.roundScoresMap = databaseRoomData.roundScoresMap;
+      }
+
+      if (need('nextPlayerTuple')) {
+        updatedRoomData.nextPlayerTuple = databaseRoomData.nextPlayerTuple;
+      }
+
+      if (need('nextDealer')) {
+        updatedRoomData.nextDealer = databaseRoomData.nextDealer;
+      }
+
+      try {
+        if (isReplace) {
+          wx.setStorageSync('room', updatedRoomData);
+        } else {
+          wx.setStorageSync('room', { ...cachedRoomData, ...updatedRoomData });
+        }
+      } catch (err) {
+        console.warn('缓存房间信息失败', err);
       }
     },
 

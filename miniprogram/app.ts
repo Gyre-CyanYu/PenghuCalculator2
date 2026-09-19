@@ -28,8 +28,14 @@ App<IAppOption>({
       });
     }
 
-    wx.getStorage({ key: 'user' }).then(({ data }: { data: UserData }) => {
-      this.globalData.userData = data;
+    this.globalData.userData.openid = wx.getStorageSync('openid') || '';
+
+    if (!this.globalData.userData.openid) {
+      return
+    }
+
+    wx.getStorage({ key: 'userDataMap' }).then(({ data }: { data: Record<string, UserData> }) => {
+      this.globalData.userData = data[this.globalData.userData.openid] ?? this.globalData.userData;
     }).catch(err => {
       console.warn('读取用户信息缓存失败', err);
     });
@@ -48,19 +54,27 @@ App<IAppOption>({
       const databaseUserData: ClientDatabaseUserData = result.data;
 
       this.globalData.userData.openid = databaseUserData.openid;
+      this.globalData.userData.avatarSrc = databaseUserData.avatarFileID;
       this.globalData.userData.avatarFileID = databaseUserData.avatarFileID;
       this.globalData.userData.nickname = databaseUserData.nickname;
 
       if (databaseUserData.avatarFileID) {
         this.globalData.userData.avatarSrc = await storage.cacheImage(databaseUserData.avatarFileID, databaseUserData.avatarUrl, this.globalData.userData.avatarSrc);
       }
-      
-      wx.setStorage({
-        key: 'user',
-        data: this.globalData.userData
-      }).catch(err => {
+
+      try {
+        const cachedOpenid: string = wx.getStorageSync('openid') || '';
+
+        if (cachedOpenid !== this.globalData.userData.openid) {
+          wx.setStorageSync('openid', this.globalData.userData.openid);
+        }
+
+        const cachedUserDataMap: Record<string, UserData> = wx.getStorageSync('userDataMap') || {};
+        cachedUserDataMap[this.globalData.userData.openid] = this.globalData.userData;
+        wx.setStorageSync('userDataMap', cachedUserDataMap);
+      } catch (err) {
         console.warn('缓存用户信息失败', err);
-      });
+      }
     } catch (err) {
       console.error('获取用户信息失败', err);
       wx.showToast({

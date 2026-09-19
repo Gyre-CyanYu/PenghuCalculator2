@@ -98,7 +98,7 @@ Page({
       const joinedRoomList: string[] = result.data;
       app.globalData.joinedRoomList = joinedRoomList;
 
-      const { roomid: cachedRoomid, qrCodeFileID }: RoomData = wx.getStorageSync('room') || {};
+      const { roomid: cachedRoomid, qrCodeFileID }: CachedRoomData = wx.getStorageSync('room') || {};
 
       if (!joinedRoomList.length) {
         app.globalData.currentRoomid = '';

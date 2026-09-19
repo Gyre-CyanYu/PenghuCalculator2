@@ -18,12 +18,36 @@ interface UserData {
   nickname: string
 }
 
+type ClientDatabaseUserData = Omit<DatabaseUserData, 'createdAt'>
+
 interface MemberData extends UserData {
   scores: number,
   roundScores: number
 }
 
-interface RoomData {
+type CachedRoomData = RoomPageCachedRoomData & InformationPageCachedRoomData
+
+interface RoomPageCachedRoomData {
+  roomid: string,
+
+  memberList: string[],
+  actionGroupList: CachedActionGroup[],
+  scoresMap: Record<string, number>,
+
+  isGamePlaying: number,
+  round: number,
+
+  playerList: string[],
+  dealer: string,
+  holdDealer: number,
+
+  roundScoresMap: Record<string, number>,
+
+  nextPlayerTuple: [string, string, string, string],
+  nextDealer: string
+}
+
+interface InformationPageCachedRoomData {
   roomid: string,
   qrCodeSrc: string,
   qrCodeFileID: string,
@@ -31,22 +55,31 @@ interface RoomData {
 
   gameConfig: GameConfig,
 
-  memberDataList: MemberData[],
-  actionGroupList: ActionGroup[],
+  memberList: string[],
 
   isGamePlaying: number,
-  round: number,
 
-  playerDataList: UserData[],
-  dealer: string,
-  holdDealer: number,
-
-  nextPlayerDataTuple: [UserData | {}, UserData | {}, UserData | {}, UserData | {}],
-  nextBackerDataMap: Record<string, UserData[]>,
+  nextPlayerTuple: [string, string, string, string],
+  nextBackerMap: Record<string, string[]>,
   nextDealer: string,
 
   isRandomBack: boolean
 }
+
+interface HistoryData {
+  roomid: string,
+  createdAt: string,
+  settledAt: string,
+
+  gameConfig: GameConfig,
+
+  memberList: string[],
+  scoresMap: Record<string, number>,
+  
+  round: number
+}
+
+type ClientDatabaseHistoryData = Omit<DatabaseHistoryData, 'createBy' | 'actionDataList'>
 
 interface GameConfig {
   mode: 'addition' | 'multiplication',
@@ -69,6 +102,11 @@ interface ActionData {
   round: number
 }
 
+interface CachedActionData extends Omit<ActionData, 'payerData' | 'receiverData'> {
+  payer: string,
+  receiver: string
+}
+
 interface TempActionData extends ActionData {
   isUndo: false,
 
@@ -87,6 +125,10 @@ interface ActionGroup {
   totalScores: number,
 
   actionDataList: ActionData[]
+}
+
+interface CachedActionGroup extends Omit<ActionGroup, 'actionDataList'> {
+  actionDataList: CachedActionData[]
 }
 
 interface TempActionGroup {

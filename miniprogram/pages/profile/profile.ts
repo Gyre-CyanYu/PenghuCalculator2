@@ -113,30 +113,32 @@ Page({
           title: `${result.message}`,
           icon: 'none'
         });
-      } else if (result.code === 200) {
-        if (result.data.nickname) {
-          app.globalData.userData.nickname = result.data.nickname;
-        }
-
-        if (result.data.avatarFileID) {
-          app.globalData.userData.avatarSrc = await storage.cacheImage(result.data.avatarFileID, result.data.avatarUrl, app.globalData.userData.avatarSrc);
-        }
-
-        this.setData({ userData: app.globalData.userData });
-        wx.setStorage({
-          key: 'user',
-          data: app.globalData.userData
-        }).catch(err => {
-          console.warn('缓存用户信息失败', err);
-        });
-
-        this.closeEdit();
-        wx.showToast({
-          title: '更新成功',
-          icon: 'none'
-        });
-      } else {
+      } else if (result.code !== 200) {
         throw result
+      }
+
+      if (result.data.nickname) {
+        app.globalData.userData.nickname = result.data.nickname;
+      }
+
+      if (result.data.avatarFileID) {
+        app.globalData.userData.avatarSrc = await storage.cacheImage(result.data.avatarFileID, result.data.avatarUrl, app.globalData.userData.avatarSrc);
+      }
+
+      this.setData({ userData: app.globalData.userData });
+      this.closeEdit();
+
+      wx.showToast({
+        title: '更新成功',
+        icon: 'none'
+      });
+
+      try {
+        const userDataMap: Record<string, UserData> = wx.getStorageSync('userDataMap') || {};
+        userDataMap[app.globalData.userData.openid] = app.globalData.userData;
+        wx.setStorageSync('userDataMap', userDataMap);
+      } catch (err) {
+        console.warn('缓存用户信息失败', err);
       }
     } catch (err) {
       console.error('更新失败', err);

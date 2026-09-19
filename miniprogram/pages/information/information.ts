@@ -14,8 +14,6 @@ type SeatData =
 | { label: 6, seat: '南鸟' }
 | { label: 7, seat: '东鸟' }
 
-type InformationPageRoomData = Pick<RoomData, Extract<keyof RoomData, keyof InformationPageData>>
-
 interface InformationPageData {
   openid: string,
 
@@ -27,7 +25,7 @@ interface InformationPageData {
 
   gameConfig: GameConfig,
 
-  memberDataList: MemberData[],
+  memberDataList: UserData[],
 
   isGamePlaying: number,
 
@@ -157,7 +155,7 @@ Component({
         roomid: app.globalData.currentRoomid
       });
 
-      this.getCachedRoomData();
+      this.getCachedData();
     },
 
     onShow() {
@@ -187,8 +185,9 @@ Component({
       return shareData
     },
 
-    getCachedRoomData(): void {
-      const cachedRoomData: Partial<RoomData> = wx.getStorageSync('room') || {};
+    getCachedData(): void {
+      const cachedUserDataMap: Record<string, UserData> = wx.getStorageSync('userDataMap') || {};
+      const cachedRoomData: Partial<CachedRoomData> = wx.getStorageSync('room') || {};
 
       if (cachedRoomData.roomid !== this.data.roomid) {
         return
@@ -206,16 +205,48 @@ Component({
           heavenWinConsiderHoldDealer: true
         },
 
-        memberDataList = [],
+        memberList = [],
 
         isGamePlaying = 0,
 
-        nextPlayerDataTuple = [{}, {}, {}, {}],
-        nextBackerDataMap = {},
+        nextPlayerTuple = ['', '', '', ''],
+        nextBackerMap = {},
         nextDealer = '',
 
         isRandomBack = false
       } = cachedRoomData;
+
+      const memberDataList: UserData[] = memberList.map(member => cachedUserDataMap[member] ?? {
+        openid: member,
+        avatarSrc: '',
+        avatarFileID: '',
+        nickname: ''
+      });
+
+      const nextPlayerDataTuple = nextPlayerTuple.map(nextPlayer => {
+        if (!nextPlayer) {
+          return {}
+        }
+
+        return cachedUserDataMap[nextPlayer] ?? {
+          openid: nextPlayer,
+          avatarSrc: '',
+          avatarFileID: '',
+          nickname: ''
+        }
+      }) as [UserData | {}, UserData | {}, UserData | {}, UserData | {}];
+
+      const nextBackerDataMap: Record<string, UserData[]> = Object.entries(nextBackerMap).reduce(
+        (acc: Record<string, UserData[]>, [target, nextBackerList]) => {
+          acc[target] = nextBackerList.map(nextBacker => cachedUserDataMap[nextBacker] ?? {
+            openid: nextBacker,
+            avatarSrc: '',
+            avatarFileID: '',
+            nickname: ''
+          });
+
+          return acc
+      }, {});
 
       this.setData({
         qrCodeSrc, qrCodeFileID, createdAt,
@@ -243,44 +274,46 @@ Component({
             if (dataType === 'init') {
               await this.initializeMemberData(databaseRoomData);
               await this.initializeGameData(databaseRoomData);
-              this.cacheRoomData();
+              this.cacheUserDataMap(databaseRoomData.memberList);
+              this.cacheRoomData(databaseRoomData);
             } else if (dataType === 'update') {
               const updatedFields = docChange.updatedFields!;
 
               const updatedMember = Object.keys(updatedFields).find(updatedField => updatedField.startsWith('memberList'));
 
               if (updatedMember) {
-                await this.updateMemberData(databaseRoomData, updatedFields[updatedMember]);
-                this.cacheRoomData(['memberDataList']);
+                await this.updateMemberData(updatedFields[updatedMember]);
+                this.cacheUserDataMap([updatedFields[updatedMember]]);
+                this.cacheRoomData(databaseRoomData, ['memberList']);
               }
 
               if ('isGamePlaying' in updatedFields) {
                 this.updateIsGamePlaying(databaseRoomData);
-                this.cacheRoomData(['isGamePlaying']);
+                this.cacheRoomData(databaseRoomData, ['isGamePlaying']);
               }
 
               if ('nextPlayerTuple' in updatedFields) {
                 this.updateNextPlayerDataTuple(databaseRoomData);
-                this.cacheRoomData(['nextPlayerDataTuple']);
+                this.cacheRoomData(databaseRoomData, ['nextPlayerTuple']);
               }
 
               const updatedNextBackerMap = Object.keys(updatedFields).find(updatedField => updatedField.startsWith('nextBackerMap'));
 
               if (updatedNextBackerMap) {
                 this.updateNextBackerDataMap(databaseRoomData);
-                this.cacheRoomData(['nextBackerDataMap']);
+                this.cacheRoomData(databaseRoomData, ['nextBackerMap']);
               }
 
               if ('nextDealer' in updatedFields) {
                 this.updateNextDealer(databaseRoomData);
-                this.cacheRoomData(['nextDealer']);
+                this.cacheRoomData(databaseRoomData, ['nextDealer']);
               }
 
               const updatedIsRandomBack = Object.keys(updatedFields).find(updatedField => updatedField.startsWith('isRandomBackMap'));
 
               if (updatedIsRandomBack) {
                 this.updateIsRandomBack(databaseRoomData);
-                this.cacheRoomData(['isRandomBack']);
+                this.cacheRoomData(databaseRoomData, ['isRandomBack']);
               }
             }
           },
@@ -320,7 +353,7 @@ Component({
     },
 
     async initializeMemberData(databaseRoomData: DatabaseRoomData): Promise<void> {
-      const { memberList, scoresMap, roundScoresMap } = databaseRoomData;
+      const { memberList } = databaseRoomData;
 
       try {
         const { result } = await wx.cloud.callFunction({
@@ -335,14 +368,12 @@ Component({
         const databaseUserDataList = result.data;
         const cachedMemberDataList = this.data.memberDataList;
 
-        const memberDataList: MemberData[] = await Promise.all(databaseUserDataList.map(async databaseUserData => {
-          const memberData: MemberData = {
+        const memberDataList: UserData[] = await Promise.all(databaseUserDataList.map(async databaseUserData => {
+          const memberData: UserData = {
             openid: databaseUserData.openid,
-            avatarSrc: '',
+            avatarSrc: databaseUserData.avatarFileID,
             avatarFileID: databaseUserData.avatarFileID,
-            nickname: databaseUserData.nickname,
-            scores: scoresMap[databaseUserData.openid],
-            roundScores: roundScoresMap[databaseUserData.openid]
+            nickname: databaseUserData.nickname
           }
           
           if (databaseUserData.avatarFileID) {
@@ -353,11 +384,7 @@ Component({
           return memberData
         }));
 
-        memberDataList.unshift({
-          ...app.globalData.userData,
-          scores: scoresMap[app.globalData.userData.openid],
-          roundScores: roundScoresMap[app.globalData.userData.openid]
-        });
+        memberDataList.unshift(app.globalData.userData);
 
         this.setData({ memberDataList });
       } catch (err) {
@@ -369,7 +396,7 @@ Component({
       }
     },
 
-    async updateMemberData(databaseRoomData: DatabaseRoomData, openid: string): Promise<void> {
+    async updateMemberData(openid: string): Promise<void> {
       try {
         const { result } = await wx.cloud.callFunction({
           name: 'P2_getUserDataList',
@@ -382,13 +409,11 @@ Component({
 
         const databaseUserData = result.data[0];
 
-        const memberData: MemberData = {
+        const memberData: UserData = {
           openid,
-          avatarSrc: '',
+          avatarSrc: databaseUserData.avatarFileID,
           avatarFileID: databaseUserData.avatarFileID,
           nickname: databaseUserData.nickname,
-          scores: databaseRoomData.scoresMap[openid],
-          roundScores: databaseRoomData.roundScoresMap[openid]
         }
 
         if (databaseUserData.avatarFileID) {  
@@ -433,12 +458,7 @@ Component({
           return {}
         }
 
-        const {
-          scores, roundScores,
-          ...nextPlayerData
-        } = this.data.memberDataList.find(memberData => memberData.openid === nextPlayer)!;
-        
-        return nextPlayerData
+        return this.data.memberDataList.find(memberData => memberData.openid === nextPlayer)!
       }) as [UserData | {}, UserData | {}, UserData | {}, UserData | {}];
 
       this.setData({ nextPlayerDataTuple });
@@ -447,17 +467,11 @@ Component({
     updateNextBackerDataMap(databaseRoomData: DatabaseRoomData): void {
       const nextBackerDataMap: Record<string, UserData[]> = Object.entries(databaseRoomData.nextBackerMap).reduce(
         (acc: Record<string, UserData[]>, [target, nextBackerList]) => {
-          const nextBackerDataList = nextBackerList.map(nextBacker => {
-            const {
-              scores, roundScores,
-              ...nextBackerData
-            } = this.data.memberDataList.find(memberData => memberData.openid === nextBacker)!;
-            
-            return nextBackerData
-          });
+          acc[target] = nextBackerList.map(
+            nextBacker => this.data.memberDataList.find(memberData => memberData.openid === nextBacker)!
+          );
           
-          acc[target] = nextBackerDataList;
-          return acc;
+          return acc
       }, {});
 
       this.setData({ nextBackerDataMap });
@@ -472,49 +486,76 @@ Component({
       this.setData({ isRandomBack });
     },
 
-    cacheRoomData(fieldList?: (keyof InformationPageRoomData)[]): void {
-      const cachedRoomData: RoomData = wx.getStorageSync('room') || {};
-      const currentRoomData: InformationPageRoomData = {
-        roomid: this.data.roomid,
-        qrCodeSrc: this.data.qrCodeSrc,
-        qrCodeFileID: this.data.qrCodeFileID,
-        createdAt: this.data.createdAt,
+    cacheUserDataMap(memberList: string[]): void {
+      try {
+        const cachedUserDataMap: Record<string, UserData> = wx.getStorageSync('userDataMap') || {};
 
-        gameConfig: this.data.gameConfig,
-
-        memberDataList: this.data.memberDataList,
-
-        isGamePlaying: this.data.isGamePlaying,
-
-        nextPlayerDataTuple: this.data.nextPlayerDataTuple,
-        nextBackerDataMap: this.data.nextBackerDataMap,
-        nextDealer: this.data.nextDealer,
-
-        isRandomBack: this.data.isRandomBack
-      };
-
-      if (cachedRoomData.roomid !== this.data.roomid) {
-        wx.setStorage({ key: 'room', data: currentRoomData }).catch(err => {
-          console.warn('缓存房间信息失败', err);
-        });
-      } else if (fieldList?.length) {
-        const updatedRoomData = Object.fromEntries(
-          fieldList.map(field => [field, currentRoomData[field]])
+        memberList.forEach(member => 
+          cachedUserDataMap[member] = this.data.memberDataList.find(memberData => memberData.openid === member)!
         );
 
-        wx.setStorage({
-          key: 'room',
-          data: { ...cachedRoomData, ...updatedRoomData }
-        }).catch(err => {
-          console.warn('缓存房间信息失败', err);
-        });
-      } else {
-        wx.setStorage({
-          key: 'room',
-          data: { ...cachedRoomData, ...currentRoomData }
-        }).catch(err => {
-          console.warn('缓存房间信息失败', err);
-        });
+        wx.setStorageSync('userDataMap', cachedUserDataMap);
+      } catch (err) {
+        console.warn('缓存用户信息失败', err);
+      }
+    },
+
+    cacheRoomData(databaseRoomData: DatabaseRoomData, fieldList?: (keyof InformationPageCachedRoomData)[]): void {
+      const cachedRoomData: CachedRoomData = wx.getStorageSync('room') || {};
+      const isReplace: boolean = cachedRoomData.roomid !== this.data.roomid;
+      const updatedRoomData: Partial<InformationPageCachedRoomData> = { roomid: this.data.roomid };
+
+      const need = (field: keyof InformationPageCachedRoomData): boolean => isReplace || !fieldList?.length || fieldList.includes(field);
+
+      if (need('qrCodeSrc')){
+        updatedRoomData.qrCodeSrc = this.data.qrCodeSrc;
+      }
+
+      if (need('qrCodeFileID')){
+        updatedRoomData.qrCodeFileID = databaseRoomData.qrCodeFileID;
+      }
+
+      if (need('createdAt')){
+        updatedRoomData.createdAt = databaseRoomData.createdAt;
+      }
+
+      if (need('gameConfig')){
+        updatedRoomData.gameConfig = databaseRoomData.gameConfig;
+      }
+
+      if (need('memberList')){
+        updatedRoomData.memberList = databaseRoomData.memberList.filter(member => member !== this.data.openid);
+        updatedRoomData.memberList.unshift(this.data.openid);
+      }
+
+      if (need('isGamePlaying')){
+        updatedRoomData.isGamePlaying = databaseRoomData.isGamePlaying;
+      }
+
+      if (need('nextPlayerTuple')){
+        updatedRoomData.nextPlayerTuple = databaseRoomData.nextPlayerTuple;
+      }
+
+      if (need('nextBackerMap')){
+        updatedRoomData.nextBackerMap = databaseRoomData.nextBackerMap;
+      }
+
+      if (need('nextDealer')){
+        updatedRoomData.nextDealer = databaseRoomData.nextDealer;
+      }
+
+      if (need('isRandomBack')){
+        updatedRoomData.isRandomBack = this.data.isRandomBack;
+      }
+
+      try {
+        if (isReplace) {
+          wx.setStorageSync('room', updatedRoomData);
+        } else {
+          wx.setStorageSync('room', { ...cachedRoomData, ...updatedRoomData });
+        }
+      } catch (err) {
+        console.warn('缓存房间信息失败', err);
       }
     },
 
@@ -710,12 +751,12 @@ Component({
           data: { roomid: this.data.roomid }
         }) as CallFunctionResult<null>;
 
-        if ([200, 201].includes(result.code)) {
-          app.globalData.currentRoomid = '';
-          this.closeSettle();
-        } else {
+        if (![200, 201].includes(result.code)) {
           throw result
         }
+        
+        app.globalData.currentRoomid = '';
+        this.closeSettle();
       } catch (err) {
         console.error('结算房间失败', err);
         wx.showToast({

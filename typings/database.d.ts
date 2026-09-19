@@ -6,8 +6,6 @@ interface DatabaseUserData {
   createdAt: string
 }
 
-type ClientDatabaseUserData = Omit<DatabaseUserData, 'createdAt'>
-
 interface DatabaseRoomData {
   /* 房间信息 */
   roomid: string,
