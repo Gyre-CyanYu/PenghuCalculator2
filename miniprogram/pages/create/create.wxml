@@ -1,3 +1,5 @@
+<view style="height: 16rpx;" />
+
 <view wx:for="{{configDataList}}" wx:key="name" class="card configCard">
   <view class="title">{{item.title}}</view>
   <view class="content">{{item.content}}</view>
@@ -11,7 +13,7 @@
   />
 </view>
 
-<view style="height: calc(112rpx + env(safe-area-inset-bottom));" />
+<view style="height: calc(16rpx + 112rpx + env(safe-area-inset-bottom));" />
 
 <view class="tabButtonWrapper">
   <t-button

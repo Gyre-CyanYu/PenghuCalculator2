@@ -37,10 +37,6 @@ Page({
     this.setData({ userData: app.globalData.userData });
   },
 
-  onReady() {
-
-  },
-
   onShow() {
     this.getTabBar().updateRoomid();
   },

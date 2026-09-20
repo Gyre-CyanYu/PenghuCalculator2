@@ -14,12 +14,12 @@
 
     <block wx:if="{{scores !== '' || roundScores !== ''}}">
       <view class="scoresWrapper">
-        <view class="{{scoresClass}} scoresText">总计</view>
+        <view class="{{scoresClass}} labelText">总计</view>
         <view class="{{scoresClass}}">: {{scores}}</view>
       </view>
 
       <view class="scoresWrapper">
-        <view class="{{scoresClass}} scoresText">本局</view>
+        <view class="{{scoresClass}} labelText">本局</view>
         <view class="{{scoresClass}}">: {{roundScores}}</view>
       </view>
     </block>

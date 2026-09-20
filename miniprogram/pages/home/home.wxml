@@ -35,6 +35,8 @@
   </block>
 </view>
 
+<view style="height: calc(32rpx + 112rpx + env(safe-area-inset-bottom));" />
+
 <t-dialog
   visible="{{joinVisible}}"
   title="加入房间"

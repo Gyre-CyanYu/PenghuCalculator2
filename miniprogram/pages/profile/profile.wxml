@@ -14,6 +14,10 @@
 
 <t-divider />
 
+<t-footer text="Copyright © 2025" />
+
+<view style="height: calc(32rpx + 112rpx + env(safe-area-inset-bottom));" />
+
 <t-dialog
   visible="{{editVisible}}"
   title="编辑资料"

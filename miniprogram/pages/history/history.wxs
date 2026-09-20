@@ -1,0 +1,10 @@
+function calculateMemberDataColumn(memberDataListLength) {
+  var row = Math.ceil(memberDataListLength / 4)
+  var column = Math.ceil(memberDataListLength / row)
+  
+  return column
+}
+
+module.exports = {
+  calculateMemberDataColumn: calculateMemberDataColumn
+};

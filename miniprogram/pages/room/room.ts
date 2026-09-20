@@ -161,10 +161,14 @@ Component({
       this.closeWatcher();
     },
 
-    onPullDownRefresh() {
+    async onPullDownRefresh() {
+      this.getTabBar().updateRoomid();
+
       if (this.data.roomid) {
-        this.watchRoomData();
+        await this.watchRoomData();
       }
+
+      wx.stopPullDownRefresh();
     },
 
     onShareAppMessage() {
@@ -815,6 +819,17 @@ Component({
     },
 
     async takeOperation(): Promise<void> {
+      const nextPlayerDataTuple = this.data.nextPlayerDataTuple.filter(nextPlayerData => 'openid' in nextPlayerData);
+
+      if (nextPlayerDataTuple.length !== 4) {
+        wx.showToast({
+          title: '上桌人数不足',
+          icon: 'none'
+        });
+
+        return
+      }
+
       const payer: string = this.data.selectedPlayer;
       const actionName = this.data.keyboardDisplay as OperationDisplay;
 
@@ -865,8 +880,8 @@ Component({
           round: this.data.round
         });
       } else {
-        this.data.nextPlayerDataTuple.filter(
-          nextPlayerData => 'openid' in nextPlayerData
+        nextPlayerDataTuple.filter(
+          nextPlayerData => nextPlayerData.openid !== this.data.openid
         ).forEach((nextPlayerData, index) => {
           tempActionGroup.payerList.push(nextPlayerData.openid);
           tempActionGroup.actionDataList.push({

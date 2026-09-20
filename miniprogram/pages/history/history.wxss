@@ -1,1 +1,29 @@
-/* pages/history/history.wxss */
+.historyCard {
+  display: flex;
+  flex-direction: column;
+  gap: 32rpx;
+  padding: 32rpx;
+  margin: 16rpx 32rpx;
+}
+
+.roomDataWrapper {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+}
+.gameConfigWrapper {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.memberDataGridWrapper {
+  display: grid;
+  row-gap: 16rpx;
+}
+.memberDataWrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}

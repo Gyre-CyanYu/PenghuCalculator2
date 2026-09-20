@@ -1,1 +1,32 @@
-<text>历史记录功能开发中</text>
+<wxs module="utils" src="./history.wxs" />
+
+<view style="height: 16rpx;" />
+
+<view wx:for="{{historyDataList}}" wx:key="roomid" class="card historyCard">
+  <view class="roomDataWrapper">
+    <view>
+      <view class="subtitle">{{item.createdAt}}</view>
+      <view class="content">房间{{item.roomid}}</view>
+    </view>
+    
+    <view class="gameConfigWrapper">
+      <t-tag theme="primary" variant="light">{{item.gameConfig.mode === 'addition' ? '加法' : '乘法'}}</t-tag>
+      <t-tag theme="warning">{{item.limit ? item.limit + '倍' : '连中'}}</t-tag>
+      <t-tag theme="primary">{{item.round}}局</t-tag>
+    </view>
+  </view>
+
+  <view style="grid-template-columns: repeat({{utils.calculateMemberDataColumn(item.memberDataList.length)}}, 1fr);" class="memberDataGridWrapper">
+    <view wx:for="{{item.memberDataList}}" wx:for-item="memberData" wx:key="openid" class="memberDataWrapper">
+      <user avatarSrc="{{memberData.avatarSrc}}" nickname="{{memberData.nickname}}" />
+      <view style="color: var(--td-{{item.scoresMap[memberData.openid] >= 0 ? 'success' : 'error'}}-color);" class="title">{{item.scoresMap[memberData.openid]}}</view>
+    </view>
+  </view>
+</view>
+
+<t-footer wx:if="{{!onLoad && !historyDataList.length}}" links="{{[
+  {name: '创建房间', url: '/pages/create/create', openType: 'navigate'},
+  {name: '加入房间', url: '/pages/home/home', openType: 'switchTab'}
+]}}" text="没有历史记录" />
+
+<view style="height: calc(16rpx + 112rpx + env(safe-area-inset-bottom));" />

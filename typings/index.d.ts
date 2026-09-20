@@ -73,7 +73,7 @@ interface HistoryData {
 
   gameConfig: GameConfig,
 
-  memberList: string[],
+  memberDataList: UserData[],
   scoresMap: Record<string, number>,
   
   round: number

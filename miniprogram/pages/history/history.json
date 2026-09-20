@@ -1,4 +1,6 @@
 {
   "navigationBarTitleText": "历史记录",
-  "usingComponents": {}
+  "usingComponents": {
+    "user": "../../components/user/index"
+  }
 }
