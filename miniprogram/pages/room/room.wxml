@@ -13,12 +13,12 @@
     />
   </block>
 
-  <image wx:else src="/images/PenghuCalculatorTitle.png" mode="aspectFit" class="image" />
+  <image wx:else src="/images/PenghuCalculatorTitle.jpg" mode="aspectFit" class="image" />
 </scroll-view>
 
 <scroll-view class="actionScroll" scroll-y 	scroll-into-view="{{bottomGroup}}" scroll-with-animation>
   <block wx:if="{{roomid}}">
-    <view wx:if="{{!round}}" class="actionScrollCard quickStartWrapper">
+    <view wx:if="{{!round && !onLoading}}" class="actionScrollCard quickStartWrapper">
       <view class="subtitle">快速加入</view>
 
       <view class="nextPlayerListWrapper">

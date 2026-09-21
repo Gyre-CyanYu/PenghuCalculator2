@@ -1,7 +1,8 @@
 .profileWrapper {
   display: grid;
   grid-template-columns: 1fr 2fr;
-  padding: 32rpx;
+  padding: 0 32rpx;
+  height: 30vh;
 }
 
 .avatarWrapper {
@@ -14,4 +15,17 @@
   flex-direction: column;
   justify-content: center;
   gap: 16rpx;
+}
+
+.profileCard {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  padding: 32rpx;
+  margin: 16rpx 32rpx;
+}
+.contentWrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }

@@ -38,6 +38,9 @@ interface RoomPageData {
 
   watcher: DB.RealtimeListener | null,
 
+  onLoading: boolean,
+  onRefreshing: boolean,
+
   seatTuple: SeatTuple,
   statusButtonDisabled: boolean,
 
@@ -78,6 +81,9 @@ Component({
     nextDealer: '',
     
     watcher: null,
+
+    onLoading: true,
+    onRefreshing: false,
 
     seatTuple: ['东', '南', '西', '北'],
     statusButtonDisabled: true,
@@ -147,6 +153,17 @@ Component({
     },
 
     onShow() {
+      if (this.data.roomid !== app.globalData.currentRoomid) {
+        this.setData({ onLoading: true });
+        wx.showLoading({
+          title: '加载中',
+          mask: true
+        });
+      } else {
+        this.setData({ onLoading: false });
+      }
+
+      wx.setKeepScreenOn({ keepScreenOn: true });
       wx.setNavigationBarTitle({ title: '房间' + app.globalData.currentRoomid });
       this.setData({ roomid: app.globalData.currentRoomid });
       this.getTabBar().updateRoomid();
@@ -154,21 +171,27 @@ Component({
       if (this.data.roomid) {
         this.getCachedData();
         this.watchRoomData();
+      } else {
+        this.setData({ onLoading: false });
+        wx.hideLoading();
       }
     },
 
     onHide() {
+      wx.setKeepScreenOn({ keepScreenOn: false });
       this.closeWatcher();
     },
 
-    async onPullDownRefresh() {
+    onPullDownRefresh() {
+      this.setData({ onRefreshing: true });
       this.getTabBar().updateRoomid();
 
       if (this.data.roomid) {
-        await this.watchRoomData();
+        this.watchRoomData();
+      } else {
+        this.setData({ onRefreshing: false });
+        wx.stopPullDownRefresh();
       }
-
-      wx.stopPullDownRefresh();
     },
 
     onShareAppMessage() {
@@ -179,7 +202,7 @@ Component({
       }
 
       if (this.data.roomid && this.data.isGamePlaying !== -1) {
-        shareData.title += `房间：${ this.data.roomid }`;
+        shareData.title = `${app.globalData.userData.nickname}分享了房间${ this.data.roomid }`;
         shareData.path += `?roomid=${ this.data.roomid }`;
       }
 
@@ -371,10 +394,31 @@ Component({
                 this.cacheRoomData(databaseRoomData, ['nextDealer']);
               }
             }
+
+            if (this.data.onLoading) {
+              this.setData({ onLoading: false });
+              wx.hideLoading();
+            }
+
+            if (this.data.onRefreshing) {
+              this.setData({ onRefreshing: false });
+              wx.stopPullDownRefresh();
+            }
           },
 
           onError: (err) => {
             console.warn('监听错误', err);
+
+            if (this.data.onLoading) {
+              this.setData({ onLoading: false });
+              wx.hideLoading();
+            }
+
+            if (this.data.onRefreshing) {
+              this.setData({ onRefreshing: false });
+              wx.stopPullDownRefresh();
+            }
+
             wx.showToast({
               title: '加载异常，请刷新重试',
               icon: 'none'
@@ -385,6 +429,17 @@ Component({
         this.setData({ watcher });
       } catch (err) {
         console.error('开启监听器错误', err);
+
+        if (this.data.onLoading) {
+          this.setData({ onLoading: false });
+          wx.hideLoading();
+        }
+
+        if (this.data.onRefreshing) {
+          this.setData({ onRefreshing: false });
+          wx.stopPullDownRefresh();
+        }
+
         wx.showToast({
           title: '加载失败，请刷新重试',
           icon: 'none'

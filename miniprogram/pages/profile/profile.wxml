@@ -12,9 +12,36 @@
   </view>
 </view>
 
-<t-divider />
+<t-divider style="--td-divider-horizontal-margin: 0;" />
 
-<t-footer text="Copyright © 2025" />
+<view style="height: 16rpx;" />
+
+<view class="card profileCard">
+  <view class="title">版本信息</view>
+  <view class="contentWrapper">
+    <view class="content">{{envVersion}}</view>
+    <view class="content">{{version}}</view>
+  </view>
+</view>
+
+<view class="card profileCard">
+  <view class="title">开源仓库</view>
+  <view class="contentWrapper">
+    <view class="content">点击复制链接</view>
+
+    <t-link
+      bind:complete="handleCopyLink"
+      prefix-icon="logo-github"
+      content="PenghuCalculator2"
+      navigatorProps="{{ {url: '/pages/profile/profile', openType: 'switchTab'} }}"
+      hover
+      theme="primary"
+      size="large"
+    />
+  </view>
+</view>
+
+<t-footer text="Copyright © 2026 CyanYu. All Rights Reserved." />
 
 <view style="height: calc(32rpx + 112rpx + env(safe-area-inset-bottom));" />
 

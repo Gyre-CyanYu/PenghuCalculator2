@@ -39,6 +39,8 @@ interface InformationPageData {
 
   watcher: DB.RealtimeListener | null,
 
+  onRefreshing: boolean,
+
   seatDataList: SeatData[],
 
   seatLock: boolean,
@@ -88,6 +90,8 @@ Component({
     isRandomBack: false,
 
     watcher: null,
+
+    onRefreshing: false,
 
     seatDataList: [
       { label: 5, seat: '西鸟' },
@@ -159,14 +163,17 @@ Component({
     },
 
     onShow() {
+      wx.setKeepScreenOn({ keepScreenOn: true });
       this.watchRoomData();
     },
 
     onHide() {
+      wx.setKeepScreenOn({ keepScreenOn: false });
       this.closeWatcher();
     },
 
     onPullDownRefresh() {
+      this.setData({ onRefreshing: true });
       this.watchRoomData();
     },
 
@@ -178,7 +185,7 @@ Component({
       }
 
       if (this.data.isGamePlaying !== -1) {
-        shareData.title += `房间：${ this.data.roomid }`;
+        shareData.title = `${app.globalData.userData.nickname}分享了房间${ this.data.roomid }`;
         shareData.path += `?roomid=${ this.data.roomid }`;
       }
 
@@ -316,10 +323,21 @@ Component({
                 this.cacheRoomData(databaseRoomData, ['isRandomBack']);
               }
             }
+
+            if (this.data.onRefreshing) {
+              this.setData({ onRefreshing: false });
+              wx.stopPullDownRefresh();
+            }
           },
 
           onError: (err) => {
             console.warn('监听错误', err);
+
+            if (this.data.onRefreshing) {
+              this.setData({ onRefreshing: false });
+              wx.stopPullDownRefresh();
+            }
+
             wx.showToast({
               title: '加载异常，请刷新重试',
               icon: 'none'
@@ -330,6 +348,12 @@ Component({
         this.setData({ watcher });
       } catch (err) {
         console.error('开启监听器错误', err);
+
+        if (this.data.onRefreshing) {
+          this.setData({ onRefreshing: false });
+          wx.stopPullDownRefresh();
+        }
+
         wx.showToast({
           title: '加载失败，请刷新重试',
           icon: 'none'

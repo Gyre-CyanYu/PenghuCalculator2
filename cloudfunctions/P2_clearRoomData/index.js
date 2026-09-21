@@ -23,12 +23,8 @@ exports.main = async () => {
       (async () => {
         if (isGamePlaying !== -1) {
           const { result } = await cloud.callFunction({
-            name: 'recordAction',
-            data: {
-              roomid,
-              func: 'settleGame',
-              param: {}
-            }
+            name: 'P2_settleRoom',
+            data: { roomid }
           });
 
           if (![200, 201].includes(result.code)) {
@@ -37,10 +33,10 @@ exports.main = async () => {
         }
 
         await db.collection('rooms').where({ roomid }).remove();
-        return true;
+        return true
       })().catch(err => {
         console.warn(`结算房间${roomid}时发生错误`, err);
-        return false;
+        return false
       })
     ));
 

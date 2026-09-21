@@ -4,15 +4,18 @@ const app = getApp<IAppOption>();
 export {};
 
 interface ProfilePageData {
-  userData: UserData;
+  userData: UserData,
 
-  choosedAvatarUrl: string;
-  nicknameInput: string;
-  progress: number;
+  choosedAvatarUrl: string,
+  nicknameInput: string,
+  progress: number,
 
-  editVisible: boolean;
-  editButtonLoading: boolean;
-  inputWarning: boolean;
+  editVisible: boolean,
+  editButtonLoading: boolean,
+  inputWarning: boolean,
+
+  envVersion: string,
+  version: string
 }
 
 Page({
@@ -31,9 +34,13 @@ Page({
     editVisible: false,
     editButtonLoading: false,
     inputWarning: false,
+
+    envVersion: '',
+    version: ''
   } as ProfilePageData,
 
   onLoad() {
+    this.getVersionData();
     this.setData({ userData: app.globalData.userData });
   },
 
@@ -56,6 +63,17 @@ Page({
       path: '/pages/home/home',
       imageUrl: '/images/PenghuCalculator5_4.jpg'
     }
+  },
+
+  getVersionData(): void {
+    const envMap = {
+      develop: '开发版',
+      trial: '体验版',
+      release: '正式版'
+    };
+
+    const { miniProgram: { envVersion, version } } = wx.getAccountInfoSync();
+    this.setData({ envVersion: envMap[envVersion], version });
   },
 
   async handleUpdate(): Promise<void> {
@@ -162,6 +180,10 @@ Page({
     } else if (this.data.inputWarning && this.data.nicknameInput.length <= 4) {
       this.setData({ inputWarning: false });
     }
+  },
+
+  handleCopyLink(): void {
+    wx.setClipboardData({ data: 'https://github.com/Gyre-CyanYu/PenghuCalculator2' });
   },
 
   showEdit(): void {

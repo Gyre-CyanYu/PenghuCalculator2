@@ -3,13 +3,13 @@ import storage from '../../utils/storage';
 
 interface HistoryPageData {
   historyDataList: HistoryData[],
-  onLoad: boolean
+  onLoading: boolean
 }
 
 Page({
   data: {
     historyDataList: [],
-    onLoad: true
+    onLoading: true
   } as HistoryPageData,
 
   onLoad() {
@@ -23,8 +23,8 @@ Page({
     this.getTabBar().updateRoomid();
     await this.getHistoryDataList();
 
-    if (this.data.onLoad) {
-      this.setData({ onLoad: false });
+    if (this.data.onLoading) {
+      this.setData({ onLoading: false });
       wx.hideLoading();
     }
   },
@@ -50,6 +50,7 @@ Page({
       }) as CallFunctionResult<ClientDatabaseHistoryData[]>;
 
       if (result.code === 204) {
+        this.setData({ historyDataList: [] });
         return
       } else if (result.code !== 200) {
         throw result

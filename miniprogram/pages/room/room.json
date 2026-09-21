@@ -2,6 +2,8 @@
   "disableScroll": true,
   "usingComponents": {
     "user": "../../components/user/index",
-    "action-card": "../../components/action-card/index"
+    "action-card": "../../components/action-card/index",
+    "t-fab": "tdesign-miniprogram/fab/fab",
+    "t-popup": "tdesign-miniprogram/popup/popup"
   }
 }

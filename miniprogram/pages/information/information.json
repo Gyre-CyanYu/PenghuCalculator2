@@ -1,5 +1,9 @@
 {
   "usingComponents": {
-    "user": "../../components/user/index"
+    "user": "../../components/user/index",
+    "t-icon": "tdesign-miniprogram/icon/icon",
+    "t-switch": "tdesign-miniprogram/switch/switch",
+    "t-count-down": "tdesign-miniprogram/count-down/count-down",
+    "t-image": "tdesign-miniprogram/image/image"
   }
 }

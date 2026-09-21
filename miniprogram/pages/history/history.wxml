@@ -24,7 +24,7 @@
   </view>
 </view>
 
-<t-footer wx:if="{{!onLoad && !historyDataList.length}}" links="{{[
+<t-footer wx:if="{{!onLoading && !historyDataList.length}}" links="{{[
   {name: '创建房间', url: '/pages/create/create', openType: 'navigate'},
   {name: '加入房间', url: '/pages/home/home', openType: 'switchTab'}
 ]}}" text="没有历史记录" />
