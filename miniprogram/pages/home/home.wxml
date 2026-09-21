@@ -1,5 +1,5 @@
 <view class="wrapper imageWrapper">
-  <image src="/images/PenghuCalculatorTitle.jpg" mode="aspectFit" />
+  <image src="/images/PenghuCalculatorTitle.png" mode="aspectFit" />
 </view>
 
 <view class="wrapper buttonWrapper">

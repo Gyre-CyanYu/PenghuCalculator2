@@ -13,12 +13,12 @@
     />
   </block>
 
-  <image wx:else src="/images/PenghuCalculatorTitle.jpg" mode="aspectFit" class="image" />
+  <image wx:else src="/images/PenghuCalculatorTitle.png" mode="aspectFit" class="image" />
 </scroll-view>
 
 <scroll-view class="actionScroll" scroll-y 	scroll-into-view="{{bottomGroup}}" scroll-with-animation>
   <block wx:if="{{roomid}}">
-    <view wx:if="{{!round && !onLoading}}" class="actionScrollCard quickStartWrapper">
+    <view wx:if="{{isGamePlaying !== -1 && !round && !onLoading}}" class="actionScrollCard quickStartWrapper">
       <view class="subtitle">快速加入</view>
 
       <view class="nextPlayerListWrapper">
@@ -64,7 +64,7 @@
   ]}}" text="还没有加入房间" class="footer" />
 </scroll-view>
 
-<t-fab wx:if="{{roomid}}" style="bottom: 20vh;">
+<t-fab wx:if="{{roomid && isGamePlaying !== -1}}" style="bottom: 20vh;">
   <view class="fabWrapper">
     <t-button bind:tap="navigateToInformation" icon="app" theme="primary" shape="circle" size="large" />
     <t-button bind:tap="showKeyboard" icon="add" theme="primary" shape="circle" size="large" />
