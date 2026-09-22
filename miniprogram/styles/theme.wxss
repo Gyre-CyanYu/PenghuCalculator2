@@ -48,6 +48,8 @@ page {
   --td-text-color-link: var(--td-brand-color);
 
   --td-divider-color: var(--td-border-color);
+  --td-avatar-bg-color: var(--td-brand-color-light);
+  --td-avatar-content-color: var(--td-brand-color);
 
   --shadow: 0 4rpx 16rpx rgba(14,14,13,0.1);
 }

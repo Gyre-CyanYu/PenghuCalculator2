@@ -51,8 +51,8 @@ Page({
 
         optionList: [
           {value: 0, label: '连中'},
-          {value: 4, label: '四庄'},
-          {value: 8, label: '八庄'}
+          {value: 4, label: '4庄'},
+          {value: 8, label: '8庄'}
         ],
 
         title: '连庄上限',

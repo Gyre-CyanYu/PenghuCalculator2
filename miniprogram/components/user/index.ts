@@ -14,5 +14,22 @@ Component({
     width: { type: String },
     nicknameClass: { type: String, value: 'subtitle' },
     scoresClass: { type: String, value: 'content' }
+  },
+
+  data: {
+    maxWidth: ''
+  },
+
+  lifetimes: {
+    /* ready() {
+      this.createSelectorQuery().select('.userWrapper').boundingClientRect(res => {
+        if (res.width) {
+          const maxWidth = res.width + 'px';
+          this.setData({ maxWidth });
+        } else if (this.properties.width) {
+          this.setData({ maxWidth: this.properties.width });
+        }
+      }).exec();
+    } */
   }
 })

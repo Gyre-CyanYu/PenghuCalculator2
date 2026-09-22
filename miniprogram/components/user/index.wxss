@@ -21,6 +21,13 @@
   text-overflow: ellipsis;
 }
 
+.groupNicknameText {
+  max-width: 5em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .labelText {
   text-align: end;
 }

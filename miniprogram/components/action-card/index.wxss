@@ -11,6 +11,12 @@
   gap: 32rpx;
   padding: 32rpx;
 }
+.accentActionCard {
+  background-color: var(--td-brand-color-light);
+}
+.mutedActionCard {
+  background-color: var(--td-bg-color-component);
+}
 
 .actionGroupWrapper {
   display: flex;

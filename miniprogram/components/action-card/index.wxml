@@ -30,7 +30,7 @@
       bind:tap="toggleActionGroup"
       bind:longpress="showPopover"
       style="width: {{width}};"
-      class="card actionCard t-popover-wrapper--fixed"
+      class="card actionCard t-popover-wrapper--fixed {{isUndo ? 'mutedActionCard' : (mainAction.name === '支出分值' ? 'accentActionCard' : '')}}"
     >
       <action
         payerAvatarSrc="{{mainAction.payerData.avatarSrc || ''}}"

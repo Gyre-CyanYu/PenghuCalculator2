@@ -11,7 +11,7 @@
     
     <view class="gameConfigWrapper">
       <t-tag theme="primary" variant="light">{{item.gameConfig.mode === 'addition' ? '加法' : '乘法'}}</t-tag>
-      <t-tag theme="warning">{{item.limit ? item.limit + '倍' : '连中'}}</t-tag>
+      <t-tag theme="warning">{{item.gameConfig.limit ? item.gameConfig.limit + '庄' : '连中'}}</t-tag>
       <t-tag theme="primary">{{item.round}}局</t-tag>
     </view>
   </view>

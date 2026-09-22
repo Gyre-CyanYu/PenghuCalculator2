@@ -1,6 +1,11 @@
 <view class="profileWrapper">
   <view class="avatarWrapper">
-    <t-avatar image="{{userData.avatarSrc}}" icon="user" size="192rpx" />
+    <t-avatar
+      image="{{userData.avatarSrc}}"
+      icon="{{userData.nickname ? '' : 'user'}}"
+      style="font-weight: bold;"
+      size="192rpx"
+    >{{userData.nickname[0]}}</t-avatar>
   </view>
 
   <view class="informationWrapper">
@@ -62,7 +67,6 @@
     style="border: none; margin-top: 16rpx;"
   >
     <t-avatar
-      slot="content"
       image="{{choosedAvatarUrl}}"
       icon="add"
       size="large"

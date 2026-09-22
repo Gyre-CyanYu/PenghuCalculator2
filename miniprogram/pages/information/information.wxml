@@ -138,7 +138,7 @@
 
       <scroll-view class="gameConfigScroll" scroll-x>
         <t-tag t-class="gameConfigTag" variant="light" size="large" theme="{{gameConfig.mode === 'addition' ? 'success' : 'primary'}}">{{gameConfig.mode === 'addition' ? '加法' : '乘法'}}</t-tag>
-        <t-tag t-class="gameConfigTag" variant="light" size="large" theme="{{gameConfig.limit ? 'success' : 'primary'}}">{{gameConfig.limit ? gameConfig.limit + '倍' : '连中'}}</t-tag>
+        <t-tag t-class="gameConfigTag" variant="light" size="large" theme="{{gameConfig.limit ? 'success' : 'primary'}}">{{gameConfig.limit ? gameConfig.limit + '庄' : '连中'}}</t-tag>
         <t-tag t-class="gameConfigTag" variant="light" size="large" theme="{{gameConfig.fiveTriWinConsiderHoldDealer ? 'success' : 'primary'}}">五福{{gameConfig.fiveTriWinConsiderHoldDealer ? '' : '不'}}考虑连庄</t-tag>
         <t-tag t-class="gameConfigTag" variant="light" size="large" theme="{{gameConfig.heavenWinConsiderHoldDealer ? 'success' : 'primary'}}">天胡{{gameConfig.heavenWinConsiderHoldDealer ? '' : '不'}}考虑连庄</t-tag>
       </scroll-view>

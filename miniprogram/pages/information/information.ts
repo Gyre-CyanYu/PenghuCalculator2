@@ -140,6 +140,7 @@ Component({
       );
 
       this.setData({ isNextPlayer });
+      this.handleAutoRotate();
     },
 
     'nextBackerDataMap': function (): void {
@@ -148,6 +149,7 @@ Component({
       ) ?? '';
 
       this.setData({ backedPlayer });
+      this.handleAutoRotate();
     }
   },
 
@@ -796,7 +798,7 @@ Component({
       this.setData({ directionLock: !this.data.directionLock });
     },
 
-    rotateDirection(offset: number): void {
+    rotateDirection(offset: 0 | 1 | 2 | 3): void {
       const seatDataList: SeatData[] = [];
 
       this.data.seatDataList.forEach((seatData, index) => {
@@ -820,11 +822,33 @@ Component({
     },
 
     handleRotate(e: WechatMiniprogram.BaseEvent): void {
-      const offset: number = e.currentTarget.dataset.offset;
+      const offset: 1 | 3 = e.currentTarget.dataset.offset;
 
       if (!this.data.directionLock) {
         this.rotateDirection(offset);
       }
+    },
+
+    handleAutoRotate(): void {
+      if (this.data.directionLock) {
+        return
+      }
+
+      let target = this.data.backedPlayer;
+
+      if (this.data.isNextPlayer) {
+        target = this.data.openid;
+      }
+
+      if (!target) {
+        return
+      }
+
+      const currentSeat: number = this.data.nextPlayerDataTuple.findIndex(nextPlayerData => 'openid' in nextPlayerData && nextPlayerData.openid === target);
+      const currentDirection: number = this.data.seatDataList.findIndex(seatData => seatData.label === currentSeat);
+      const offset = (6 - [1, 3, 7, 5].findIndex(direction => direction === currentDirection)) % 4 as 0 | 1 | 2 | 3;
+
+      this.rotateDirection(offset);
     },
 
     handlePlayerSelect(e: WechatMiniprogram.BaseEvent): void {
