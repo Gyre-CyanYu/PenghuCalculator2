@@ -4,6 +4,8 @@
 
 “碰胡”是流行于湖南株洲及周边地区的一种字牌玩法。一局之中每发生一次碰、扫、坎、跑、提、蛇或胡牌都要记分，而分值又随刻子组数与庄家连庄次数变化，用~~纸笔~~大脑记录既~~费时~~费token又容易算错。本项目把规则固化进程序，玩家只需在手机上点出实际发生的操作，分值由系统按统一口径算出，并同步给同房间的所有参与者。
 
+<img src="https://github.com/user-attachments/assets/35d5a3e1-8ba6-42d3-bc30-7ba7fd086a42" width="256">
+
 > 本软件已向中国版权保护中心完成计算机软件著作权登记。使用前请阅读 [LICENSE](LICENSE)。
 
 ## 功能概览
@@ -17,13 +19,13 @@
 
 ## 技术栈与依赖
 
-| 层 | 说明 |
-| --- | --- |
-| 客户端 | 微信小程序（TypeScript + WXML + WXSS + WXS） |
-| 服务端 | 微信云开发（云函数 + 云数据库 + 云存储） |
-| 组件库 | [TDesign 小程序组件库](https://tdesign.tencent.com/miniprogram) [tdesign-miniprogram](https://github.com/Tencent/tdesign-miniprogram) `^1.16.0`（MIT） |
-| 云函数 SDK | `wx-server-sdk` |
-| 基础库 | 3.15.2（云开发要求 2.2.3 以上） |
+| 层         | 说明                                                                                                                                                   |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 客户端     | 微信小程序（TypeScript + WXML + WXSS + WXS）                                                                                                           |
+| 服务端     | 微信云开发（云函数 + 云数据库 + 云存储）                                                                                                               |
+| 组件库     | [TDesign 小程序组件库](https://tdesign.tencent.com/miniprogram) [tdesign-miniprogram](https://github.com/Tencent/tdesign-miniprogram) `^1.16.0`（MIT） |
+| 云函数 SDK | `wx-server-sdk`                                                                                                                                      |
+| 基础库     | 3.15.2（云开发要求 2.2.3 以上）                                                                                                                        |
 
 ## 目录结构
 
@@ -99,6 +101,7 @@ const envList = [{
 
 module.exports = { envList };
 ```
+
 3. 在 `miniprogram/app.ts` 中把 `globalData.env` 填成同一个环境 ID（不填也行，空字符串时微信开发者工具会使用默认环境）。
 
 ### 6. 部署云函数
@@ -117,12 +120,12 @@ module.exports = { envList };
 
 在云开发控制台的数据库中新建以下 4 个集合。集合只需创建，字段结构由代码写入时自动形成：
 
-| 集合 | 用途 |
-| --- | --- |
-| `rooms` | 进行中的房间 |
+| 集合          | 用途             |
+| ------------- | ---------------- |
+| `rooms`     | 进行中的房间     |
 | `histories` | 已结算房间的战绩 |
-| `users` | 用户资料 |
-| `notices` | 首页公告 |
+| `users`     | 用户资料         |
+| `notices`   | 首页公告         |
 
 ### 8. 运行
 
