@@ -71,6 +71,12 @@ cd PenghuCalculator2
 
 > 仓库中的 `project.config.json` 携带的 AppID 务必换成你自己的，否则无法使用云开发能力。
 
+```json
+{
+  "appid": "你的AppID"
+}
+```
+
 ### 4. 安装前端依赖并构建 npm
 
 ```bash
@@ -85,14 +91,14 @@ npm i tdesign-miniprogram -S --production
 1. 在开发者工具中点击顶部 **云开发** 按钮，开通云开发并记下环境 ID。
 2. 在 `miniprogram/` 下新建 `envList.js` ：
 
-   ```js
-   const envList = [{
-     envId: '你的云环境ID',
-     alias: '你的云环境ID'
-   }];
+```js
+const envList = [{
+  envId: '你的云环境ID',
+  alias: '你的云环境ID'
+}];
 
-   module.exports = { envList };
-   ```
+module.exports = { envList };
+```
 3. 在 `miniprogram/app.ts` 中把 `globalData.env` 填成同一个环境 ID（不填也行，空字符串时微信开发者工具会使用默认环境）。
 
 ### 6. 部署云函数
