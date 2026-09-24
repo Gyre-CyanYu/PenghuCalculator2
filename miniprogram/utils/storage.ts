@@ -28,10 +28,10 @@ async function cacheImage(fileID: string, currentUrl: string, cachedSrc?: string
   
   try {
     const { tempFilePath } = await wx.cloud.downloadFile({ fileID });
-    const savedFilePath: string = `${dirPath}/${id}.jpg`;
+    const savedFilePath: string = `${dirPath}/${id}.jpg?t=${timestamp}`;
     fs.saveFileSync(tempFilePath, savedFilePath);
 
-    return savedFilePath + '?t=' + timestamp
+    return savedFilePath
   } catch (err) {
     console.error(`下载${imageType}图像${id}失败`, err);
     return fileID
